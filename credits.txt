@@ -1,0 +1,53 @@
+LCD-Pico: LCD Display Controller
+Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
+https://kokkonen.net/lcd-pico
+
+This program comes with ABSOLUTELY NO WARRANTY.
+
+This is free software: you can redistribute it and/or modify it under
+the terms of GNU General Public License, either version 3 of the License,
+or (at your option) any later version.
+
+
+Libraries used in LCD-Pico:
+
+pico-sdk
+Copyright 2020 (c) 2020 Raspberry Pi (Trading) Ltd.
+https://github.com/raspberrypi/pico-sdk
+
+cJSON
+Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
+https://github.com/DaveGamble/cJSON
+
+pico-lfs
+Copyright (c) 2024 Timo Kokkonen
+https://github.com/tjko/pico-lfs
+
+The little filesystem
+Copyright (c) 2022, The littlefs authors.
+Copyright (c) 2017, Arm Limited. All rights reserved.
+https://github.com/littlefs-project/littlefs
+
+libb64
+Created by Chris Venter
+https://github.com/libb64/libb64
+
+pico-telnetd
+Copryight (c) 2024 Timo Kokkonen
+https://github.com/tjko/pico-telnetd
+
+pico-sensor-lib
+Copryight (c) 2024 Timo Kokkonen
+https://github.com/tjko/pico-sensor-lib
+
+pico-sshd
+Copryight (c) 2025 Timo Kokkonen
+https://github.com/tjko/pico-sshd
+
+wolfssl
+Copyright (C) 2006-2025 wolfSSL Inc.
+https://github.com/wolfSSL/wolfssl
+
+wolfssh
+Copyright (C) 2014-2024 wolfSSL Inc.
+https://github.com/wolfSSL/wolfssh

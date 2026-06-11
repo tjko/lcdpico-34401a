@@ -1,0 +1,19 @@
+
+#ifndef LCDPICO_CONFIG_H
+#define LCDPICO_CONFIG_H 1
+
+#define LCDPICO_VERSION         "@firmware_VERSION@"
+#define LCDPICO_VERSION_MAJOR   "@firmware_VERSION_MAJOR@"
+#define LCDPICO_VERSION_MINOR   "@firmware_VERSION_MINOR@"
+
+#include "boards/@LCDPICO_BOARD@.h"
+#define LCDPICO_BOARD            "@LCDPICO_BOARD@"
+#define LCDPICO_DEFAULT_CONFIG   "boards/@LCDPICO_BOARD@.json"
+
+#define LCDPICO_BUILD_TAG        "@LCDPICO_BUILD@"
+
+
+
+#include "lcd-pico-compile.h"
+
+#endif /* LCDPICO_CONFIG_H */
