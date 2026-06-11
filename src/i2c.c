@@ -67,7 +67,7 @@ void scan_i2c_bus()
 
 void display_i2c_status()
 {
-	printf("%d\n", i2c_bus_active ? 1 : 0);
+	printf("%s\n", i2c_bus_active ? "ON" : "OFF");
 }
 
 
@@ -76,10 +76,10 @@ void setup_i2c_bus(struct fanpico_config *config)
 	int res;
 	uint baudrate;
 
-	i2c_bus_active = false;
 #if SDA_PIN >= 0
-	if (!SPI_SHARED || !config->spi_active)
-		i2c_bus_active = true;
+	i2c_bus_active = true;
+#else
+	i2c_bus_active = false;
 #endif
 
 	if (!i2c_bus_active) {
@@ -89,7 +89,7 @@ void setup_i2c_bus(struct fanpico_config *config)
 
 	log_msg(LOG_INFO, "Initializing I2C Bus..");
 
-	i2c_bus = (I2C_HW > 1 ? i2c1 : i2c0);
+	i2c_bus = (I2C_HW > 0 ? i2c1 : i2c0);
 	baudrate = i2c_init(i2c_bus, config->i2c_speed);
 	baudrate /= 1000;
 	i2c_sensor_baudrate(baudrate);

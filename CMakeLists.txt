@@ -161,6 +161,7 @@ target_link_libraries(firmware PRIVATE
   hardware_pio
   hardware_adc
   hardware_i2c
+  hardware_spi
   pico-lfs
   cJSON
   libb64

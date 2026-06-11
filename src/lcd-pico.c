@@ -35,6 +35,7 @@
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
+#include "hardware/spi.h"
 #include "hardware/clocks.h"
 #include "hardware/watchdog.h"
 #include "hardware/vreg.h"
@@ -192,7 +193,7 @@ static void setup()
 
 #if TTL_SERIAL
 	/* Initialize serial console if configured... */
-	if(cfg->serial_active && (!cfg->spi_active || !SPI_SHARED)) {
+	if(cfg->serial_active) {
 		stdio_uart_init_full(TTL_SERIAL_UART,
 				TTL_SERIAL_SPEED, TX_PIN, RX_PIN);
 	}
@@ -276,6 +277,33 @@ static void setup()
 		gpio_put(LED_PIN, 0);
 #endif
 	}
+
+
+	log_msg(LOG_NOTICE, "Initialize SPI...");
+
+	/* LCD SPI interface */
+	gpio_init(LCD_CS_PIN);
+	gpio_set_dir(LCD_CS_PIN, GPIO_OUT);
+	gpio_put(LCD_CS_PIN, 1);
+
+	spi_init(LCD_SPI_HW, 1000000);
+	spi_set_format(LCD_SPI_HW, 8, 1, 1, SPI_MSB_FIRST);
+	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
+	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
+	if (LCD_MISO_PIN > 0) {
+		gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
+	}
+
+	/* Display Controller SPI interface */
+	gpio_init(LCM_CS_PIN);
+	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
+	gpio_put(LCM_CS_PIN, 1);
+	spi_init(LCM_SPI_HW, 1000000);
+	spi_set_format(LCM_SPI_HW, 8, 1, 1, SPI_MSB_FIRST);
+	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
+	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);
+	gpio_set_function(LCM_MISO_PIN, GPIO_FUNC_SPI);
+
 
 	log_msg(LOG_NOTICE, "System initialization complete.");
 }
