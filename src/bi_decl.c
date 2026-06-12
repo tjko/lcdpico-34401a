@@ -3,20 +3,20 @@
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of Lcdpico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   Lcdpico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   Lcdpico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with Lcdpico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "pico/stdlib.h"
@@ -61,13 +61,38 @@ void set_binary_info(struct fanpico_fw_settings *settings)
 #endif
 
 #if TX_PIN >= 0
-	bi_decl(bi_1pin_with_name(TX_PIN, "TX (Serial) / MISO (SPI)"));
-	bi_decl(bi_1pin_with_name(RX_PIN, "RX (Serial) / CS (SPI)"));
+	bi_decl(bi_1pin_with_name(TX_PIN, "TTL Serial: TX"));
+	bi_decl(bi_1pin_with_name(RX_PIN, "TTL Serial: RX"));
 #endif
 #if SDA_PIN >= 0
-	bi_decl(bi_1pin_with_name(SDA_PIN, "SDA (I2C) / SCK (SPI)"));
-	bi_decl(bi_1pin_with_name(SCL_PIN, "SCL (I2C) / MOSI (SPI)"));
+	bi_decl(bi_1pin_with_name(SDA_PIN, "I2C: SDA"));
+	bi_decl(bi_1pin_with_name(SCL_PIN, "I2C: SCL"));
 #endif
+
+#if LCD_CS_PIN >= 0
+	bi_decl(bi_1pin_with_name(LCD_CS_PIN, "LCD SPI: CS"));
+	bi_decl(bi_1pin_with_name(LCD_CLK_PIN, "LCD SPI: SCK"));
+	bi_decl(bi_1pin_with_name(LCD_MOSI_PIN, "LCD SPI: TX"));
+#if LCD_MISO_PIN >= 0
+	bi_decl(bi_1pin_with_name(LCD_MISO_PIN, "LCD SPI: RX"));
+#endif
+#endif
+
+#if LCM_CS_PIN >= 0
+	bi_decl(bi_1pin_with_name(LCM_CS_PIN, "LCM SPI: CS"));
+	bi_decl(bi_1pin_with_name(LCM_CLK_PIN, "LCM SPI: SCK"));
+	bi_decl(bi_1pin_with_name(LCM_MOSI_PIN, "LCM SPI: TX"));
+	bi_decl(bi_1pin_with_name(LCM_MISO_PIN, "LCM SPI: RX"));
+	bi_decl(bi_1pin_with_name(LCM_RESET_PIN, "LCM Reset"));
+	bi_decl(bi_1pin_with_name(LCM_INT_PIN, "LCM Interrupt"));
+	bi_decl(bi_1pin_with_name(LCM_BL_PIN, "LCM Backlight (PWM)"));
+#endif
+
+	bi_decl(bi_1pin_with_name(DO_PIN, "DO"));
+	bi_decl(bi_1pin_with_name(DI_PIN, "DI"));
+	bi_decl(bi_1pin_with_name(SCK_PIN, "SCK"));
+	bi_decl(bi_1pin_with_name(INT_PIN, "INT"));
+	bi_decl(bi_1pin_with_name(RST_PIN, "RST"));
 
 }
 

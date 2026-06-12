@@ -42,7 +42,7 @@
 
 #include "lcd-pico.h"
 #include "command_util.h"
-
+#include "lt7680.h"
 
 
 #ifdef FANPICO_PSRAM_PIN
@@ -287,23 +287,44 @@ static void setup()
 	gpio_put(LCD_CS_PIN, 1);
 
 	spi_init(LCD_SPI_HW, 1000000);
-	spi_set_format(LCD_SPI_HW, 8, 1, 1, SPI_MSB_FIRST);
+	spi_set_format(LCD_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
 	if (LCD_MISO_PIN > 0) {
 		gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
 	}
 
-	/* Display Controller SPI interface */
+	/* LT7680 Graphics Controller SPI interface */
 	gpio_init(LCM_CS_PIN);
 	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
 	gpio_put(LCM_CS_PIN, 1);
-	spi_init(LCM_SPI_HW, 1000000);
-	spi_set_format(LCM_SPI_HW, 8, 1, 1, SPI_MSB_FIRST);
+	spi_init(LCM_SPI_HW, 8000000);
+	spi_set_format(LCM_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MISO_PIN, GPIO_FUNC_SPI);
 
+	gpio_init(LCM_BL_PIN);
+	gpio_set_dir(LCM_BL_PIN, GPIO_OUT);
+	gpio_put(LCM_BL_PIN, 0);
+
+	gpio_init(LCM_INT_PIN);
+	gpio_set_dir(LCM_INT_PIN, GPIO_IN);
+
+
+
+	log_msg(LOG_NOTICE, "Initialize GPU...");
+	lt7680_hw_reset();
+	log_msg(LOG_NOTICE, "reset done");
+	if (lt7680_system_check()) {
+		if (lt7680_init()) {
+			log_msg(LOG_NOTICE, "GPU intialized");
+		} else {
+			log_msg(LOG_NOTICE, "GPU initialization failed!");
+		}
+	} else {
+		log_msg(LOG_NOTICE, "No GPU found!");
+	}
 
 	log_msg(LOG_NOTICE, "System initialization complete.");
 }

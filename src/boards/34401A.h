@@ -25,7 +25,7 @@
 
 /* LCD Panel SPI interface */
 #define LCD_SPI_HW     SPI_INSTANCE(0)
-#define LCD_CS_PIN     4
+#define LCD_CS_PIN     5
 #define LCD_CLK_PIN    6
 #define LCD_MOSI_PIN   7
 #define LCD_MISO_PIN   -1  // 8
@@ -39,7 +39,7 @@
 #define LCM_MISO_PIN   12
 #define LCM_RESET_PIN  9
 #define LCM_INT_PIN    11
-#define LCDM_BL_PIN    10
+#define LCM_BL_PIN     10
 
 
 #define SCK_PIN        18

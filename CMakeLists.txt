@@ -129,6 +129,7 @@ add_executable(firmware
   src/util_rp2.c
   src/log.c
   src/crc32.c
+  src/lt7680.c
   src/default_config.S
   src/credits.s
 #  src/logos/default.s
