@@ -311,6 +311,9 @@ static void setup()
 	gpio_init(LCM_INT_PIN);
 	gpio_set_dir(LCM_INT_PIN, GPIO_IN);
 
+	gpio_init(LCM_RESET_PIN);
+	gpio_set_dir(LCM_RESET_PIN, GPIO_OUT);
+	gpio_put(LCM_RESET_PIN, 1);
 
 
 	log_msg(LOG_NOTICE, "Initialize GPU...");

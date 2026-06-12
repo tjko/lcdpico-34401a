@@ -38,7 +38,7 @@
 	}
 #define DUMP_REGISTER_U16(reg) {					\
 		uint16_t val = spi_read_register_u16(reg);		\
-		printf("REG[%02x-%02x]: %02x\n", reg, reg + 1, val);	\
+		printf("REG[%02x-%02x]: %04x (%d)\n", reg, reg + 1, val, val); \
 	}
 #else
 #define DUMP_REGISTER(reg) {}
@@ -47,6 +47,13 @@
 
 #define SET_CS(cs)  gpio_put(LCM_CS_PIN, cs)
 
+
+static inline void set_bits_u32(uint32_t *var, uint8_t bit, uint8_t len, uint32_t val)
+{
+	uint32_t mask = (1 << len) - 1;
+	uint8_t shift = bit - (len - 1);
+	*var = (*var & ~(mask << shift)) | ((val & mask) << shift);
+}
 
 static inline uint8_t spi_rw_byte(uint8_t byte)
 {
@@ -230,14 +237,6 @@ bool lt7680_init()
 	spi_write_register(MPLLC2_REG, lpllN_mclk);
 	spi_write_register(CPLLC1_REG, (lpllOD_cclk << 6) | (lpllR_cclk << 1) | ((lpllN_cclk >> 8) & 0x01));
 	spi_write_register(CPLLC2_REG, lpllN_cclk);
-#if 0
-	DUMP_REGISTER(PLLLC1_REG);
-	DUMP_REGISTER(PLLLC2_REG);
-	DUMP_REGISTER(MPLLC1_REG);
-	DUMP_REGISTER(MPLLC2_REG);
-	DUMP_REGISTER(CPLLC1_REG);
-	DUMP_REGISTER(CPLLC2_REG);
-#endif
 
 	/* Reconfigure PLL frequency */
 	spi_write_register(SRR_REG, 0x80);
@@ -258,13 +257,83 @@ bool lt7680_init()
 	DUMP_REGISTER_U16(SDRREF_REG);
 	uint16_t sdram_itv = ((64000000 / 8192) / (1000/60)) - 2;
 	spi_write_register_u16(SDRREF_REG, sdram_itv);
+	DUMP_REGISTER(SDRCR_REG);
 	spi_write_register(SDRCR_REG, 0x01);
+	DUMP_REGISTER(SDRCR_REG);
 
 	int count = 0;
 	while (((tmp = spi_status_read()) & 0x04) == 0) {
 		count++;
 	}
 	printf("count=%d\n",count);
+
+
+
+	/* Set Chip Configuration Register */
+	uint32_t reg = spi_read_register(CCR_REG);
+	set_bits_u32(&reg, 4, 2, 0x01); // [4-3] TFT Output Mode: 18bit
+	set_bits_u32(&reg, 0, 1, 0x01); // Data Bus: 16bit
+	spi_write_register(CCR_REG, reg);
+
+	/* Set Memory Access Control Register */
+	reg = 0x40; // 16bit I/F, Mem Read (Left->Right then Top->Bottom)
+	spi_write_register(MACR_REG, reg);
+
+	/* Set Input Control Register */
+	reg = 0x00; // Graphics Mode, DRAM Image Buffer
+	spi_write_register(ICR_REG, reg);
+
+	/* Set Display Configuration Register (DPCD) */
+	reg = 0x00; // HCAN (L->R), VSCAN (T->B), PDATA (RGB)
+	set_bits_u32(&reg, 7, 1, LCD_PCLK_FALLING_EDGE); // PCLK Inversion
+	spi_write_register(DPCR_REG, reg);
+
+	/* Set Panel Scan Clock and Data Setting Register */
+	reg = spi_read_register(PCSR_REG);
+	reg = 0x00;
+	set_bits_u32(&reg, 7, 1, LCD_HSYNC_POLARITY);
+	set_bits_u32(&reg, 6, 1, LCD_VSYNC_POLARITY);
+	set_bits_u32(&reg, 5, 1, LCD_DE_POLARITY);
+
+
+	/* Set Horizontal Display Width */
+	spi_write_register(HDWR_REG, (LCD_WIDTH / 8) - 1);
+	spi_write_register(HDWRFTR_REG, (LCD_WIDTH % 8));
+
+	/* Set Vertical Display Height */
+	spi_write_register_u16(VHDR_REG, LCD_HEIGHT - 1);
+
+	/* Set Horizontal Non-Display Period */
+	spi_write_register(HNDR_REG, (LCD_HBPD < 8 ? 0 : (LCD_HBPD / 8) - 1));
+	spi_write_register(HNDRFTR_REG, (LCD_HBPD % 8));
+
+	/* HSYNC Start Position */
+	spi_write_register(HSTR_REG, (LCD_HFPD < 8 ? 0 : (LCD_HFPD / 8) - 1));
+
+	/* HSYNC Pulse Width */
+	spi_write_register(HPWR_REG, (LCD_HSPW < 8 ? 0 : (LCD_HSPW / 8) - 1));
+
+	/* Set Vertical Non-Display Period */
+	spi_write_register_u16(VNDR_REG, LCD_VBPD - 1);
+
+	/* Set VSYNC Start Position */
+	spi_write_register(VSTR_REG, LCD_VFPD - 1);
+
+	/* Set VSYNC Pulse Width */
+	spi_write_register(VPWR_REG, LCD_VSPW - 1);
+
+
+	/* Set Main Window 16bpp */
+	reg = spi_read_register(MPWCTR_REG);
+	set_bits_u32(&reg, 3, 2, 0x01); // 16bpp
+	spi_write_register(MPWCTR_REG, reg);
+
+	/* Color Depth of Canvas & Active Window */
+	reg = spi_read_register(AW_COLOR_REG);
+	set_bits_u32(&reg, 2, 1, 0x00); // Block Mode
+	set_bits_u32(&reg, 1, 2, 0x01); // 16bpp
+	spi_write_register(AW_COLOR_REG, reg);
+
 	return true;
 }
 
