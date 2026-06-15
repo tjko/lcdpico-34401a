@@ -24,6 +24,8 @@
 
 
 bool st7701_init();
+bool st7701b_init();
+void st7701_read_id();
 void BuyDisplay_Init();
 
 #endif /* _ST7701_H_ */

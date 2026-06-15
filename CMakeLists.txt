@@ -130,6 +130,9 @@ add_executable(firmware
   src/log.c
   src/crc32.c
   src/lt7680.c
+  src/st7701.c
+  src/st7701_lcd.c
+  src/lt7680_lcd.c
   src/default_config.S
   src/credits.s
 #  src/logos/default.s

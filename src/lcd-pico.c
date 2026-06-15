@@ -43,7 +43,9 @@
 #include "lcd-pico.h"
 #include "command_util.h"
 #include "lt7680.h"
-
+#include "st7701.h"
+//#include "st7701_lcd.h"
+//#include "lt7680_lcd.h"
 
 #ifdef FANPICO_PSRAM_PIN
  #if TX_PIN == 0
@@ -282,23 +284,36 @@ static void setup()
 	log_msg(LOG_NOTICE, "Initialize SPI...");
 
 	/* LCD SPI interface */
+#if 1
 	gpio_init(LCD_CS_PIN);
 	gpio_set_dir(LCD_CS_PIN, GPIO_OUT);
 	gpio_put(LCD_CS_PIN, 1);
+#endif
 
-	spi_init(LCD_SPI_HW, 1000000);
-	spi_set_format(LCD_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#if 0
+	spi_init(LCD_SPI_HW, 50000);
+	spi_set_format(LCD_SPI_HW, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
-	if (LCD_MISO_PIN > 0) {
-		gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
-	}
+//	gpio_set_function(LCD_CS_PIN, GPIO_FUNC_SPI);
+#else
+	log_msg(LOG_INFO, "LCD bitbang");
+	gpio_init(LCD_CLK_PIN);
+	gpio_set_dir(LCD_CLK_PIN, GPIO_OUT);
+	gpio_put(LCD_CLK_PIN, 0);
+	gpio_init(LCD_MOSI_PIN);
+	gpio_set_dir(LCD_MOSI_PIN, GPIO_OUT);
+	gpio_put(LCD_MOSI_PIN, 0);
+	//gpio_set_pulls(LCD_MOSI_PIN, 0, 1);
+	gpio_disable_pulls(LCD_MOSI_PIN);
+	//gpio_set_drive_strength(LCD_MOSI_PIN, GPIO_DRIVE_STRENGTH_12MA);
+#endif
 
 	/* LT7680 Graphics Controller SPI interface */
 	gpio_init(LCM_CS_PIN);
 	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
 	gpio_put(LCM_CS_PIN, 1);
-	spi_init(LCM_SPI_HW, 8000000);
+	spi_init(LCM_SPI_HW, 1000000);
 	spi_set_format(LCM_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);
@@ -306,7 +321,7 @@ static void setup()
 
 	gpio_init(LCM_BL_PIN);
 	gpio_set_dir(LCM_BL_PIN, GPIO_OUT);
-	gpio_put(LCM_BL_PIN, 0);
+	gpio_put(LCM_BL_PIN, 1);
 
 	gpio_init(LCM_INT_PIN);
 	gpio_set_dir(LCM_INT_PIN, GPIO_IN);
@@ -319,15 +334,40 @@ static void setup()
 	log_msg(LOG_NOTICE, "Initialize GPU...");
 	lt7680_hw_reset();
 	log_msg(LOG_NOTICE, "reset done");
+#if 1
+	sleep_ms(200);
+	st7701_read_id();
+	if (st7701b_init()) {
+		log_msg(LOG_NOTICE, "LCD initialized");
+	} else {
+		log_msg(LOG_NOTICE, "LCD initialization failed!");
+	}
+	sleep_ms(150);
 	if (lt7680_system_check()) {
 		if (lt7680_init()) {
 			log_msg(LOG_NOTICE, "GPU intialized");
 		} else {
 			log_msg(LOG_NOTICE, "GPU initialization failed!");
 		}
+		sleep_ms(150);
+		lt7680_setup();
+		sleep_ms(150);
+		lt7680_set_fg_16bpp(Red);
+		lt7680_draw_rect(0,0,LCD_WIDTH,LCD_HEIGHT,true);
+		lt7680_set_fg_16bpp(Green);
+		lt7680_draw_rect(10,10,LCD_WIDTH-10,LCD_HEIGHT-10,true);
 	} else {
 		log_msg(LOG_NOTICE, "No GPU found!");
 	}
+#else
+	BuyDisplay_Init();                              // Initialize ST7701S BuyDisplay 3.71" driver IC
+	SendAllToLT7680_LT();                           // run subs to setup LT7680 based on Levetop info
+//	ConfigurePWMAndSetBrightness(BACKLIGHTFULL);    // Configure Timer-1 and PWM-1 for backlighting. Settable 0-100%
+	ClearScreen();                                  // Clear the TFT
+	RightWipe();                                    // Right wipe to clear random pixels down the far right hand side
+	Graphics_Mode();
+	TestDraw();
+#endif
 
 	log_msg(LOG_NOTICE, "System initialization complete.");
 }

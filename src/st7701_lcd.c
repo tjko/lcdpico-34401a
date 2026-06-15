@@ -44,6 +44,7 @@ void LCD_SPI_Write(uint16_t data, uint8_t bits) {
 			//HAL_GPIO_WritePin(LCD_SDI_Port, LCD_SDI_Pin, GPIO_PIN_RESET); // SDA = 0
 			SET_DI(0);
 		}
+		DelayMicroseconds(1);
 
 		// Toggle the clock signal
 		//HAL_GPIO_WritePin(LCD_SCK_Port, LCD_SCK_Pin, GPIO_PIN_SET); // CLK high

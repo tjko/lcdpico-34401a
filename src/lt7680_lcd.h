@@ -54,6 +54,8 @@ void SetTextColors(uint32_t foreground, uint32_t background);
 //void DrawText(char* text);
 //void ConfigureFontAndPosition(uint8_t fontSource, uint8_t characterHeight, uint8_t isoCoding, uint8_t fullAlignment, uint8_t chromaKeying, uint8_t rotation, uint8_t widthFactor, uint8_t heightFactor, uint8_t lineGap, uint8_t charSpacing, uint16_t cursorX, uint16_t cursorY)
 
+void Graphics_Mode();
+
 // Register Configuration
 void LT7680_PLL_Initial_LT(void);
 void Configure_Main_PIP_Window_LT(void);
@@ -87,7 +89,9 @@ void SetCanvasImageWidth_LT(void);
 void ClearScreen(void);
 void LCDConfigTurnOn_LT(void);
 void DrawText(char* text);
-
+void TestDraw(void);
+void RightWipe(void);
+void BuyDisplay_Init(void);
 
 
 // Pin definitions for LT7680 controller
