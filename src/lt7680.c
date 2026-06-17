@@ -25,10 +25,10 @@
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
 
-#include "lt7680.h"
 #include "config.h"
+#include "lt7680.h"
 
-#define LT7680_DEBUG 2
+#define LT7680_DEBUG 1
 
 
 #if LT7680_DEBUG > 0
@@ -46,6 +46,11 @@
 #endif
 
 #define SET_CS(cs)  gpio_put(LCM_CS_PIN, cs)
+
+#define SET_BIT(uint, bit) ((uint) |= (1u << (bit)))
+#define CLR_BIT(uint, bit) ((uint) &= ~(1u << (bit)))
+#define TGL_BIT(uint, bit) ((uint) ^= (1u << (bit)))
+#define HAS_BIT(uint, bit) ((uint) & (1u << (bit)))
 
 
 static inline void set_bits_u32(uint32_t *var, uint8_t bit, uint8_t len, uint32_t val)
@@ -178,11 +183,10 @@ static inline void core_busy_wait()
 
 void lt7680_hw_reset()
 {
-	printf("hw reset\n");
 	gpio_put(LCM_RESET_PIN, 0);
-	sleep_ms(100);
+	sleep_ms(5); // RST must be low at least 256 (OSC) Clocks...
 	gpio_put(LCM_RESET_PIN, 1);
-	sleep_ms(250);
+	sleep_ms(10);
 }
 
 
@@ -194,11 +198,11 @@ bool lt7680_system_check()
 	do {
 		sleep_ms(1);
 		uint8_t status = spi_status_read();
-		printf("status=%02x\n", status);
+		//printf("status=%02x\n", status);
 		if (!(status & 0x02)) {
 			sleep_ms(2);
 			uint8_t temp = spi_read_register(CCR_REG);
-			printf("status2=%02x\n", temp);
+			//printf("status2=%02x\n", temp);
 			if ((temp & 0x80)) {
 				system_ok=1;
 				i=0;
@@ -223,9 +227,17 @@ bool lt7680_system_check()
 }
 
 
+#define REFRESH_RATE 60
+
 bool lt7680_init()
 {
 	uint8_t tmp = 0;
+
+	uint32_t temp = (LCD_HBPD + LCD_HFPD + LCD_HSPW + LCD_WIDTH) *
+		(LCD_VBPD + LCD_VFPD + LCD_VSPW + LCD_HEIGHT) * REFRESH_RATE;
+	printf("scan clock: %lu\n", temp);
+	temp = (temp + 500000) / 1000000;
+	printf("%lu\n", temp);
 
 	/* Initialize PLL */
 	uint8_t lpllOD_sclk = 2;
@@ -234,9 +246,9 @@ bool lt7680_init()
 	uint8_t lpllR_sclk = 5;
 	uint8_t lpllR_cclk = 5;
 	uint8_t lpllR_mclk = 5;
-	uint8_t lpllN_sclk = 25;
-	uint8_t lpllN_cclk = 100;
-	uint8_t lpllN_mclk = 100;
+	uint8_t lpllN_sclk = temp; //25;
+	uint8_t lpllN_cclk = temp*2; //100;
+	uint8_t lpllN_mclk = temp*2; //100;
 
 #if 0
 	DUMP_REGISTER(PLLLC1_REG);
@@ -263,14 +275,22 @@ bool lt7680_init()
 	}
 
 
+
+
+
 	/* SDRAM Initialization */
+
+	//spi_write_register(SDRCR_REG, (1<<2));
+
 	DUMP_REGISTER(SDRAR_REG);
 	DUMP_REGISTER(SDRMD_REG);
 	spi_write_register(SDRAR_REG, 0x29); // 16MB
 	spi_write_register(SDRMD_REG, 0x03); // CAS=3
 
 	DUMP_REGISTER_U16(SDRREF_REG);
-	uint16_t sdram_itv = ((64000000 / 8192) / (1000/60)) - 2;
+	//uint32_t sdram_itv = ((64000000 / 8192) / (1000/lpllN_mclk)) - 2;
+	uint32_t sdram_itv = ((64 * lpllN_mclk * 1000) / 4096) - 2;
+	printf("sdram_itv = %lu (%04lx)\n",sdram_itv,sdram_itv);
 	spi_write_register_u16(SDRREF_REG, sdram_itv);
 	DUMP_REGISTER(SDRCR_REG);
 	spi_write_register(SDRCR_REG, 0x01);
@@ -280,7 +300,7 @@ bool lt7680_init()
 	while (((tmp = spi_status_read()) & 0x04) == 0) {
 		count++;
 	}
-	printf("count=%d\n",count);
+	//printf("count=%d\n",count);
 	sleep_ms(10);
 
 
@@ -353,22 +373,22 @@ bool lt7680_init()
 }
 
 
-void lt7680_display_on()
+void lt7680_display_on(bool display_on)
 {
-	printf("display on\n");
+	printf("display %d\n", display_on);
 	uint8_t reg = spi_read_register(DPCR_REG);
-	reg |= (1 << 6); // Set Display ON/OFF bit
+	if (display_on)
+		SET_BIT(reg, 6);
+	else
+		CLR_BIT(reg, 6);
 //	reg |= (1 << 5); // Set Test Color Bar
 	spi_write_register(DPCR_REG, reg);
-	sleep_ms(150);
+	sleep_ms(10);
 }
 
 void lt7680_setup()
 {
 	uint32_t reg;
-
-	lt7680_display_on();
-
 
 	/* Set Main Window 16bpp */
 	reg = spi_read_register(MPWCTR_REG);

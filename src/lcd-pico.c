@@ -290,8 +290,8 @@ static void setup()
 	gpio_put(LCD_CS_PIN, 1);
 #endif
 
-#if 0
-	spi_init(LCD_SPI_HW, 50000);
+#if 1
+	spi_init(LCD_SPI_HW, 100000);
 	spi_set_format(LCD_SPI_HW, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
@@ -313,7 +313,7 @@ static void setup()
 	gpio_init(LCM_CS_PIN);
 	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
 	gpio_put(LCM_CS_PIN, 1);
-	spi_init(LCM_SPI_HW, 1000000);
+	spi_init(LCM_SPI_HW, 8000000);
 	spi_set_format(LCM_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);
@@ -335,27 +335,28 @@ static void setup()
 	lt7680_hw_reset();
 	log_msg(LOG_NOTICE, "reset done");
 #if 1
-	sleep_ms(200);
-	st7701_read_id();
-	if (st7701b_init()) {
+	//st7701_read_id();
+	if (st7701_init()) {
 		log_msg(LOG_NOTICE, "LCD initialized");
 	} else {
 		log_msg(LOG_NOTICE, "LCD initialization failed!");
 	}
-	sleep_ms(150);
+	//sleep_ms(150);
 	if (lt7680_system_check()) {
 		if (lt7680_init()) {
 			log_msg(LOG_NOTICE, "GPU intialized");
 		} else {
 			log_msg(LOG_NOTICE, "GPU initialization failed!");
 		}
-		sleep_ms(150);
 		lt7680_setup();
-		sleep_ms(150);
+		lt7680_display_on(false);
 		lt7680_set_fg_16bpp(Red);
 		lt7680_draw_rect(0,0,LCD_WIDTH,LCD_HEIGHT,true);
 		lt7680_set_fg_16bpp(Green);
 		lt7680_draw_rect(10,10,LCD_WIDTH-10,LCD_HEIGHT-10,true);
+		lt7680_set_fg_16bpp(Black);
+		lt7680_draw_rect(20,20,LCD_WIDTH-20,LCD_HEIGHT-20,true);
+		lt7680_display_on(true);
 	} else {
 		log_msg(LOG_NOTICE, "No GPU found!");
 	}

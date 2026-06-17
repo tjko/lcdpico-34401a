@@ -28,6 +28,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(LCDPICO_BUILD beta CACHE STRING "LCD-Pico Build Tag")
 set(LCDPICO_BOARD 34401A CACHE STRING "LCD-Pico Board Model")
+set(LCDPICO_LCD er-tft371-1 CACHE STRING "LCD-Pico LCD Panel Model")
 
 set(TLS_SUPPORT 1 CACHE STRING "TLS Support")
 # Generate some "random" data for mbedtls (better than nothing...)
@@ -41,6 +42,7 @@ pico_sdk_init()
 
 message("---------------------------------")
 message("       LCDPICO_BOARD: ${LCDPICO_BOARD}")
+message("         LCDPICO_LCD: ${LCDPICO_LCD}")
 message("          PICO_BOARD: ${PICO_BOARD}")
 message("       PICO_PLATFORM: ${PICO_PLATFORM}")
 message("         TLS_SUPPORT: ${TLS_SUPPORT}")
@@ -131,8 +133,10 @@ add_executable(firmware
   src/crc32.c
   src/lt7680.c
   src/st7701.c
-  src/st7701_lcd.c
-  src/lt7680_lcd.c
+#  src/st7701_lcd.c
+#  src/lt7680_lcd.c
+  src/lcd/er-tft371-1.c
+  src/lcd/er-tft458-1.c
   src/default_config.S
   src/credits.s
 #  src/logos/default.s
