@@ -28,7 +28,7 @@
 #include "lwip/pbuf.h"
 #include "lwip/udp.h"
 
-#include "fanpico.h"
+#include "lcd-pico.h"
 #include "syslog.h"
 
 

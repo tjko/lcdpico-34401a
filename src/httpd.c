@@ -26,7 +26,7 @@
 #include "pico/stdlib.h"
 #include "cJSON.h"
 
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 #define BUF_LEN 1024
@@ -49,35 +49,6 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 			return 0;
 		buf[0] = 0;
 
-		for (i = 0; i < FAN_COUNT; i++) {
-			rpm = st->fan_freq[i] * 60 / cfg->fans[i].rpm_factor;
-			snprintf(row, sizeof(row), "fan%d,\"%s\",%.0lf,%.2f,%.1f\n",
-				i+1,
-				cfg->fans[i].name,
-				rpm,
-				st->fan_freq[i],
-				st->fan_duty[i]);
-			strncatenate(buf, row, BUF_LEN);
-		}
-		for (i = 0; i < MBFAN_COUNT; i++) {
-			rpm = st->mbfan_freq[i] * 60 / cfg->mbfans[i].rpm_factor;
-			snprintf(row, sizeof(row), "mbfan%d,\"%s\",%.0lf,%.2f,%.1f\n",
-				i+1,
-				cfg->mbfans[i].name,
-				rpm,
-				st->mbfan_freq[i],
-				st->mbfan_duty[i]);
-			strncatenate(buf, row, BUF_LEN);
-		}
-		for (i = 0; i < SENSOR_COUNT; i++) {
-			pwm = sensor_get_duty(&cfg->sensors[i].map, st->temp[i]);
-			snprintf(row, sizeof(row), "sensor%d,\"%s\",%.1lf,%.1lf\n",
-				i+1,
-				cfg->sensors[i].name,
-				st->temp[i],
-				pwm);
-			strncatenate(buf, row, BUF_LEN);
-		}
 		for (i = 0; i < VSENSOR_COUNT; i++) {
 			pwm = sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
 			snprintf(row, sizeof(row), "vsensor%d,\"%s\",%.1lf,%.1lf,%.0f,%.0f\n",
@@ -136,58 +107,6 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 		if (!(json = cJSON_CreateObject()))
 			goto panic;
 
-		/* Fans */
-		if (!(array = cJSON_CreateArray()))
-			goto panic;
-		for (i = 0; i < FAN_COUNT; i++) {
-			double rpm = st->fan_freq[i] * 60 / cfg->fans[i].rpm_factor;
-
-			if (!(o = cJSON_CreateObject()))
-				goto panic;
-
-			cJSON_AddItemToObject(o, "fan", cJSON_CreateNumber(i+1));
-			cJSON_AddItemToObject(o, "name", cJSON_CreateString(cfg->fans[i].name));
-			cJSON_AddItemToObject(o, "rpm", cJSON_CreateNumber(round_decimal(rpm, 0)));
-			cJSON_AddItemToObject(o, "frequency", cJSON_CreateNumber(round_decimal(st->fan_freq[i], 2)));
-			cJSON_AddItemToObject(o, "duty_cycle", cJSON_CreateNumber(round_decimal(st->fan_duty[i], 1)));
-			cJSON_AddItemToArray(array, o);
-		}
-		cJSON_AddItemToObject(json, "fans", array);
-
-		/* MB Fans */
-		if (!(array = cJSON_CreateArray()))
-			goto panic;
-		for (i = 0; i < MBFAN_COUNT; i++) {
-			double rpm = st->mbfan_freq[i] * 60 / cfg->mbfans[i].rpm_factor;
-
-			if (!(o = cJSON_CreateObject()))
-				goto panic;
-
-			cJSON_AddItemToObject(o, "mbfan", cJSON_CreateNumber(i+1));
-			cJSON_AddItemToObject(o, "name", cJSON_CreateString(cfg->mbfans[i].name));
-			cJSON_AddItemToObject(o, "rpm", cJSON_CreateNumber(round_decimal(rpm, 0)));
-			cJSON_AddItemToObject(o, "frequency", cJSON_CreateNumber(round_decimal(st->mbfan_freq[i], 2)));
-			cJSON_AddItemToObject(o, "duty_cycle", cJSON_CreateNumber(round_decimal(st->mbfan_duty[i], 1)));
-			cJSON_AddItemToArray(array, o);
-		}
-		cJSON_AddItemToObject(json, "mbfans", array);
-
-		/* Sensors */
-		if (!(array = cJSON_CreateArray()))
-			goto panic;
-		for (i = 0; i < SENSOR_COUNT; i++) {
-			double pwm = sensor_get_duty(&cfg->sensors[i].map, st->temp[i]);
-			if (!(o = cJSON_CreateObject()))
-				goto panic;
-
-			cJSON_AddItemToObject(o, "sensor", cJSON_CreateNumber(i+1));
-			cJSON_AddItemToObject(o, "name", cJSON_CreateString(cfg->sensors[i].name));
-			cJSON_AddItemToObject(o, "temperature", cJSON_CreateNumber(round_decimal(st->temp[i], 1)));
-			cJSON_AddItemToObject(o, "duty_cycle", cJSON_CreateNumber(round_decimal(pwm, 1)));
-			cJSON_AddItemToArray(array, o);
-		}
-		cJSON_AddItemToObject(json, "sensors", array);
-		cJSON_AddItemToObject(json, "adc_vref", cJSON_CreateNumber(round_decimal(cfg->adc_vref,4)));
 
 		/* Virtual Sensors */
 		if (!(array = cJSON_CreateArray()))
@@ -275,47 +194,13 @@ u16_t fanpico_ssi_handler(const char *tag, char *insert, int insertlen,
 				(rebooted_by_watchdog ? "&#x2639;" : "&#x263a;"));
 	}
 	else if (!strncmp(tag, "model", 5)) {
-		printed = snprintf(insert, insertlen, "%s", FANPICO_MODEL);
+		printed = snprintf(insert, insertlen, "%s", LCDPICO_MODEL);
 	}
 	else if (!strncmp(tag, "version", 5)) {
-		printed = snprintf(insert, insertlen, "%s", FANPICO_VERSION);
+		printed = snprintf(insert, insertlen, "%s", LCDPICO_VERSION);
 	}
 	else if (!strncmp(tag, "name", 4)) {
 		printed = snprintf(insert, insertlen, "%s", cfg->name);
-	}
-	else if (!strncmp(tag, "fanrow", 6)) {
-		uint8_t i = tag[6] - '1';
-		if (i < FAN_COUNT && cfg->http_fan_mask & (1 << i)) {
-			double rpm = st->fan_freq[i] * 60 / cfg->fans[i].rpm_factor;
-			printed = snprintf(insert, insertlen, "<tr><td>%d<td>%s<td>%0.0f<td align=\"right\">%0.0f %%",
-					i + 1,
-					cfg->fans[i].name,
-					rpm,
-					st->fan_duty[i]);
-		}
-	}
-	else if (!strncmp(tag, "mfanrow", 7)) {
-		uint8_t i = tag[7] - '1';
-		if (MBFAN_COUNT == 0 && i == 0) {
-			printed = snprintf(insert, insertlen, "<tr><td colspan=4>Not Available");
-		}
-		else if (i < MBFAN_COUNT && cfg->http_mbfan_mask & (1 << i)) {
-			double rpm = st->mbfan_freq[i] * 60 / cfg->mbfans[i].rpm_factor;
-			printed = snprintf(insert, insertlen, "<tr><td>%d<td>%s<td>%0.0f<td align=\"right\">%0.0f %%",
-					i + 1,
-					cfg->mbfans[i].name,
-					rpm,
-					st->mbfan_duty[i]);
-		}
-	}
-	else if (!strncmp(tag, "sensrow", 7)) {
-		uint8_t i = tag[7] - '1';
-		if (i < SENSOR_COUNT && cfg->http_sensor_mask & (1 << i)) {
-			printed = snprintf(insert, insertlen, "<tr><td>%d<td>%s<td align=\"right\">%0.1f &#x2103;",
-					i + 1,
-					cfg->sensors[i].name,
-					st->temp[i]);
-		}
 	}
 	else if (!strncmp(tag, "vsenrow", 7)) {
 		uint8_t i = tag[7] - '1';

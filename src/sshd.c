@@ -28,7 +28,7 @@
 #endif
 #include <pico-sshd.h>
 #include "util_net.h"
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 static const char *ssh_banner = "\r\n"

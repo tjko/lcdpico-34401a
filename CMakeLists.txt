@@ -182,9 +182,9 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
     src/dhcp.c
     src/syslog.c
     src/httpd.c
-    src/mqtt.c
+#    src/mqtt.c
     src/telnetd.c
-    src/snmp.c
+#    src/snmp.c
     src/sshd.c
     src/ssh_util.c
 #    ${WOLFSSL_ROOT}/wolfcrypt/test/test.c

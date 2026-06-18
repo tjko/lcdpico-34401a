@@ -25,7 +25,7 @@
 #include <string.h>
 #include "lwip/ip_addr.h"
 
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 

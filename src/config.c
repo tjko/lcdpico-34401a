@@ -431,10 +431,6 @@ void clear_config(struct fanpico_config *cfg)
 	cfg->http_active = true;
 	cfg->http_port = 0;
 	cfg->https_port = 0;
-	cfg->http_fan_mask = (1 << FAN_COUNT) - 1;
-	cfg->http_mbfan_mask = (1 << MBFAN_COUNT) - 1;
-	cfg->http_sensor_mask = (1 << SENSOR_COUNT) - 1;
-	cfg->http_vsensor_mask = (1 << VSENSOR_COUNT) - 1;
 #endif
 
 }
@@ -603,14 +599,6 @@ cJSON *config_to_json(const struct fanpico_config *cfg)
 		NUM_TO_JSON("http_port", cfg->http_port);
 	if (cfg->https_port > 0)
 		NUM_TO_JSON("https_port", cfg->https_port);
-	if (cfg->http_fan_mask != (1 << FAN_COUNT) - 1)
-		BITMASK_TO_JSON("http_fan_mask", cfg->http_fan_mask, FAN_MAX_COUNT);
-	if (cfg->http_mbfan_mask != (1 << MBFAN_COUNT) - 1)
-		BITMASK_TO_JSON("http_mbfan_mask", cfg->http_mbfan_mask, MBFAN_MAX_COUNT);
-	if (cfg->http_sensor_mask != (1 << SENSOR_COUNT) - 1)
-		BITMASK_TO_JSON("http_sensor_mask", cfg->http_sensor_mask, SENSOR_MAX_COUNT);
-	if (cfg->http_vsensor_mask != (1 << VSENSOR_COUNT) - 1)
-		BITMASK_TO_JSON("http_vsensor_mask", cfg->http_vsensor_mask, VSENSOR_MAX_COUNT);
 #endif
 
 

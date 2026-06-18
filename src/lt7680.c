@@ -217,11 +217,11 @@ bool lt7680_system_check()
 
 		i++;
 
-		if (system_ok == 0 && (i > 0 && i % 5)) {
-			printf("reset\n");
+		if (system_ok == 0 && (i > 0 && (i % 5 == 0))) {
+			//printf("reset\n");
 			lt7680_hw_reset();
 		}
-	} while (system_ok == 0 && i < 100);
+	} while (system_ok == 0 && i < 20);
 
 	return (system_ok ? true : false);
 }

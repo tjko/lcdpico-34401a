@@ -25,7 +25,7 @@
 #include "pico/cyw43_arch.h"
 #include "lwip/prot/dhcp.h"
 
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 

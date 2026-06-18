@@ -422,12 +422,6 @@ static void wifi_init()
 		sshserver_init();
 	}
 
-	/* Enable SNMP agent */
-	if (cfg->snmp_active) {
-		log_msg(LOG_NOTICE,"SNMP Agent enabled");
-		fanpico_snmp_init();
-	}
-
 	cyw43_arch_lwip_end();
 
 	if (cfg->syslog_active)
@@ -525,10 +519,6 @@ static void wifi_poll()
 			init_msg_sent = true;
 			log_msg(LOG_INFO, "Network initialization complete.%s",
 				(rebooted_by_watchdog ? " [Rebooted by watchdog]" : ""));
-			if (cfg->snmp_active)
-				fanpico_snmp_startup_trap(persistent_mem->warmstart);
-			if (strlen(cfg->mqtt_server) > 0)
-				fanpico_setup_mqtt_client();
 		}
 	}
 	if (time_passed(&test_t, 3600 * 1000)) {
@@ -540,43 +530,6 @@ static void wifi_poll()
 		syslog_msg(LOG_INFO, "Uptime: %lu days %02lu:%02lu:%02lu%s",
 			days, hours % 24, mins % 60, secs % 60,
 			(rebooted_by_watchdog ? " [Rebooted by watchdog]" : ""));
-	}
-	if (fanpico_mqtt_client_active()) {
-		/* Check for pending SCPI command received via MQTT */
-		if (time_passed(&command_t, 500)) {
-			fanpico_mqtt_scpi_command();
-		}
-
-		/* Publish status update to MQTT status topic */
-		if (cfg->mqtt_status_interval > 0) {
-			if (time_passed(&publish_status_t, cfg->mqtt_status_interval * 1000)) {
-				fanpico_mqtt_publish();
-			}
-		}
-		if (cfg->mqtt_temp_interval > 0) {
-			if (time_passed(&publish_temp_t, cfg->mqtt_temp_interval * 1000)) {
-				fanpico_mqtt_publish_temp();
-			}
-		}
-		if (cfg->mqtt_vsensor_interval > 0) {
-			if (time_passed(&publish_vsensor_t, cfg->mqtt_vsensor_interval * 1000)) {
-				fanpico_mqtt_publish_vsensor();
-			}
-		}
-		if (cfg->mqtt_rpm_interval > 0) {
-			if (time_passed(&publish_rpm_t, cfg->mqtt_rpm_interval * 1000)) {
-				fanpico_mqtt_publish_rpm();
-			}
-		}
-		if (cfg->mqtt_duty_interval > 0) {
-			if (time_passed(&publish_duty_t, cfg->mqtt_duty_interval * 1000)) {
-				fanpico_mqtt_publish_duty();
-			}
-		}
-
-		if (time_passed(&reconnect_t, 1000)) {
-			fanpico_mqtt_reconnect();
-		}
 	}
 
 }

@@ -26,7 +26,7 @@
 #include <wolfssh/keygen.h>
 #include <pico-sshd.h>
 
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 typedef struct ssh_pkey_alg_t {

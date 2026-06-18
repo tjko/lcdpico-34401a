@@ -31,7 +31,7 @@
 #include "pico_telnetd.h"
 #include "pico_telnetd/util.h"
 #include "util_net.h"
-#include "fanpico.h"
+#include "lcd-pico.h"
 
 
 static const char *telnet_banner = "\r\n"

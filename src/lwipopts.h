@@ -2,7 +2,7 @@
 #define _LWIPOPTS_H
 
 #include <stdint.h>
-#include "fanpico-compile.h"
+#include "lcd-pico-compile.h"
 
 extern uint16_t fanpico_http_server_port;
 extern uint16_t fanpico_https_server_port;
@@ -76,7 +76,7 @@ void pico_set_system_time(long int sec);
 
 #define MQTT_OUTPUT_RINGBUF_SIZE        4096
 #define MQTT_REQ_MAX_IN_FLIGHT          32
-#define HTTPD_FSDATA_FILE               "fanpico_fsdata.c"
+#define HTTPD_FSDATA_FILE               "lcdpico_fsdata.c"
 #define HTTPD_USE_MEM_POOL              0
 #define HTTPD_SERVER_PORT               fanpico_http_server_port
 #define HTTPD_SERVER_PORT_HTTPS         fanpico_https_server_port
