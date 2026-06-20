@@ -11,6 +11,7 @@
 #define LCDPICO_DEFAULT_CONFIG   "boards/@LCDPICO_BOARD@.json"
 #define LCDPICO_LCD              "@LCDPICO_LCD@"
 #define LCDPICO_LCD_HEADER       "lcd/@LCDPICO_LCD@.h"
+#define LCDPICO_IMG_HEADER       "img/240x960.h"
 
 #define LCDPICO_BUILD_TAG        "@LCDPICO_BUILD@"
 

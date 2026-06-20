@@ -79,6 +79,20 @@ target_sources(libb64 INTERFACE
   libs/libb64/src/cencode.c
   )
 
+# PNGdec
+add_library(PNGdec INTERFACE)
+target_include_directories(PNGdec INTERFACE libs/PNGdec2/src)
+target_sources(PNGdec INTERFACE
+  libs/PNGdec2/src/PNGdec.c
+  libs/PNGdec2/src/adler32.c
+  libs/PNGdec2/src/crc32.c
+  libs/PNGdec2/src/infback.c
+  libs/PNGdec2/src/inffast.c
+  libs/PNGdec2/src/inflate.c
+  libs/PNGdec2/src/inftrees.c
+  libs/PNGdec2/src/zutil.c
+  )
+
 # pico-telnetd
 add_subdirectory(libs/pico-telnetd)
 
@@ -139,8 +153,7 @@ add_executable(firmware
   src/lcd/er-tft458-1.c
   src/default_config.S
   src/credits.s
-#  src/logos/default.s
-#  src/themes/lcd-background.s
+  src/img/logo.S
   )
 
 
@@ -174,6 +187,7 @@ target_link_libraries(firmware PRIVATE
   cJSON
   libb64
   pico_sensor_lib
+  PNGdec
   )
 
 if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w

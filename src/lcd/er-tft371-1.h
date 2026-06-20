@@ -27,6 +27,7 @@
 #define LAYER2_START_ADDR  460800
 #define LAYER3_START_ADDR  921600
 
+#define PANEL_IMG_DIR "240x960"
 
 #define PANEL_INIT er_tft371_1_init
 

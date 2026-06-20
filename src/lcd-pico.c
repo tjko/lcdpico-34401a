@@ -42,10 +42,6 @@
 
 #include "lcd-pico.h"
 #include "command_util.h"
-#include "lt7680.h"
-#include "st7701.h"
-//#include "st7701_lcd.h"
-//#include "lt7680_lcd.h"
 
 #ifdef FANPICO_PSRAM_PIN
  #if TX_PIN == 0
@@ -248,7 +244,6 @@ static void setup()
 	}
 
 	setup_i2c_bus((struct fanpico_config *)cfg);
-	display_init();
 	network_init();
 
 	/* Enable ADC */
@@ -331,44 +326,7 @@ static void setup()
 	gpio_put(LCM_RESET_PIN, 1);
 
 
-	log_msg(LOG_NOTICE, "Initialize GPU...");
-	lt7680_hw_reset();
-	log_msg(LOG_NOTICE, "reset done");
-#if 1
-	//st7701_read_id();
-	if (st7701_init()) {
-		log_msg(LOG_NOTICE, "LCD initialized");
-	} else {
-		log_msg(LOG_NOTICE, "LCD initialization failed!");
-	}
-	//sleep_ms(150);
-	if (lt7680_system_check()) {
-		if (lt7680_init()) {
-			log_msg(LOG_NOTICE, "GPU intialized");
-		} else {
-			log_msg(LOG_NOTICE, "GPU initialization failed!");
-		}
-		lt7680_setup();
-		lt7680_display_on(false);
-		lt7680_set_fg_16bpp(Red);
-		lt7680_draw_rect(0,0,LCD_WIDTH,LCD_HEIGHT,true);
-		lt7680_set_fg_16bpp(Green);
-		lt7680_draw_rect(10,10,LCD_WIDTH-10,LCD_HEIGHT-10,true);
-		lt7680_set_fg_16bpp(Black);
-		lt7680_draw_rect(20,20,LCD_WIDTH-20,LCD_HEIGHT-20,true);
-		lt7680_display_on(true);
-	} else {
-		log_msg(LOG_NOTICE, "No GPU found!");
-	}
-#else
-	BuyDisplay_Init();                              // Initialize ST7701S BuyDisplay 3.71" driver IC
-	SendAllToLT7680_LT();                           // run subs to setup LT7680 based on Levetop info
-//	ConfigurePWMAndSetBrightness(BACKLIGHTFULL);    // Configure Timer-1 and PWM-1 for backlighting. Settable 0-100%
-	ClearScreen();                                  // Clear the TFT
-	RightWipe();                                    // Right wipe to clear random pixels down the far right hand side
-	Graphics_Mode();
-	TestDraw();
-#endif
+	display_init();
 
 	log_msg(LOG_NOTICE, "System initialization complete.");
 }

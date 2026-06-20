@@ -27,6 +27,8 @@
 #define LAYER2_START_ADDR  614400
 #define LAYER3_START_ADDR  1288000
 
+#define PANEL_IMG_DIR "240x960"
+
 #define PANEL_INIT er_tft458_1_init
 
 extern const unsigned char er_tft458_1_init[];
