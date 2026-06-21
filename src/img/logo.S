@@ -15,6 +15,8 @@
 
 	.global lcdpico_boot_logo
 	.global lcdpico_boot_logo_end
+	.global lcdpico_hp_logo
+	.global lcdpico_hp_logo_end
 
 	.section .rodata
 
@@ -22,5 +24,11 @@
 lcdpico_boot_logo:
 	.incbin	BOOT_LOGO
 lcdpico_boot_logo_end:
+
+
+lcdpico_hp_logo:
+	.incbin "img/logo.png"
+lcdpico_hp_logo_end:
+
 
 # eof

@@ -33,18 +33,43 @@
 
 extern const char lcdpico_boot_logo[];
 extern const char lcdpico_boot_logo_end[];
+extern const char lcdpico_hp_logo[];
+extern const char lcdpico_hp_logo_end[];
 
 #define ROMIMAGESIZE(img) ((uint32_t)((img ## _end) - img))
+
+
+#define RGB888_TO_RGB565(r,g,b) ((uint16_t)( ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3) ))
 
 static int draw_cb(PNGDRAW *d)
 {
 	uint32_t *c = d->pUser;
-#if 1
+	int fifo = 0;
+#if 0
 	if (d->y % 100 == 0) {
 		printf("draw_cp: y=%d, width=%d, pitch=%d, pixeltype=%d bpp=%d alpha=%d\n",
 			d->y, d->iWidth, d->iPitch, d->iPixelType, d->iBpp, d->iHasAlpha);
 	}
 #endif
+	for (int i = 0; i < d->iWidth; i++) {
+		uint16_t pixel = Black;
+		if (d->iBpp == 8) {
+			int o = i * 4;
+			pixel = RGB888_TO_RGB565(d->pPixels[o + 0], d->pPixels[o + 1], d->pPixels[o + 2]);
+		}
+		else if (d->iBpp == 1) {
+			int o = i / 8;
+			int p = i % 8;
+			pixel = ( (d->pPixels[o] << p) & 0x80 ? Black : Blue );
+		}
+		if (fifo < 1) {
+			lt7680_wr_fifo_empty_wait();
+			fifo=32;
+		}
+		lt7680_data_write(pixel);
+		lt7680_data_write(pixel >> 8);
+		fifo--;
+	}
 	return 1;
 }
 
@@ -54,6 +79,7 @@ int load_image_to_vmem(const char *buf, uint32_t len, uint32_t addr)
 	PNGIMAGE *png;
 	int res;
 	uint32_t out = 0;
+	uint16_t w, h;
 
 	log_msg(LOG_INFO, "load_image_to_vmem(%p,%lu,%lx)", buf, len, addr);
 
@@ -63,8 +89,18 @@ int load_image_to_vmem(const char *buf, uint32_t len, uint32_t addr)
 	if ((res = PNG_openRAM(png, (uint8_t*)buf, len, draw_cb)))
 		return res;
 
-	printf("%dx%d %dbpp alpha=%d (%u)\n", PNG_getWidth(png), PNG_getHeight(png), PNG_getBpp(png), PNG_hasAlpha(png), sizeof(PNGIMAGE));
+	w = PNG_getWidth(png);
+	h = PNG_getHeight(png);
+
+	printf("%dx%d %dbpp alpha=%d (%u)\n", w, h, PNG_getBpp(png), PNG_hasAlpha(png), sizeof(PNGIMAGE));
 	PNG_setBuffer(png, NULL);
+
+	lt7680_set_canvas_addr(addr);
+	lt7680_set_active_window_xy(0,0);
+	lt7680_set_active_window_wh(w,h);
+	lt7680_set_graphics_xy(0,0);
+	lt7680_cmd_write(0x04);
+
 	printf("decode start\n");
 	if ((res = PNG_decode(png, &out, 0))) {
 		printf("decode failed: %d (%d)\n", res, PNG_TOO_BIG);
@@ -74,6 +110,8 @@ int load_image_to_vmem(const char *buf, uint32_t len, uint32_t addr)
 	printf("close\n");
 	PNG_close(png);
 	free(png);
+
+	lt7680_wr_fifo_empty_wait();
 
 	log_msg(LOG_INFO, "decode done");
 	return 0;
@@ -98,14 +136,18 @@ void display_init()
 		} else {
 			log_msg(LOG_NOTICE, "GPU initialization failed!");
 		}
-		lt7680_setup();
+		uint16_t w = LCD_WIDTH;
+		uint16_t h = LCD_HEIGHT;
+		lt7680_setup(w, h);
 		lt7680_display_on(false);
 		lt7680_set_fg_16bpp(Red);
-		lt7680_draw_rect(0,0,LCD_WIDTH,LCD_HEIGHT,true);
+		lt7680_draw_rect(0,0,w,h,true);
 		lt7680_set_fg_16bpp(Green);
-		lt7680_draw_rect(10,10,LCD_WIDTH-10,LCD_HEIGHT-10,true);
+		lt7680_draw_rect(10,10,w-10,h-10,true);
 		lt7680_set_fg_16bpp(Black);
-		lt7680_draw_rect(20,20,LCD_WIDTH-20,LCD_HEIGHT-20,true);
+		lt7680_draw_rect(20,20,w-20,h-20,true);
+		lt7680_set_fg_16bpp(Blue);
+		lt7680_draw_rect(25,25,75,50,true);
 		lt7680_display_on(true);
 	} else {
 		log_msg(LOG_NOTICE, "No GPU found!");
@@ -113,9 +155,10 @@ void display_init()
 	}
 
 
-	uint32_t vmem_addr = 0;
+	uint32_t vmem_addr = LAYER2_START_ADDR;
 
 	load_image_to_vmem(lcdpico_boot_logo, ROMIMAGESIZE(lcdpico_boot_logo), vmem_addr);
+	load_image_to_vmem(lcdpico_hp_logo, ROMIMAGESIZE(lcdpico_hp_logo), 0);
 }
 
 void clear_display()

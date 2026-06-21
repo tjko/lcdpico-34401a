@@ -308,7 +308,7 @@ static void setup()
 	gpio_init(LCM_CS_PIN);
 	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
 	gpio_put(LCM_CS_PIN, 1);
-	spi_init(LCM_SPI_HW, 8000000);
+	spi_init(LCM_SPI_HW, 50000000);
 	spi_set_format(LCM_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);

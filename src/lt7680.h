@@ -186,13 +186,44 @@
 #define GPIOD_REG       0xf6
 
 
+void lt7680_cmd_write(uint8_t cmd);
+void lt7680_data_write(uint8_t data);
+void lt7680_write_pixels(uint8_t *buf, uint32_t len);
+
+uint8_t lt7680_core_idle_wait();
+uint8_t lt7680_wr_fifo_notfull_wait();
+uint8_t lt7680_wr_fifo_empty_wait();
+
+
 void lt7680_hw_reset();
 bool lt7680_system_check();
 bool lt7680_init();
 void lt7680_display_on(bool display_on);
-void lt7680_setup();
+void lt7680_setup(uint16_t w, uint16_t h);
 void lt7680_set_fg_16bpp(uint16_t color);
 void lt7680_set_bg_16bpp(uint16_t color);
+void lt7680_set_graphics_addr(uint32_t addr);
+void lt7680_set_graphics_xy(uint16_t x, uint16_t y);
+void lt7680_set_text_xy(uint16_t x, uint16_t y);
+
+void lt7680_set_canvas_addr(uint32_t addr);
+void lt7680_set_canvas_width(uint16_t width);
+void lt7680_set_active_window_xy(uint16_t x, uint16_t y);
+void lt7680_set_active_window_wh(uint16_t w, uint16_t h);
+
+void lt7680_set_s0_addr(uint32_t addr);
+void lt7680_set_s0_width(uint16_t width);
+void lt7680_set_s0_xy(uint16_t x, uint16_t y);
+void lt7680_set_s1_addr(uint32_t addr);
+void lt7680_set_s1_width(uint16_t width);
+void lt7680_set_s1_xy(uint16_t x, uint16_t y);
+void lt7680_set_dt_addr(uint32_t addr);
+void lt7680_set_dt_width(uint16_t width);
+void lt7680_set_dt_xy(uint16_t x, uint16_t y);
+void lt7680_set_blt_width(uint16_t width);
+void lt7680_set_blt_height(uint16_t width);
+void lt7680_set_blt_mode(uint8_t rop, uint8_t op);
+
 void lt7680_draw_point1_xy(uint16_t x, uint16_t y);
 void lt7680_draw_point2_xy(uint16_t x, uint16_t y);
 void lt7680_draw_point3_xy(uint16_t x, uint16_t y);

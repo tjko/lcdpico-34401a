@@ -151,6 +151,18 @@ static inline uint16_t spi_read_register_u16(uint8_t reg)
 	return (((uint16_t)val2 << 8) | val1);
 }
 
+static inline uint32_t spi_read_register_u32(uint8_t reg)
+{
+	uint8_t val1, val2, val3, val4;
+
+	val1 = spi_read_register(reg);
+	val2 = spi_read_register(reg + 1);
+	val3 = spi_read_register(reg + 2);
+	val4 = spi_read_register(reg + 3);
+
+	return (((uint32_t)val4 << 24) | (val3 << 16) | (val2 << 8) | val1);
+}
+
 static inline void spi_write_register(uint8_t reg, uint8_t val)
 {
 	spi_cmd_write(reg);
@@ -175,9 +187,58 @@ static inline void spi_write_register_u32(uint8_t reg, uint32_t val)
 }
 
 
-static inline void core_busy_wait()
+void lt7680_cmd_write(uint8_t cmd)
 {
-	while (spi_status_read() & 0x08) { }
+	spi_cmd_write(cmd);
+}
+
+void lt7680_data_write(uint8_t data)
+{
+	spi_data_write(data);
+}
+
+void lt7680_write_pixels(uint8_t *buf, uint32_t len)
+{
+	uint32_t i = 0;
+
+	while (i < len) {
+		lt7680_wr_fifo_notfull_wait();
+		spi_data_write(buf[i++]);
+	}
+	lt7680_wr_fifo_empty_wait();
+}
+
+uint8_t lt7680_core_idle_wait()
+{
+	uint8_t status;
+
+	while ((status = spi_status_read()) & 0x08) {
+		// wait...
+	}
+
+	return status;
+}
+
+uint8_t lt7680_wr_fifo_notfull_wait()
+{
+	uint8_t status;
+
+	while ((status = spi_status_read()) & 0x80) {
+		// wait...
+	}
+
+	return status;
+}
+
+uint8_t lt7680_wr_fifo_empty_wait()
+{
+	uint8_t status;
+
+	while (((status = spi_status_read()) & 0x40) == 0) {
+		// wait...
+	}
+
+	return status;
 }
 
 
@@ -386,7 +447,7 @@ void lt7680_display_on(bool display_on)
 	sleep_ms(10);
 }
 
-void lt7680_setup()
+void lt7680_setup(uint16_t w, uint16_t h)
 {
 	uint32_t reg;
 
@@ -399,7 +460,7 @@ void lt7680_setup()
 	spi_write_register_u32(MISA_REG, LAYER1_START_ADDR);
 
 	/* Set Main Window Image Width */
-	spi_write_register_u16(MIW_REG, LCD_WIDTH);
+	spi_write_register_u16(MIW_REG, w);
 
 	/* Set Main Window Start (X/Y) */
 	spi_write_register_u16(MWULX_REG, 0);
@@ -409,16 +470,17 @@ void lt7680_setup()
 	spi_write_register_u32(CVSSA_REG, 0);
 
 	/* Set Canvas Image Width */
-	spi_write_register_u16(CVSIMWTH_REG, LCD_WIDTH);
+	spi_write_register_u16(CVSIMWTH_REG, w);
 
 	/* Set Active Window Upper Left (X/Y) */
 	spi_write_register_u16(AWULX_REG, 0);
 	spi_write_register_u16(AWULY_REG, 0);
 
 	/* Set Active Window Width/Height */
-	spi_write_register_u16(AWWTH_REG, LCD_WIDTH);
-	spi_write_register_u16(AWHT_REG, LCD_HEIGHT);
+	spi_write_register_u16(AWWTH_REG, w);
+	spi_write_register_u16(AWHT_REG, h);
 }
+
 
 
 void lt7680_set_fg_16bpp(uint16_t color)
@@ -435,6 +497,112 @@ void lt7680_set_bg_16bpp(uint16_t color)
 	spi_write_register(BGCG_REG, color >> 3);
 	spi_write_register(BGCB_REG, color << 3);
 }
+
+void lt7680_set_graphics_addr(uint32_t addr)
+{
+	// use in linear mode only
+	spi_write_register_u32(CURH_REG, addr);
+}
+
+void lt7680_set_graphics_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(CURH_REG, x & 0x1fff);
+	spi_write_register_u16(CURV_REG, y & 0x1fff);
+}
+
+void lt7680_set_text_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(F_CURX_REG, x & 0x1fff);
+	spi_write_register_u16(F_CURY_REG, y & 0x1fff);
+}
+
+
+void lt7680_set_canvas_addr(uint32_t addr)
+{
+	spi_write_register_u32(CVSSA_REG, addr & 0xfffffffc);
+}
+
+void lt7680_set_canvas_width(uint16_t width)
+{
+	spi_write_register_u32(CVSIMWTH_REG, width & 0x3ffc);
+}
+
+void lt7680_set_active_window_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(AWULX_REG, x & 0x1fff);
+	spi_write_register_u16(AWULY_REG, y & 0x1fff);
+}
+
+void lt7680_set_active_window_wh(uint16_t w, uint16_t h)
+{
+	spi_write_register_u16(AWWTH_REG, w & 0x3fff);
+	spi_write_register_u16(AWHT_REG, h & 0x3fff);
+}
+
+
+void lt7680_set_s0_addr(uint32_t addr)
+{
+	spi_write_register_u32(S0_STR_REG, addr);
+}
+
+void lt7680_set_s0_width(uint16_t width)
+{
+	spi_write_register_u32(S0_WTH_REG, width & 0x1ffc);
+}
+
+void lt7680_set_s0_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(S0_X_REG, x & 0x1fff);
+	spi_write_register_u16(S0_Y_REG, y & 0x1fff);
+}
+
+void lt7680_set_s1_addr(uint32_t addr)
+{
+	spi_write_register_u32(S1_STR_REG, addr);
+}
+
+void lt7680_set_s1_width(uint16_t width)
+{
+	spi_write_register_u32(S1_WTH_REG, width & 0x1ffc);
+}
+
+void lt7680_set_s1_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(S1_X_REG, x & 0x1fff);
+	spi_write_register_u16(S1_Y_REG, y & 0x1fff);
+}
+
+void lt7680_set_dt_addr(uint32_t addr)
+{
+	spi_write_register_u32(DT_STR_REG, addr);
+}
+
+void lt7680_set_dt_width(uint16_t width)
+{
+	spi_write_register_u32(DT_WTH_REG, width & 0x1ffc);
+}
+
+void lt7680_set_dt_xy(uint16_t x, uint16_t y)
+{
+	spi_write_register_u16(DT_X_REG, x & 0x1fff);
+	spi_write_register_u16(DT_Y_REG, y & 0x1fff);
+}
+
+void lt7680_set_blt_width(uint16_t width)
+{
+	spi_write_register_u32(BLT_WTH_REG, width & 0x1fff);
+}
+
+void lt7680_set_blt_height(uint16_t height)
+{
+	spi_write_register_u32(BLT_HIG_REG, height & 0x1fff);
+}
+
+void lt7680_set_blt_mode(uint8_t rop, uint8_t op)
+{
+	spi_write_register(BLT_CTRL1_REG, (rop << 4) | (op & 0x0f));
+}
+
 
 void lt7680_draw_point1_xy(uint16_t x, uint16_t y)
 {
@@ -458,9 +626,9 @@ void lt7680_draw_rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, bool f
 {
 	lt7680_draw_point1_xy(x1, y1);
 	lt7680_draw_point2_xy(x2, y2);
-	core_busy_wait();
+	lt7680_core_idle_wait();
 	spi_write_register(DCR1_REG, (fill ?  0xe0 : 0xa0));
-	core_busy_wait();
+	lt7680_core_idle_wait();
 }
 
 
