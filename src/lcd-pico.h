@@ -77,7 +77,7 @@
 #define MAX_PWHASH_LEN    128
 
 #ifdef NDEBUG
-#define WATCHDOG_ENABLED      1
+//#define WATCHDOG_ENABLED      1
 #define WATCHDOG_REBOOT_DELAY 8000
 #endif
 

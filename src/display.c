@@ -52,6 +52,9 @@ typedef struct vmem_image {
 } vmem_image_t;
 
 
+vmem_image_t *logo = NULL;
+vmem_image_t *disp = NULL;
+
 #define RGB888_TO_RGB565(r,g,b) ((uint16_t)( ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3) ))
 
 static int draw_cb(PNGDRAW *d)
@@ -191,7 +194,7 @@ void display_init()
 
 
 
-	vmem_image_t *logo = load_image_to_vmem(lcdpico_hp_logo, ROMIMAGESIZE(lcdpico_hp_logo), Blue, &vmem_asset_ptr);
+	logo = load_image_to_vmem(lcdpico_hp_logo, ROMIMAGESIZE(lcdpico_hp_logo), Blue, &vmem_asset_ptr);
 	log_msg(LOG_INFO, "foo1");
 	lt7680_bte_memory_copy(0, w, (w - logo->w)/2, (h - logo->h) / 2,
 			       logo->base_addr, logo->w, 0, 0,
@@ -199,7 +202,7 @@ void display_init()
 			       logo->w, logo->h, 0x0c);
 	log_msg(LOG_INFO, "foo2");
 
-	vmem_image_t *disp = load_image_to_vmem(lcdpico_display_graphics, ROMIMAGESIZE(lcdpico_display_graphics), Blue, &vmem_asset_ptr);
+	disp = load_image_to_vmem(lcdpico_display_graphics, ROMIMAGESIZE(lcdpico_display_graphics), Blue, &vmem_asset_ptr);
 
 #if 0
 	vmem_image_t *test = load_image_to_vmem(lcdpico_boot_logo, ROMIMAGESIZE(lcdpico_boot_logo), Blue, &vmem_asset_ptr);
@@ -213,47 +216,42 @@ void display_init()
 #endif
 
 	lt7680_bte_solid_fill(LAYER1_START_ADDR, w, 0, 0, w, h, Black);
-	lt7680_bte_memory_copy(0, w, 50, 0,
-			       disp->base_addr, disp->w, 190, 80,
-			       0, 0, 0, 0,
-			       190, 12*80, 0x0c);
+
+#if 0
+	for (int i = 0; i < 200; i++) {
+		lt7680_bte_memory_copy(0, w, 50, 0,
+				disp->base_addr, disp->w, (i % 4) * 190, 0,
+				0, 0, 0, 0,
+				190, 12*80, 0x0c);
+		sleep_ms(100);
+	}
+#endif
 }
 
 void clear_display()
 {
-#if LCD_DISPLAY
-	if (cfg->spi_active)
-		lcd_clear_display();
-#endif
-#if OLED_DISPLAY
-	if (!cfg->spi_active)
-		oled_clear_display();
-#endif
+	uint16_t w = LCD_WIDTH;
+	uint16_t h = LCD_HEIGHT;
+	lt7680_bte_solid_fill(LAYER1_START_ADDR, w, 0, 0, w, h, Black);
 }
 
 void display_status(const struct fanpico_state *state,
 	const struct fanpico_config *config)
 {
-#if LCD_DISPLAY
-	if (cfg->spi_active)
-		lcd_display_status(state, config);
-#endif
-#if OLED_DISPLAY
-	if (!cfg->spi_active)
-		oled_display_status(state, config);
-#endif
+	static int i = 0;
+	uint16_t w = LCD_WIDTH;
+	uint16_t h = LCD_HEIGHT;
+
+
+	lt7680_bte_memory_copy(0, w, 50, 0,
+			disp->base_addr, disp->w, (i % 4) * 190, 0,
+			0, 0, 0, 0,
+			190, 12*80, 0x0c);
+	i++;
 }
 
 void display_message(int rows, const char **text_lines)
 {
-#if LCD_DISPLAY
-	if (cfg->spi_active)
-		lcd_display_message(rows, text_lines);
-#endif
-#if OLED_DISPLAY
-	if (!cfg->spi_active)
-		oled_display_message(rows, text_lines);
-#endif
 }
 
 

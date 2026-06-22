@@ -560,7 +560,7 @@ int main()
 		}
 
 		/* Update display every 1000ms */
-		if (time_passed(&t_display, 1000)) {
+		if (time_passed(&t_display, 100)) {
 			log_msg(LOG_DEBUG, "update display start");
 			update_system_state();
 			display_status(fanpico_state, cfg);
