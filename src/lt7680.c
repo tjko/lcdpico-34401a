@@ -436,7 +436,6 @@ bool lt7680_init()
 
 void lt7680_display_on(bool display_on)
 {
-	printf("display %d\n", display_on);
 	uint8_t reg = spi_read_register(DPCR_REG);
 	if (display_on)
 		SET_BIT(reg, 6);
@@ -444,7 +443,7 @@ void lt7680_display_on(bool display_on)
 		CLR_BIT(reg, 6);
 //	reg |= (1 << 5); // Set Test Color Bar
 	spi_write_register(DPCR_REG, reg);
-	sleep_ms(10);
+	sleep_ms(1);
 }
 
 void lt7680_setup(uint16_t w, uint16_t h)
@@ -455,6 +454,9 @@ void lt7680_setup(uint16_t w, uint16_t h)
 	reg = spi_read_register(MPWCTR_REG);
 	set_bits_u32(&reg, 3, 2, 0x01); // 16bpp
 	spi_write_register(MPWCTR_REG, reg);
+
+	/* Set DT/S0/S1 to 16bpp */
+	spi_write_register(BLT_COLR_REG, 0x25);
 
 	/* Set Main Window Image Start Address */
 	spi_write_register_u32(MISA_REG, LAYER1_START_ADDR);
@@ -588,19 +590,76 @@ void lt7680_set_dt_xy(uint16_t x, uint16_t y)
 	spi_write_register_u16(DT_Y_REG, y & 0x1fff);
 }
 
-void lt7680_set_blt_width(uint16_t width)
+void lt7680_set_dt_color_depth(uint8_t depth)
 {
-	spi_write_register_u32(BLT_WTH_REG, width & 0x1fff);
+	uint32_t reg = spi_read_register(BLT_COLR_REG);
+	set_bits_u32(&reg, 0, 2, depth);
+	spi_write_register(BLT_COLR_REG, reg);
 }
 
-void lt7680_set_blt_height(uint16_t height)
+void lt7680_set_s0_color_depth(uint8_t depth)
 {
+	uint32_t reg = spi_read_register(BLT_COLR_REG);
+	set_bits_u32(&reg, 6, 2, depth);
+	spi_write_register(BLT_COLR_REG, reg);
+}
+
+void lt7680_set_s1_color_depth(uint8_t depth)
+{
+	uint32_t reg = spi_read_register(BLT_COLR_REG);
+	set_bits_u32(&reg, 4, 3, depth);
+	spi_write_register(BLT_COLR_REG, reg);
+}
+
+void lt7680_set_bte_wh(uint16_t width, uint16_t height)
+{
+	spi_write_register_u32(BLT_WTH_REG, width & 0x1fff);
 	spi_write_register_u32(BLT_HIG_REG, height & 0x1fff);
 }
 
-void lt7680_set_blt_mode(uint8_t rop, uint8_t op)
+void lt7680_set_bte_mode(uint8_t rop, uint8_t op)
 {
 	spi_write_register(BLT_CTRL1_REG, (rop << 4) | (op & 0x0f));
+}
+
+void lt7680_bte_on(bool bte_on)
+{
+	uint32_t reg = spi_read_register(BLT_CTRL0_REG);
+	set_bits_u32(&reg, 4, 1, bte_on ? 1 : 0);
+	spi_write_register(BLT_CTRL0_REG, reg);
+}
+
+
+void lt7680_bte_memory_copy(uint32_t d_addr, uint16_t d_w, uint16_t d_x, uint16_t d_y,
+			uint32_t s0_addr, uint16_t s0_w, uint16_t s0_x, uint16_t s0_y,
+			uint32_t s1_addr, uint16_t s1_w, uint16_t s1_x, uint16_t s1_y,
+			uint16_t w, uint16_t h, uint8_t rop)
+{
+	lt7680_set_dt_addr(d_addr);
+	lt7680_set_dt_width(d_w);
+	lt7680_set_dt_xy(d_x, d_y);
+	lt7680_set_s0_addr(s0_addr);
+	lt7680_set_s0_width(s0_w);
+	lt7680_set_s0_xy(s0_x, s0_y);
+	lt7680_set_s1_addr(s1_addr);
+	lt7680_set_s1_width(s1_w);
+	lt7680_set_s1_xy(s1_x, s1_y);
+	lt7680_set_bte_wh(w, h);
+	lt7680_set_bte_mode(rop, 0x02);
+	lt7680_bte_on(true);
+	lt7680_core_idle_wait();
+}
+
+void lt7680_bte_solid_fill(uint32_t d_addr, uint16_t d_w, uint16_t d_x, uint16_t d_y, uint16_t w, uint16_t h, uint16_t color)
+{
+	lt7680_set_dt_addr(d_addr);
+	lt7680_set_dt_width(d_w);
+	lt7680_set_dt_xy(d_x, d_y);
+	lt7680_set_bte_wh(w, h);
+	lt7680_set_fg_16bpp(color);
+	lt7680_set_bte_mode(0, 0x0c);
+	lt7680_bte_on(true);
+	lt7680_core_idle_wait();
 }
 
 

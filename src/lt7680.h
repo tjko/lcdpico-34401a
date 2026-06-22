@@ -186,6 +186,24 @@
 #define GPIOD_REG       0xf6
 
 
+
+#define DT_COLOR_8bpp        0x00
+#define DT_COLOR_16bpp       0x01
+#define DT_COLOR_24bpp       0x02
+
+#define S0_COLOR_8bpp        0x00
+#define S0_COLOR_16bpp       0x01
+#define S0_COLOR_24bpp       0x02
+
+#define S1_COLOR_8bpp        0x00
+#define S1_COLOR_16bpp       0x01
+#define S1_COLOR_24bpp       0x02
+#define S1_COLOR_const       0x03
+#define S1_COLOR_alpha_8bpp  0x04
+#define S1_COLOR_alpha_16bpp 0x05
+
+
+
 void lt7680_cmd_write(uint8_t cmd);
 void lt7680_data_write(uint8_t data);
 void lt7680_write_pixels(uint8_t *buf, uint32_t len);
@@ -220,13 +238,23 @@ void lt7680_set_s1_xy(uint16_t x, uint16_t y);
 void lt7680_set_dt_addr(uint32_t addr);
 void lt7680_set_dt_width(uint16_t width);
 void lt7680_set_dt_xy(uint16_t x, uint16_t y);
-void lt7680_set_blt_width(uint16_t width);
-void lt7680_set_blt_height(uint16_t width);
-void lt7680_set_blt_mode(uint8_t rop, uint8_t op);
 
 void lt7680_draw_point1_xy(uint16_t x, uint16_t y);
 void lt7680_draw_point2_xy(uint16_t x, uint16_t y);
 void lt7680_draw_point3_xy(uint16_t x, uint16_t y);
 void lt7680_draw_rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, bool fill);
+
+void lt7680_set_dt_color_depth(uint8_t mode);
+void lt7680_set_s0_color_depth(uint8_t mode);
+void lt7680_set_s1_color_depth(uint8_t mode);
+void lt7680_set_bte_wh(uint16_t width, uint16_t height);
+void lt7680_set_bte_mode(uint8_t rop, uint8_t op);
+void lt7680_bte_on(bool bte_on);
+void lt7680_bte_memory_copy(uint32_t d_addr, uint16_t d_w, uint16_t d_x, uint16_t d_y,
+			uint32_t s0_addr, uint16_t s0_w, uint16_t s0_x, uint16_t s0_y,
+			uint32_t s1_addr, uint16_t s1_w, uint16_t s1_x, uint16_t s1_y,
+			uint16_t w, uint16_t h, uint8_t rop);
+
+void lt7680_bte_solid_fill(uint32_t d_addr, uint16_t d_w, uint16_t d_x, uint16_t d_y, uint16_t w, uint16_t h, uint16_t color);
 
 #endif /* _LT7680_H_ */

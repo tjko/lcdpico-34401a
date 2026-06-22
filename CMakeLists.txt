@@ -154,6 +154,7 @@ add_executable(firmware
   src/default_config.S
   src/credits.s
   src/img/logo.S
+  src/img/display.S
   )
 
 
@@ -254,6 +255,7 @@ target_compile_definitions(firmware PRIVATE
   LFS_NO_DEBUG=1
 #  LFS_YES_TRACE=1
 #  I2C_DEBUG=1
+   PNG_MAX_BUFFERED_PIXELS=8194
   )
 
 
