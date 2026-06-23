@@ -37,6 +37,8 @@ extern const char lcdpico_hp_logo[];
 extern const char lcdpico_hp_logo_end[];
 extern const char lcdpico_display_graphics[];
 extern const char lcdpico_display_graphics_end[];
+extern const char lcdpico_indicator_graphics[];
+extern const char lcdpico_indicator_graphics_end[];
 
 #define ROMIMAGESIZE(img) ((uint32_t)((img ## _end) - img))
 
@@ -54,6 +56,7 @@ typedef struct vmem_image {
 
 vmem_image_t *logo = NULL;
 vmem_image_t *disp = NULL;
+vmem_image_t *disp2 = NULL;
 
 #define RGB888_TO_RGB565(r,g,b) ((uint16_t)( ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3) ))
 
@@ -68,19 +71,28 @@ static int draw_cb(PNGDRAW *d)
 	}
 #endif
 	for (int i = 0; i < d->iWidth; i++) {
+		uint16_t bpc = d->iBpp; // "iBpp" is bits per color (bpc)...
 		uint16_t pixel = Black;
+		int o, p;
+
 		if (d->iPixelType == PNG_PIXEL_TRUECOLOR) {
-			int o = i * 3;
-			pixel = RGB888_TO_RGB565(d->pPixels[o + 0], d->pPixels[o + 1], d->pPixels[o + 2]);
+			if (bpc == 8) {
+				o = i * 3;
+				pixel = RGB888_TO_RGB565(d->pPixels[o + 0], d->pPixels[o + 1], d->pPixels[o + 2]);
+			}
 		}
 		else if (d->iPixelType == PNG_PIXEL_TRUECOLOR_ALPHA) {
-			int o = i * 4;
-			pixel = RGB888_TO_RGB565(d->pPixels[o + 0], d->pPixels[o + 1], d->pPixels[o + 2]);
+			if (bpc == 8) {
+				o = i * 4;
+				pixel = RGB888_TO_RGB565(d->pPixels[o + 0], d->pPixels[o + 1], d->pPixels[o + 2]);
+			}
 		}
 		else if (d->iPixelType == PNG_PIXEL_GRAYSCALE) {
-			int o = i / 8;
-			int p = i % 8;
-			pixel = ( (d->pPixels[o] << p) & 0x80 ? Black : *color );
+			if (bpc == 1) {
+				o = i / 8;
+				p = i % 8;
+				pixel = ( (d->pPixels[o] << p) & 0x80 ? Black : *color );
+			}
 		}
 		if (fifo < 1) {
 			lt7680_wr_fifo_empty_wait();
@@ -111,7 +123,8 @@ vmem_image_t* load_image_to_vmem(const char *buf, uint32_t len, uint16_t mono_co
 		w = PNG_getWidth(png);
 		h = PNG_getHeight(png);
 
-		printf("%dx%d %dbpp alpha=%d (%u)\n", w, h, PNG_getBpp(png), PNG_hasAlpha(png), sizeof(PNGIMAGE));
+		log_msg(LOG_INFO, "PNG %dx%d %dbpc alpha=%d (pixeltype=%d)\n", w, h,
+			PNG_getBpp(png), PNG_hasAlpha(png), PNG_getPixelType(png));
 		PNG_setBuffer(png, NULL);
 
 		lt7680_set_canvas_addr(*addr);
@@ -195,14 +208,16 @@ void display_init()
 
 
 	logo = load_image_to_vmem(lcdpico_hp_logo, ROMIMAGESIZE(lcdpico_hp_logo), Blue, &vmem_asset_ptr);
-	log_msg(LOG_INFO, "foo1");
+	log_msg(LOG_INFO, "Display Logo");
 	lt7680_bte_memory_copy(0, w, (w - logo->w)/2, (h - logo->h) / 2,
 			       logo->base_addr, logo->w, 0, 0,
 			       0, 0, 0, 0,
 			       logo->w, logo->h, 0x0c);
-	log_msg(LOG_INFO, "foo2");
+
+	log_msg(LOG_INFO, "Load graphics assets into VRAM");
 
 	disp = load_image_to_vmem(lcdpico_display_graphics, ROMIMAGESIZE(lcdpico_display_graphics), Blue, &vmem_asset_ptr);
+	disp2 = load_image_to_vmem(lcdpico_indicator_graphics, ROMIMAGESIZE(lcdpico_indicator_graphics), Blue, &vmem_asset_ptr);
 
 #if 0
 	vmem_image_t *test = load_image_to_vmem(lcdpico_boot_logo, ROMIMAGESIZE(lcdpico_boot_logo), Blue, &vmem_asset_ptr);
@@ -240,7 +255,7 @@ void display_status(const struct fanpico_state *state,
 {
 	static int i = 0;
 	uint16_t w = LCD_WIDTH;
-	uint16_t h = LCD_HEIGHT;
+	//uint16_t h = LCD_HEIGHT;
 
 
 	lt7680_bte_memory_copy(0, w, 50, 0,

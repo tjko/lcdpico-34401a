@@ -15,6 +15,8 @@
 
 	.global lcdpico_display_graphics
 	.global lcdpico_display_graphics_end
+	.global lcdpico_indicator_graphics
+	.global lcdpico_indicator_graphics_end
 
 	.section .rodata
 
@@ -22,6 +24,11 @@
 lcdpico_display_graphics:
 	.incbin	DISPLAY_GRAPHICS
 lcdpico_display_graphics_end:
+
+	.p2align 4
+lcdpico_indicator_graphics:
+	.incbin	INDICATOR_GRAPHICS
+lcdpico_indicator_graphics_end:
 
 
 
