@@ -29,6 +29,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(LCDPICO_BUILD beta CACHE STRING "LCD-Pico Build Tag")
 set(LCDPICO_BOARD 34401A CACHE STRING "LCD-Pico Board Model")
 set(LCDPICO_LCD er-tft371-1 CACHE STRING "LCD-Pico LCD Panel Model")
+set(LCDPICO_THEME nixie CACHE STRING "LCD-Pico Theme")
 
 set(TLS_SUPPORT 1 CACHE STRING "TLS Support")
 # Generate some "random" data for mbedtls (better than nothing...)
@@ -36,6 +37,16 @@ set(EXTRA_ENTROPY_LEN 64)
 string(RANDOM LENGTH ${EXTRA_ENTROPY_LEN} EXTRA_ENTROPY)
 
 #set(CMAKE_BUILD_TYPE Debug)
+
+# extract panel resolution
+
+file(STRINGS "src/lcd/${LCDPICO_LCD}.h" LCD_RESOLUTION_LINE LIMIT_COUNT 1 REGEX "PANEL_RESOLUTION")
+if (LCD_RESOLUTION_LINE MATCHES "PANEL_RESOLUTION[ \t]+\"(.*)\"")
+  set(LCD_RESOLUTION ${CMAKE_MATCH_1})
+  message("LCD resolution: ${LCD_RESOLUTION}")
+else()
+  message(FATAL_ERROR "Failed to detect LCD resolution.")
+endif()
 
 
 pico_sdk_init()

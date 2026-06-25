@@ -7,7 +7,8 @@
 #
 
 	#include "config.h"
-	#include LCDPICO_IMG_HEADER
+	#include LCDPICO_THEME_HEADER
+
 
 #
 # Stub for embedding default_config.json in the executable.

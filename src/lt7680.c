@@ -28,7 +28,7 @@
 #include "config.h"
 #include "lt7680.h"
 
-#define LT7680_DEBUG 1
+#define LT7680_DEBUG 0
 
 
 #if LT7680_DEBUG > 0
@@ -296,9 +296,9 @@ bool lt7680_init()
 
 	uint32_t temp = (LCD_HBPD + LCD_HFPD + LCD_HSPW + LCD_WIDTH) *
 		(LCD_VBPD + LCD_VFPD + LCD_VSPW + LCD_HEIGHT) * REFRESH_RATE;
-	printf("scan clock: %lu\n", temp);
+	//printf("scan clock: %lu\n", temp);
 	temp = (temp + 500000) / 1000000;
-	printf("%lu\n", temp);
+	//printf("%lu\n", temp);
 
 	/* Initialize PLL */
 	uint8_t lpllOD_sclk = 2;
@@ -351,7 +351,7 @@ bool lt7680_init()
 	DUMP_REGISTER_U16(SDRREF_REG);
 	//uint32_t sdram_itv = ((64000000 / 8192) / (1000/lpllN_mclk)) - 2;
 	uint32_t sdram_itv = ((64 * lpllN_mclk * 1000) / 4096) - 2;
-	printf("sdram_itv = %lu (%04lx)\n",sdram_itv,sdram_itv);
+	//printf("sdram_itv = %lu (%04lx)\n",sdram_itv,sdram_itv);
 	spi_write_register_u16(SDRREF_REG, sdram_itv);
 	DUMP_REGISTER(SDRCR_REG);
 	spi_write_register(SDRCR_REG, 0x01);
@@ -498,6 +498,11 @@ void lt7680_set_bg_16bpp(uint16_t color)
 	spi_write_register(BGCR_REG, color >> 8);
 	spi_write_register(BGCG_REG, color >> 3);
 	spi_write_register(BGCB_REG, color << 3);
+}
+
+void lt7680_set_misa_addr(uint32_t addr)
+{
+	spi_write_register_u32(MISA_REG, addr & 0xfffffffc);
 }
 
 void lt7680_set_graphics_addr(uint32_t addr)

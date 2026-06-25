@@ -58,4 +58,4 @@ for i in LIST:
 
 
 
-res = subprocess.run(["magick","montage"] +  infiles + ["-tile", "4x", "-geometry", "+0+0", "nixie1.png"])
+res = subprocess.run(["magick","montage"] +  infiles + ["-tile", "4x", "-geometry", "+0+0", "-background", "black", "nixie1.png"])

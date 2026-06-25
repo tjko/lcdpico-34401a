@@ -220,6 +220,7 @@ void lt7680_display_on(bool display_on);
 void lt7680_setup(uint16_t w, uint16_t h);
 void lt7680_set_fg_16bpp(uint16_t color);
 void lt7680_set_bg_16bpp(uint16_t color);
+void lt7680_set_misa_addr(uint32_t addr);
 void lt7680_set_graphics_addr(uint32_t addr);
 void lt7680_set_graphics_xy(uint16_t x, uint16_t y);
 void lt7680_set_text_xy(uint16_t x, uint16_t y);
