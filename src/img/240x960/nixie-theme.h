@@ -14,10 +14,9 @@
 #define DISPLAY_CHAR_BLANK_IDX 52
 
 #define DISPLAY_CHAR_OVERLAY_COUNT 3
-#define DISPLAY_CHAR_OVERLAY_DOT 
 
 #define DISPLAY_IND_W      38
-#define DISPLAY_INT_H      128
+#define DISPLAY_IND_H      80
 
 #define DISPLAY_IND_COUNT  16
 #define DISPLAY_IND_MAP_W  8
@@ -47,6 +46,30 @@ enum lcd_indicators_types {
 	INDICATOR_BLANK  = 15
 };
 
+struct lcd_indicator {
+	int16_t tile;
+	int16_t h;
+	int16_t y;
+};
+
+const struct lcd_indicator display_indicators[] = {
+	{  0, -1, 788 },
+	{  1, -1, 708 },
+	{  2, -1, 628 },
+	{  3, -1, 548 },
+	{  4, -1, 548 },
+	{  5, -1, 468 },
+	{  6, -1, 388 },
+	{  7, -1, 308 },
+	{  8, -1,  68 },
+	{  9, -1, 228 },
+	{ 10, -1, 148 },
+	{ 11, 64,   0 },
+	{ 12, 64,   0 },
+	{ 13, 64,   0 },
+	{ 14, 64, 896 },
+	{ 15, -1,  -1 },
+};
 
 enum lcd_char_overlays {
 	OVERLAY_PERIOD   = 0,

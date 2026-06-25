@@ -17,7 +17,7 @@ if not out_path.is_dir():
 WORDS = ["Adrs", "Rmt", "Man", "Trig", "Hold", "Mem", "Ratio", "Math", "ERROR", "Rear", "Shift"]
 FS = 170  # uniform font size; all listed words fit the 820-wide canvas
 
-TEMPLATE = r'''<svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+TEMPLATE = r'''<svg viewBox="0 0 830 300" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
   <defs>
     <linearGradient id="digit" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#ffeec2"/>
@@ -38,13 +38,13 @@ TEMPLATE = r'''<svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" fon
   <rect x="0" y="0" width="820" height="300" fill="#000000"/>
 __FRAME__
 
-  <text x="410" y="152" dominant-baseline="central" text-anchor="middle"
+  <text x="310" y="152" dominant-baseline="central" text-anchor="middle"
         font-size="__FS__" fill="#ff7414" opacity="0.6" filter="url(#hugeGlow)">__W__</text>
-  <text x="410" y="152" dominant-baseline="central" text-anchor="middle"
+  <text x="310" y="152" dominant-baseline="central" text-anchor="middle"
         font-size="__FS__" fill="#ff7e1e" opacity="0.88" filter="url(#bigGlow)">__W__</text>
-  <text x="410" y="152" dominant-baseline="central" text-anchor="middle"
+  <text x="310" y="152" dominant-baseline="central" text-anchor="middle"
         font-size="__FS__" fill="#ffa838" opacity="0.95" filter="url(#midGlow)">__W__</text>
-  <text x="410" y="152" dominant-baseline="central" text-anchor="middle"
+  <text x="310" y="152" dominant-baseline="central" text-anchor="middle"
         font-size="__FS__" fill="url(#digit)" stroke="#fff1cf" stroke-width="1.4">__W__</text>
 </svg>
 '''
@@ -53,16 +53,16 @@ IDS = ["digit", "hugeGlow", "bigGlow", "midGlow"]
 
 FRAME = '''
   <!-- Frame: fixed size in every image (centered 700x200, r=32) -->
-  <rect x="60" y="50" width="700" height="200" rx="32" ry="32" fill="none"
+  <rect x="60" y="50" width="500" height="200" rx="32" ry="32" fill="none"
         stroke="#ff7e1e" stroke-width="7" opacity="0.6" filter="url(#bigGlow)"/>
-  <rect x="60" y="50" width="700" height="200" rx="32" ry="32" fill="none"
+  <rect x="60" y="50" width="500" height="200" rx="32" ry="32" fill="none"
         stroke="#ffb84e" stroke-width="3"/>
-  <rect x="60" y="50" width="700" height="200" rx="32" ry="32" fill="none"
+  <rect x="60" y="50" width="500" height="200" rx="32" ry="32" fill="none"
         stroke="#fff1cf" stroke-width="1" opacity="0.65"/>'''
 
 def make_word(w, framed=False):
     return (TEMPLATE
-            .replace("__FS__", str(FS))
+            .replace("__FS__", str(FS-40) if w == "ERROR" else str(FS))
             .replace("__FRAME__", FRAME if framed else "")
             .replace("__W__", w))
 

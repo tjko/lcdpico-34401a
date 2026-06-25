@@ -275,7 +275,7 @@ void clear_display()
 }
 
 
-static void update_display(struct display_cell_state newstate[], bool force_refresh)
+static void update_display(struct display_cell_state newstate[], uint32_t ind_flags, bool force_refresh)
 {
 	static uint64_t max_delta = 0;
 	static uint64_t min_delta = 0;
@@ -317,8 +317,26 @@ static void update_display(struct display_cell_state newstate[], bool force_refr
 		}
 	}
 
+	/* Set indicator "lights" */
 	for (int i = 0; i < DISPLAY_IND_COUNT; i++) {
+		uint8_t tile = display_indicators[INDICATOR_BLANK].tile;
+		const struct lcd_indicator *d = &display_indicators[i];
 
+		if (i == INDICATOR_BLANK)
+			continue;
+
+		if (ind_flags & (1 << i))
+			tile = d->tile;
+
+		uint16_t y = d->y;
+		uint16_t h = d->h > 0 ? d->h : DISPLAY_IND_H;
+		uint16_t tile_x = (tile % DISPLAY_IND_MAP_W) * DISPLAY_IND_W;
+		uint16_t tile_y = (tile / DISPLAY_IND_MAP_W) * DISPLAY_IND_H;
+
+		lt7680_bte_memory_copy(fb, LCD_WIDTH, 0, y,
+				0, 0, 0, 0,
+				disp2->base_addr, disp2->w, tile_x, tile_y,
+				DISPLAY_IND_W, h, 0x0a);
 	}
 
 	lt7680_set_misa_addr(fb);
@@ -343,15 +361,16 @@ void display_status(const struct fanpico_state *state,
 	const struct fanpico_config *config)
 {
 	static int pos = 0;
-	uint16_t w = LCD_WIDTH;
+	//uint16_t w = LCD_WIDTH;
 	//uint16_t h = LCD_HEIGHT;
 	struct display_cell_state disp[DISPLAY_COLS];
+	uint32_t ind = 0x0000ffff;
 
 	if (!display_active)
 		return;
 
 	for(int i = 0; i < DISPLAY_COLS; i++) {
-		disp[i].c = '0' + i + (pos % 30) -12;
+		disp[i].c = '0' + i + (pos % 96) - 24;
 		disp[i].flags = 0;
 		if (i == 2) disp[i].flags = (1 << OVERLAY_PERIOD);
 		if (i == 4) disp[i].flags = (1 << OVERLAY_COMMA);
@@ -359,7 +378,7 @@ void display_status(const struct fanpico_state *state,
 		//printf("%c",disp[i].c);
 	}
 	//printf("\n");
-	update_display(disp, true);
+	update_display(disp, ind, true);
 	pos++;
 #if 0
 	lt7680_bte_memory_copy(0, w, 50, 0,

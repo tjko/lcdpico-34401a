@@ -52,9 +52,9 @@ for i in LIST:
     print(f"Resize: {oname}")
 #    res = subprocess.run(["magick",oname,"-crop","432x820+296+24","-rotate","-90","-resize","200x76!","+repage",nname])
     if "word" in oname:
-        res = subprocess.run(["magick",oname,"-crop","884x264+70+380","+repage","-rotate","-90","-resize","38x128!","+repage",nname])
+        res = subprocess.run(["magick",oname,"-crop","636x264+64+380","+repage","-rotate","-90","-resize","38x80!","+repage",nname])
     else:
-        res = subprocess.run(["magick",oname,"-crop","894x516+64+254","+repage","-rotate","-90","-resize","38x64!","+repage","-background","black","-gravity","north","-extent","38x128",nname])
+        res = subprocess.run(["magick",oname,"-crop","894x516+64+254","+repage","-rotate","-90","-resize","38x64!","+repage","-background","black","-gravity","north","-extent","38x80",nname])
 
     if not Path(nname).is_file():
         sys.exit(f"cannot find: {nname}")
