@@ -247,6 +247,7 @@ struct fanpico_config {
 	struct mb_input mbfans[MBFAN_MAX_COUNT];
 	bool local_echo;
 	uint8_t led_mode;
+	uint8_t bl_brightness;
 	char display_type[64];
 	char display_theme[16];
 	char display_logo[16];
@@ -367,26 +368,16 @@ struct fanpico_network_state {
 
 
 struct fanpico_state {
-	/* inputs */
-	float mbfan_duty[MBFAN_MAX_COUNT];
-	float mbfan_duty_prev[MBFAN_MAX_COUNT];
-	float fan_freq[FAN_MAX_COUNT];
-	float fan_freq_prev[FAN_MAX_COUNT];
-	float temp[SENSOR_MAX_COUNT];
-	float temp_prev[SENSOR_MAX_COUNT];
+	uint32_t int_count;
+	uint32_t rst_count;
+	uint32_t lcm_int_count;
+	uint32_t ctp_int_count;
+
 	float vtemp[VSENSOR_MAX_COUNT];
 	float vhumidity[VSENSOR_MAX_COUNT];
 	float vpressure[VSENSOR_MAX_COUNT];
 	absolute_time_t vtemp_updated[VSENSOR_MAX_COUNT];
 	float vtemp_prev[VSENSOR_MAX_COUNT];
-	float onewire_temp[ONEWIRE_MAX_COUNT];
-	absolute_time_t onewire_temp_updated[VSENSOR_MAX_COUNT];
-	float prev_onewire_temp[ONEWIRE_MAX_COUNT];
-	/* outputs */
-	float fan_duty[FAN_MAX_COUNT];
-	float fan_duty_prev[FAN_MAX_COUNT];
-	float mbfan_freq[MBFAN_MAX_COUNT];
-	float mbfan_freq_prev[MBFAN_MAX_COUNT];
 };
 
 /* Memory structure that persists over soft resets */
@@ -447,17 +438,6 @@ void clear_display();
 void display_message(int rows, const char **text_lines);
 void display_status(const struct fanpico_state *state, const struct fanpico_config *config);
 
-/* display_lcd.c */
-void lcd_display_init();
-void lcd_clear_display();
-void lcd_display_status(const struct fanpico_state *state,const struct fanpico_config *conf);
-void lcd_display_message(int rows, const char **text_lines);
-
-/* display_oled.c */
-void oled_display_init();
-void oled_clear_display();
-void oled_display_status(const struct fanpico_state *state, const struct fanpico_config *conf);
-void oled_display_message(int rows, const char **text_lines);
 
 /* flash.h */
 void lfs_setup(bool multicore);
@@ -495,16 +475,6 @@ const char *network_ip();
 u16_t fanpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			u16_t current_tag_part, u16_t *next_tag_part);
 
-/* mqtt.c */
-void fanpico_setup_mqtt_client();
-int fanpico_mqtt_client_active();
-void fanpico_mqtt_reconnect();
-void fanpico_mqtt_publish();
-void fanpico_mqtt_publish_temp();
-void fanpico_mqtt_publish_vsensor();
-void fanpico_mqtt_publish_rpm();
-void fanpico_mqtt_publish_duty();
-void fanpico_mqtt_scpi_command();
 
 /* telnetd.c */
 void telnetserver_init();
@@ -526,16 +496,9 @@ int str_to_ssh_pubkey(const char *s, struct ssh_public_key *pk);
 const char* ssh_pubkey_to_str(const struct ssh_public_key *pk, char *s, size_t s_len);
 #endif
 
-/* snmp.c */
-void fanpico_snmp_init();
-void fanpico_snmp_startup_trap(bool warmstart);
 
 #endif
 
-/* onewire.c */
-void setup_onewire_bus();
-int onewire_read_temps(struct fanpico_config *config, struct fanpico_state *state);
-uint64_t onewire_address(uint sensor);
 
 /* i2c.c */
 void scan_i2c_bus();
@@ -550,21 +513,8 @@ struct altcp_tls_config* tls_server_config();
 #endif
 
 /* pwm.c */
-extern float mbfan_pwm_duty[MBFAN_MAX_COUNT];
-void setup_pwm_inputs();
 void setup_pwm_outputs();
-void set_pwm_duty_cycle(uint fan, float duty);
-float get_pwm_duty_cycle(uint fan);
-void get_pwm_duty_cycles(const struct fanpico_config *config);
-double pwm_map(const struct pwm_map *map, double val);
-double calculate_pwm_duty(struct fanpico_state *state, const struct fanpico_config *config, int i);
-
-/* filters.c */
-int str2filter(const char *s);
-const char* filter2str(enum signal_filter_types source);
-void* filter_parse_args(enum signal_filter_types filter, char *args);
-char* filter_print_args(enum signal_filter_types filter, void *ctx);
-float filter(enum signal_filter_types filter, void *ctx, float input);
+void set_pwm_duty_cycle(uint pin, float duty);
 
 /* sensors.c */
 double get_temperature(uint8_t input, const struct fanpico_config *config);

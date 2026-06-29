@@ -63,7 +63,7 @@ static inline void set_bits_u32(uint32_t *var, uint8_t bit, uint8_t len, uint32_
 static inline uint8_t spi_rw_byte(uint8_t byte)
 {
 	uint8_t r = 0;
-	int res = spi_write_read_blocking(LCM_SPI_HW, &byte, &r, 1);
+	int res = spi_write_read_blocking(SPI_INSTANCE(LCM_SPI_HW), &byte, &r, 1);
 	if (res != 1) {
 #if LT7680_DEBUG > 0
 		printf("spi_rw_byte(%02x): failed %d (%02x)\n", byte, res, r);

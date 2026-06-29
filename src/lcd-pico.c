@@ -247,15 +247,13 @@ static void setup()
 	network_init();
 
 	/* Enable ADC */
-#if 0
 	log_msg(LOG_NOTICE, "Initialize ADC...");
 	adc_init();
 	adc_set_temp_sensor_enabled(true);
-	if (SENSOR1_READ_PIN > 0)
-		adc_gpio_init(SENSOR1_READ_PIN);
-	if (SENSOR2_READ_PIN > 0)
-		adc_gpio_init(SENSOR2_READ_PIN);
+#if SENSOR_READ_PIN >= 0
+	adc_gpio_init(SENSOR_READ_PIN);
 #endif
+
 	/* Setup GPIO pins... */
 	log_msg(LOG_NOTICE, "Initialize GPIO...");
 
@@ -275,48 +273,41 @@ static void setup()
 #endif
 	}
 
+	setup_pwm_outputs();
+	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
 
 	log_msg(LOG_NOTICE, "Initialize SPI...");
 
 	/* LCD SPI interface */
-#if 1
+	spi_init(SPI_INSTANCE(LCD_SPI_HW), 100000);
+	spi_set_format(SPI_INSTANCE(LCD_SPI_HW), 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
+	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
+#if LCD_MISO_PIN >= 0
+	gpio_set_function(LCD_MISO_PIN, xbGPIO_FUNC_SPI);
+#endif
+#if 0
+	gpio_set_function(LCD_CS_PIN, GPIO_FUNC_SPI);
+#else
 	gpio_init(LCD_CS_PIN);
 	gpio_set_dir(LCD_CS_PIN, GPIO_OUT);
 	gpio_put(LCD_CS_PIN, 1);
 #endif
 
-#if 1
-	spi_init(LCD_SPI_HW, 100000);
-	spi_set_format(LCD_SPI_HW, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
-	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
-//	gpio_set_function(LCD_CS_PIN, GPIO_FUNC_SPI);
-#else
-	log_msg(LOG_INFO, "LCD bitbang");
-	gpio_init(LCD_CLK_PIN);
-	gpio_set_dir(LCD_CLK_PIN, GPIO_OUT);
-	gpio_put(LCD_CLK_PIN, 0);
-	gpio_init(LCD_MOSI_PIN);
-	gpio_set_dir(LCD_MOSI_PIN, GPIO_OUT);
-	gpio_put(LCD_MOSI_PIN, 0);
-	//gpio_set_pulls(LCD_MOSI_PIN, 0, 1);
-	gpio_disable_pulls(LCD_MOSI_PIN);
-	//gpio_set_drive_strength(LCD_MOSI_PIN, GPIO_DRIVE_STRENGTH_12MA);
-#endif
 
 	/* LT7680 Graphics Controller SPI interface */
-	gpio_init(LCM_CS_PIN);
-	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
-	gpio_put(LCM_CS_PIN, 1);
-	spi_init(LCM_SPI_HW, 50000000);
-	spi_set_format(LCM_SPI_HW, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+	spi_init(SPI_INSTANCE(LCM_SPI_HW), 50000000);
+	spi_set_format(SPI_INSTANCE(LCM_SPI_HW), 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 	gpio_set_function(LCM_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MOSI_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCM_MISO_PIN, GPIO_FUNC_SPI);
-
-	gpio_init(LCM_BL_PIN);
-	gpio_set_dir(LCM_BL_PIN, GPIO_OUT);
-	gpio_put(LCM_BL_PIN, 1);
+#if 0
+	gpio_set_function(LCM_CS_PIN, GPIO_FUNC_SPI);
+#else
+	gpio_init(LCM_CS_PIN);
+	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
+	gpio_put(LCM_CS_PIN, 1);
+#endif
 
 	gpio_init(LCM_INT_PIN);
 	gpio_set_dir(LCM_INT_PIN, GPIO_IN);
@@ -338,22 +329,7 @@ static void clear_state(struct fanpico_state *s)
 
 	memset(s, 0, sizeof(struct fanpico_state));
 
-	for (i = 0; i < MBFAN_MAX_COUNT; i++) {
-		s->mbfan_duty[i] = 0.0;
-		s->mbfan_duty_prev[i] = 0.0;
-		s->mbfan_freq[i] = 0.0;
-		s->mbfan_freq_prev[i] = 0.0;
-	}
-	for (i = 0; i < FAN_MAX_COUNT; i++) {
-		s->fan_duty[i] = 0.0;
-		s->fan_duty_prev[i] = 0.0;
-		s->fan_freq[i] = 0.0;
-		s->fan_freq_prev[i] = 0.0;
-	}
-	for (i = 0; i < SENSOR_MAX_COUNT; i++) {
-		s->temp[i] = 0.0;
-		s->temp_prev[i] = 0.0;
-	}
+
 	for (i = 0; i < VSENSOR_MAX_COUNT; i++) {
 		s->vtemp[i] = 0.0;
 		s->vtemp_prev[i] = 0.0;
@@ -388,6 +364,28 @@ static void update_outputs(struct fanpico_state *state, const struct fanpico_con
 }
 
 
+void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
+{
+	struct fanpico_state *st = &core1_state;
+
+	switch (gpio) {
+	case SCK_PIN:
+		st->int_count++;
+		break;
+	case RST_PIN:
+		st->rst_count++;
+		break;
+	case LCM_INT_PIN:
+		st->lcm_int_count++;
+		break;
+#if CTP_INT_PIN >= 0
+	case CTP_INT_PIN:
+		st->ctp_int_count++;
+		break;
+#endif
+	}
+}
+
 static void core1_main()
 {
 	struct fanpico_config *config = &core1_config;
@@ -403,6 +401,15 @@ static void core1_main()
 
 	/* Allow core0 to pause this core... */
 	multicore_lockout_victim_init();
+
+	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_RISE, true, &core1_gpio_callback);
+	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_FALL, true);
+	gpio_set_irq_enabled(RST_PIN, GPIO_IRQ_EDGE_FALL, true);
+	gpio_set_irq_enabled(LCM_INT_PIN, GPIO_IRQ_EDGE_FALL, true);
+#if CTP_INT_PIN >= 0
+	gpio_set_irq_enabled(CTP_INT_PIN, GPIO_IRQ_EDGE_FALL, true);
+#endif
+
 
 //	setup_tacho_input_interrupts();
 

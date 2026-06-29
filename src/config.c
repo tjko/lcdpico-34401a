@@ -253,8 +253,6 @@ void clear_config(struct fanpico_config *cfg)
 	int i, j;
 	struct sensor_input *s;
 	struct vsensor_input *vs;
-	struct fan_output *f;
-	struct mb_input *m;
 
 	memset(cfg, 0, sizeof(struct fanpico_config));
 
@@ -300,45 +298,6 @@ void clear_config(struct fanpico_config *cfg)
 		cfg->i2c_context[i] = NULL;
 	}
 
-	for (i = 0; i < FAN_MAX_COUNT; i++) {
-		f = &cfg->fans[i];
-
-		f->name[0] = 0;
-		f->min_pwm = 0;
-		f->max_pwm = 0;
-		f->pwm_coefficient = 0.0;
-		f->s_type = PWM_FIXED;
-		f->s_id = 0;
-		f->map.points = 0;
-		f->rpm_mode = RMODE_TACHO;
-		f->lra_low = 1000;
-		f->lra_high = 0;
-		f->rpm_factor = 2;
-		f->filter = FILTER_NONE;
-		f->filter_ctx = NULL;
-		f->tacho_hyst = FAN_TACHO_HYSTERESIS;
-		f->pwm_hyst = FAN_PWM_HYSTERESIS;
-	}
-
-	for (i = 0; i < MBFAN_MAX_COUNT; i++) {
-		m=&cfg->mbfans[i];
-
-		m->name[0] = 0;
-		m->min_rpm = 0;
-		m->max_rpm = 0;
-		m->rpm_mode = RMODE_TACHO;
-		m->lra_treshold = 200;
-		m->lra_invert = false;
-		m->rpm_coefficient = 0.0;
-		m->rpm_factor = 2;
-		m->s_type = TACHO_FIXED;
-		m->s_id = 0;
-		m->map.points = 0;
-		m->filter = FILTER_NONE;
-		m->filter_ctx = NULL;
-		for (j = 0; j < FAN_MAX_COUNT; j++)
-			m->sources[j] = 0;
-	}
 
 	cfg->local_echo = false;
 	cfg->spi_active = false;
@@ -347,7 +306,8 @@ void clear_config(struct fanpico_config *cfg)
 	cfg->i2c_speed = I2C_DEFAULT_SPEED;
 	cfg->adc_vref = ADC_REF_VOLTAGE;
 	cfg->led_mode = 0;
-	strncopy(cfg->name, "fanpico1", sizeof(cfg->name));
+	cfg->bl_brightness = 100;
+	strncopy(cfg->name, "lcdpico1", sizeof(cfg->name));
 	strncopy(cfg->display_type, "default", sizeof(cfg->display_type));
 	strncopy(cfg->display_theme, "default", sizeof(cfg->display_theme));
 	strncopy(cfg->display_logo, "default", sizeof(cfg->display_logo));
@@ -475,7 +435,7 @@ void clear_config(struct fanpico_config *cfg)
 cJSON *config_to_json(const struct fanpico_config *cfg)
 {
 	cJSON *config = cJSON_CreateObject();
-	cJSON *fans, *mbfans, *sensors, *vsensors, *o;
+	cJSON *vsensors, *o;
 	int i;
 
 	if (!config)
@@ -487,6 +447,7 @@ cJSON *config_to_json(const struct fanpico_config *cfg)
 	cJSON_AddItemToObject(config, "syslog_level", cJSON_CreateNumber(get_syslog_level()));
 	cJSON_AddItemToObject(config, "local_echo", cJSON_CreateBool(cfg->local_echo));
 	cJSON_AddItemToObject(config, "led_mode", cJSON_CreateNumber(cfg->led_mode));
+	cJSON_AddItemToObject(config, "bl_brightness", cJSON_CreateNumber(cfg->bl_brightness));
 	cJSON_AddItemToObject(config, "spi_active", cJSON_CreateNumber(cfg->spi_active));
 	cJSON_AddItemToObject(config, "serial_active", cJSON_CreateNumber(cfg->serial_active));
 	cJSON_AddItemToObject(config, "onewire_active", cJSON_CreateNumber(cfg->onewire_active));
@@ -707,6 +668,7 @@ int json_to_config(cJSON *config, struct fanpico_config *cfg)
 	if ((ref = cJSON_GetObjectItem(config, "local_echo")))
 		cfg->local_echo = (cJSON_IsTrue(ref) ? true : false);
 	JSON_TO_NUM(config, "led_mode", cfg->led_mode);
+	JSON_TO_NUM(config, "bl_brightness", cfg->bl_brightness);
 	JSON_TO_NUM(config, "spi_active", cfg->spi_active);
 	JSON_TO_NUM(config, "serial_active", cfg->serial_active);
 	JSON_TO_NUM(config, "onewire_active", cfg->onewire_active);

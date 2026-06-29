@@ -485,13 +485,13 @@ void wifi_info_display()
 static void wifi_poll()
 {
 	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(test_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_status_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_temp_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_vsensor_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_rpm_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_duty_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(command_t, 0);
-	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(reconnect_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_status_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_temp_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_vsensor_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_rpm_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(publish_duty_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(command_t, 0);
+//	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(reconnect_t, 0);
 	static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(wifi_status_check_t, 0);
 	static bool init_msg_sent = false;
 

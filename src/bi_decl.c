@@ -76,6 +76,9 @@ void set_binary_info(struct fanpico_fw_settings *settings)
 #if LCD_MISO_PIN >= 0
 	bi_decl(bi_1pin_with_name(LCD_MISO_PIN, "LCD SPI: RX"));
 #endif
+#if LCD_RESET_PIN >= 0
+	bi_decl(bi_1pin_with_name(LCD_RESET_PIN, "LCD Reset"));
+#endif
 #endif
 
 #if LCM_CS_PIN >= 0
@@ -86,6 +89,13 @@ void set_binary_info(struct fanpico_fw_settings *settings)
 	bi_decl(bi_1pin_with_name(LCM_RESET_PIN, "LCM Reset"));
 	bi_decl(bi_1pin_with_name(LCM_INT_PIN, "LCM Interrupt"));
 	bi_decl(bi_1pin_with_name(LCM_BL_PIN, "LCM Backlight (PWM)"));
+#endif
+
+#if CTP_RESET_PIN >= 0
+	bi_decl(bi_1pin_with_name(CTP_RESET_PIN, "CTP Reset"));
+#endif
+#if CTP_INT_PIN >= 0
+	bi_decl(bi_1pin_with_name(CTP_RESET_PIN, "CTP Interrupt"));
 #endif
 
 	bi_decl(bi_1pin_with_name(DO_PIN, "DO"));

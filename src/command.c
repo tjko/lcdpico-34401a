@@ -200,6 +200,16 @@ int cmd_led(const char *cmd, const char *args, int query, struct prev_cmd_t *pre
 	return 0;
 }
 
+int cmd_backlight(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
+{
+	int res = uint8_setting(cmd, args, query, prev_cmd,
+				&conf->bl_brightness, 0, 100, "Backlight Brightness");
+	if (res == 0 && !query) {
+		set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
+	}
+
+	return res;
+}
 
 int cmd_vsensors(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
@@ -418,9 +428,8 @@ int cmd_zero(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 
 int cmd_read(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
-	int i;
-	double rpm, pwm;
-
+	int fixme;
+	
 	if (!query)
 		return 1;
 
@@ -459,12 +468,12 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 {
 	struct vsensor_input *v;
 	int sensor, val, i;
-	uint8_t vsmode, selected[VSENSOR_SOURCE_MAX_COUNT];
+	uint8_t vsmode;
 	float default_temp;
 	int timeout;
-	char *tok, *saveptr, *param, temp_str[32], tmp[8];
+	char *tok, *saveptr, *param;
 	int ret = 0;
-	int count = 0;
+//	int count = 0;
 
 	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
 	if (sensor < 0 || sensor >= VSENSOR_COUNT)
@@ -1688,6 +1697,7 @@ const struct cmd_t system_commands[] = {
 	{ "FLASH",     5, NULL,              cmd_flash },
 	{ "I2C",       3, i2c_commands,      cmd_i2c },
 	{ "LED",       3, NULL,              cmd_led },
+	{ "BACKLight", 5, NULL,              cmd_backlight },
 	{ "LFS",       3, lfs_commands,      cmd_lfs },
 	{ "LOG",       3, NULL,              cmd_log_level },
 	{ "MEMTEST",   7, NULL,              cmd_memtest },

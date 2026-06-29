@@ -148,6 +148,7 @@ add_executable(firmware
   src/display.c
   src/network.c
   src/tls.c
+  src/pwm.c
   src/sensors.c
   src/i2c.c
   src/psram.c
@@ -158,6 +159,7 @@ add_executable(firmware
   src/crc32.c
   src/lt7680.c
   src/st7701.c
+  src/decoder_34401a.c
 #  src/st7701_lcd.c
 #  src/lt7680_lcd.c
   src/lcd/er-tft371-1.c

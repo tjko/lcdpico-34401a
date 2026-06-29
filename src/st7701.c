@@ -44,7 +44,7 @@ static inline void spi_write_byte(uint8_t byte, bool command)
 {
 #if !USE_BITBANG
 	uint16_t data = byte | (command ? 0x000 : 0x100);
-	int res = spi_write16_blocking(LCD_SPI_HW, &data, 1);
+	int res = spi_write16_blocking(SPI_INSTANCE(LCD_SPI_HW), &data, 1);
 	if (res != 1) {
 #if ST7701_DEBUG
 		printf("spi_write_byte(%02x,%d): %04x failed %d\n", byte, command, data, res);
