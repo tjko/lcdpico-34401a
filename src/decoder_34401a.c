@@ -96,36 +96,15 @@ static uint16_t msg_blink_work = 0;
 
 static void dmm_putc_safe(char c)
 {
-    if (msg_idx < 14u) {
+	if (msg_idx < (sizeof(msg_work) - 2)) {
         msg_work[msg_idx++] = c;
     }
 }
 
-#if 0
-// -----------------------------------------------------------------------------
-// DWT micros (STM32F1): fast and simple
-// -----------------------------------------------------------------------------
-static inline void DWT_Init(void)
-{
-    // Enable TRC
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    // Reset cycle counter
-    DWT->CYCCNT = 0;
-    // Enable cycle counter
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-}
-
-static inline uint32_t micros32(void)
-{
-    // SystemCoreClock in Hz; convert cycles to microseconds
-    return (uint32_t)(DWT->CYCCNT / (SystemCoreClock / 1000000u));
-}
-#else
 static inline uint32_t micros32(void)
 {
 	return time_us_32();
 }
-#endif
 
 // -----------------------------------------------------------------------------
 // Helpers
@@ -213,9 +192,9 @@ static void messageByte(uint8_t byte)
     if (need_reset) {
         msg_idx = 0;
         msg_blink_work = 0;
-        memset((void*)msg_work, ' ', 14);   // build a fixed-width field here
-        msg_work[14] = '\0';
-        msg_work[15] = '\0';
+        memset((void*)msg_work, ' ', (sizeof(msg_work) - 2));   // build a fixed-width field here
+        msg_work[sizeof(msg_work) - 2] = 0;
+        msg_work[sizeof(msg_work) - 1] = 0;
         need_reset = false;
     }
 
@@ -270,20 +249,17 @@ void Decoder34401_Init(void)
     dbg_last_any_us = micros32();
 
 
-
-    //DWT_Init();
-
     dmm_blink_mask = 0;
     msg_blink_work = 0;
 
     // Clear outputs
-    memset((void*)dmm_main, ' ', 14);
-    dmm_main[14] = '\0';
-    dmm_main[15] = '\0';
+    memset((void*)dmm_main, ' ', (sizeof(dmm_main) - 2));
+    dmm_main[sizeof(dmm_main) - 2] = 0;
+    dmm_main[sizeof(dmm_main) - 1] = 0;
 
-    memset((void*)msg_work, ' ', 14);
-    msg_work[14] = '\0';
-    msg_work[15] = '\0';
+    memset((void*)msg_work, ' ', (sizeof(msg_work) - 2));
+    msg_work[sizeof(msg_work) - 2] = 0;
+    msg_work[sizeof(msg_work) - 1] = 0;
 
     dmm_ann_state = 0;
     dmm_bar = 0;
@@ -318,13 +294,6 @@ void Decoder34401_Init(void)
 
 void __time_critical_func(Decoder34401_SckEdge)(void)
 {
-    // mid-byte gap detection (power-on / pause)
-    uint32_t now_us = micros32();
-    if (byte_len != 0u && (uint32_t)(now_us - last_us) > MAX_SCK_DELAY_US) {
-        byte_len = 0u;
-    }
-    last_us = now_us;
-
 #if 0
     // Read PB14/PB15 as 2-bit: (DIN, DOUT) or vice versa per original
     // Original: tinp = (IDR >> 14) & 0b11; output uses bit1 (PB15), input uses bit0 (PB14)
@@ -340,9 +309,16 @@ void __time_critical_func(Decoder34401_SckEdge)(void)
     input_acc = (uint8_t)((input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
 #endif
 
+    // mid-byte gap detection (power-on / pause)
+    uint32_t now_us = micros32();
+    if (byte_len != 0u && (uint32_t)(now_us - last_us) > MAX_SCK_DELAY_US) {
+	    byte_len = 0u;
+    }
+    last_us = now_us;
+
 
     byte_len++;
-    if (byte_len == 8u) {
+    if (byte_len >= 8) {
         uint8_t next_wr = (uint8_t)((fifo_wr + 1u) & BYTE_FIFO_MASK);
 
         if (next_wr == fifo_rd) {
@@ -360,7 +336,7 @@ void __time_critical_func(Decoder34401_SckEdge)(void)
             }
         }
 
-        byte_len = 0u;
+        byte_len = 0;
     }
 }
 
@@ -523,12 +499,10 @@ void Decoder34401_Process(void)
 
 static void decodeControlFrame(void)
 {
-    uint16_t cmd;
-
-    if (buf_len < 2u)
+    if (buf_len < 2)
         return;
 
-    cmd = ((uint16_t)input_buf[0] << 8) | (uint16_t)input_buf[1];
+    uint16_t cmd = ((uint16_t)input_buf[0] << 8) | input_buf[1];
 
     switch (cmd) {
     case 0x0049: dmm_blink_mask = (1u << 0);  break;
