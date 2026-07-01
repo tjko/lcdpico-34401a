@@ -235,7 +235,7 @@ static void messageByte(uint8_t byte)
 // -----------------------------------------------------------------------------
 // Public API
 // -----------------------------------------------------------------------------
-void Decoder34401_Init(void)
+void decoder34401_init(void)
 {
     dbg_fifo_level = 0;
     dbg_fifo_level_max = 0;
@@ -292,7 +292,7 @@ void Decoder34401_Init(void)
     dbg_byte_overrun_count = 0;
 }
 
-void __time_critical_func(Decoder34401_SckEdge)(void)
+void __time_critical_func(decoder34401_sckedge)(void)
 {
 #if 0
     // Read PB14/PB15 as 2-bit: (DIN, DOUT) or vice versa per original
@@ -340,7 +340,7 @@ void __time_critical_func(Decoder34401_SckEdge)(void)
     }
 }
 
-void Decoder34401_Process(void)
+void decoder34401_process(void)
 {
     processShiftWindow();
 

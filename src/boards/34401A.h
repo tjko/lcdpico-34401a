@@ -44,6 +44,7 @@
 #define CTP_RESET_PIN  -1 // 21
 #define CTP_INT_PIN    -1 // 17
 
+/* Multimeter Front Panel connection */
 #define SCK_PIN        18
 #define DI_PIN         16
 #define DO_PIN         4

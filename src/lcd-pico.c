@@ -42,6 +42,7 @@
 
 #include "lcd-pico.h"
 #include "command_util.h"
+#include "decoder_34401a.h"
 
 #ifdef FANPICO_PSRAM_PIN
  #if TX_PIN == 0
@@ -257,6 +258,19 @@ static void setup()
 	/* Setup GPIO pins... */
 	log_msg(LOG_NOTICE, "Initialize GPIO...");
 
+	/* Setup 34401A interface pins (inputs for sniffing signals) */
+	gpio_init(SCK_PIN);
+	gpio_set_dir(SCK_PIN, GPIO_IN);
+	gpio_init(DI_PIN);
+	gpio_set_dir(DI_PIN, GPIO_IN);
+	gpio_init(DO_PIN);
+	gpio_set_dir(DO_PIN, GPIO_IN);
+	gpio_init(INT_PIN);
+	gpio_set_dir(INT_PIN, GPIO_IN);
+	gpio_init(RST_PIN);
+	gpio_set_dir(RST_PIN, GPIO_IN);
+
+
 	/* Initialize status LED... */
 	if (rp2_is_picow()) {
 		/* On pico_w, LED is connected to the radio GPIO... */
@@ -284,7 +298,7 @@ static void setup()
 	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
 #if LCD_MISO_PIN >= 0
-	gpio_set_function(LCD_MISO_PIN, xbGPIO_FUNC_SPI);
+	gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
 #endif
 #if 0
 	gpio_set_function(LCD_CS_PIN, GPIO_FUNC_SPI);
@@ -293,7 +307,11 @@ static void setup()
 	gpio_set_dir(LCD_CS_PIN, GPIO_OUT);
 	gpio_put(LCD_CS_PIN, 1);
 #endif
-
+#if LCD_RESET_PIN >= 0
+	gpio_init(LCD_RESET_PIN);
+	gpio_set_dir(LCD_RESET_PIN, GPIO_OUT);
+	gpio_put(LCD_RESET_PIN, 1);
+#endif
 
 	/* LT7680 Graphics Controller SPI interface */
 	spi_init(SPI_INSTANCE(LCM_SPI_HW), 50000000);
@@ -308,13 +326,23 @@ static void setup()
 	gpio_set_dir(LCM_CS_PIN, GPIO_OUT);
 	gpio_put(LCM_CS_PIN, 1);
 #endif
-
 	gpio_init(LCM_INT_PIN);
 	gpio_set_dir(LCM_INT_PIN, GPIO_IN);
-
 	gpio_init(LCM_RESET_PIN);
 	gpio_set_dir(LCM_RESET_PIN, GPIO_OUT);
 	gpio_put(LCM_RESET_PIN, 1);
+
+
+	/* Touch Screen Controller */
+#if CTP_INT_PIN >=0
+	gpio_init(CTP_INT_PIN);
+	gpio_set_dir(CTP_INT_PIN, GPIO_IN);
+#endif
+#if CTP_RESET_PIN >= 0
+	gpio_init(CTP_RESET_PIN);
+	gpio_set_dir(CTP_RESET_PIN, GPIO_OUT);
+	gpio_put(CTP_RESET_PIN, 1);
+#endif
 
 
 	display_init();
@@ -371,6 +399,7 @@ void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
 	switch (gpio) {
 	case SCK_PIN:
 		st->int_count++;
+		decoder34401_sckedge();
 		break;
 	case RST_PIN:
 		st->rst_count++;
@@ -390,28 +419,29 @@ static void core1_main()
 {
 	struct fanpico_config *config = &core1_config;
 	struct fanpico_state *state = &core1_state;
+	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_dmm, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_temp, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_set_outputs, 0);
 	absolute_time_t t_last, t_now, t_config, t_state;
 	int64_t max_delta = 0;
 	int64_t delta;
-
+	uint32_t dmm_last = 0;
 
 	log_msg(LOG_INFO, "core1: started...");
 
 	/* Allow core0 to pause this core... */
 	multicore_lockout_victim_init();
 
-	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_RISE, true, &core1_gpio_callback);
-	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_FALL, true);
-	gpio_set_irq_enabled(RST_PIN, GPIO_IRQ_EDGE_FALL, true);
+	decoder34401_init();
+
+	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_FALL, true, &core1_gpio_callback);
+	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_RISE, true);
+	gpio_set_irq_enabled(RST_PIN, GPIO_IRQ_EDGE_RISE, true);
 	gpio_set_irq_enabled(LCM_INT_PIN, GPIO_IRQ_EDGE_FALL, true);
 #if CTP_INT_PIN >= 0
 	gpio_set_irq_enabled(CTP_INT_PIN, GPIO_IRQ_EDGE_FALL, true);
 #endif
 
-
-//	setup_tacho_input_interrupts();
 
 	t_state = t_config = t_last = get_absolute_time();
 
@@ -464,6 +494,14 @@ static void core1_main()
 			}
 		}
 
+		decoder34401_process();
+
+		if (time_passed(&t_dmm, 1000)) {
+			if (dmm_new_data_counter != dmm_last) {
+				dmm_last = dmm_new_data_counter;
+				log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm_ann_state, dmm_blink_mask, dmm_main);
+			}
+		}
 	}
 }
 

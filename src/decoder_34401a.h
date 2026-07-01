@@ -22,9 +22,9 @@ extern volatile uint16_t dmm_blink_mask;   // bits 0..13 = blink this character 
 //extern volatile uint8_t  dmm_text_dim;     // 0 = normal, 1 = dim
 
 // ===== Decoder API =====
-void Decoder34401_Init(void);       // enable DWT micros (recommended)
-void __time_critical_func(Decoder34401_SckEdge)(void);    // call from EXTI callback on PB13
-void Decoder34401_Process(void);    // call frequently in main loop
+void decoder34401_init(void);       // enable DWT micros (recommended)
+void __time_critical_func(decoder34401_sckedge)(void);    // call from GPIO interrupt callback
+void decoder34401_process(void);    // call frequently in main loop
 
 #ifdef __cplusplus
 }
