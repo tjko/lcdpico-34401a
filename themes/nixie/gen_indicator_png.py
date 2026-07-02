@@ -13,7 +13,7 @@ OUT = "./png"
 
 
 WORDS = ["Adrs", "Rmt", "Man", "Trig", "Hold", "Mem", "Ratio", "Math", "ERROR", "Rear", "Shift"]
-SYMBOLS = [ "4W", "Diode", "Continuity", "Asterisk" ]
+SYMBOLS = [ "Diode", "Continuity", "4W", "Asterisk" ]
 
 
 

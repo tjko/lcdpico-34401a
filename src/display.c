@@ -29,6 +29,7 @@
 #include "lcd-pico.h"
 #include "lt7680.h"
 #include "st7701.h"
+#include "decoder_34401a.h"
 #include LCDPICO_THEME_HEADER
 
 
@@ -71,7 +72,7 @@ static uint8_t display_tile_map[256];
 static struct display_cell_state display_state[DISPLAY_COLS];
 
 
-static int draw_cb(PNGDRAW *d)
+static int png_decode_cb(PNGDRAW *d)
 {
 	uint16_t *color = d->pUser;
 	int fifo = 0;
@@ -131,7 +132,7 @@ vmem_image_t* load_image_to_vmem(const char *buf, uint32_t len, uint16_t mono_co
 		return NULL;
 	}
 
-	res = PNG_openRAM(png, (uint8_t*)buf, len, draw_cb);
+	res = PNG_openRAM(png, (uint8_t*)buf, len, png_decode_cb);
 	if (res == 0) {
 		w = PNG_getWidth(png);
 		h = PNG_getHeight(png);
@@ -318,15 +319,17 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 	}
 
 	/* Set indicator "lights" */
-	for (int i = 0; i < DISPLAY_IND_COUNT; i++) {
+	for (int i = 0; i < 16; i++) {
+		int ind = lcd_indicator_map[i];
 		uint8_t tile = display_indicators[INDICATOR_BLANK].tile;
-		const struct lcd_indicator *d = &display_indicators[i];
+		const struct lcd_indicator *d = &display_indicators[ind];
 
-		if (i == INDICATOR_BLANK)
+		if (ind == INDICATOR_BLANK)
 			continue;
 
-		if (ind_flags & (1 << i))
+		if (ind_flags & (1 << i)) {
 			tile = d->tile;
+		}
 
 		uint16_t y = d->y;
 		uint16_t h = d->h > 0 ? d->h : DISPLAY_IND_H;
@@ -369,16 +372,31 @@ void display_status(const struct fanpico_state *state,
 	if (!display_active)
 		return;
 
+	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
-		disp[i].c = '0' + i + (pos % 96) - 24;
+		disp[i].c = dmm_main[d++];
+
 		disp[i].flags = 0;
-		if (i == 2) disp[i].flags = (1 << OVERLAY_PERIOD);
-		if (i == 4) disp[i].flags = (1 << OVERLAY_COMMA);
-		if (i == 6) disp[i].flags = (1 << OVERLAY_PERIOD) | (1 << OVERLAY_DOT);
-		//printf("%c",disp[i].c);
+		switch (dmm_main[d]) {
+		case '.':
+			disp[i].flags = (1 << OVERLAY_PERIOD);
+			d++;
+			break;
+		case ',':
+			disp[i].flags = (1 << OVERLAY_COMMA);
+			d++;
+			break;
+		case ':':
+			disp[i].flags = (1 << OVERLAY_PERIOD) | (1 << OVERLAY_DOT);
+			d++;
+			break;
+		}
+
+		if (d >= 16)
+			break;
 	}
 	//printf("\n");
-	update_display(disp, ind, true);
+	update_display(disp, dmm_ann_state, true);
 	pos++;
 #if 0
 	lt7680_bte_memory_copy(0, w, 50, 0,

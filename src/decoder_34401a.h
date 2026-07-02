@@ -9,6 +9,26 @@
 extern "C" {
 #endif
 
+
+typedef enum dmm_annunciators {
+	ANN_SMP   = 0,
+	ANN_ADRS  = 1,
+	ANN_RMT   = 2,
+	ANN_MAN   = 3,
+	ANN_TRIG  = 4,
+	ANN_HOLD  = 5,
+	ANN_MEM   = 6,
+	ANN_RATIO = 7,
+	ANN_MATH  = 8,
+	ANN_ERROR = 9,
+	ANN_REAR  = 10,
+	ANN_SHIFT = 11,
+	ANN_DIODE = 12,
+	ANN_CONT  = 13,
+	ANN_4WIRE = 14,
+} dmm_annunciators_t;
+
+
 // ===== Extracted "display model" =====
 extern volatile char     dmm_main[16];          // null-terminated
 extern volatile uint16_t dmm_ann_state;         // annunciator bitfield (incl shift)
