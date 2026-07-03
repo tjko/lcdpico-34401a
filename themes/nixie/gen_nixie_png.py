@@ -17,7 +17,7 @@ DIGITS = list("0123456789")
 LETTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 
-LIST = DIGITS + LETTERS + [ "period", "comma", "colon", "semicolon", "exclam", "question", "apostrophe", "dquote", "hyphen", "tilde", "hash", "asterisk", "plus", "equals", "less", "greater", "space", "space_dot_on", "space_2dot_on"  ]
+LIST = DIGITS + LETTERS + [ "d_lc", "k_lc", "m_lc", "u_lc", "z_lc", "exclam", "question", "apostrophe", "hyphen", "tilde", "hash", "slash", "plus", "equals", "less", "greater", "underscore", "space", "space_dot_on", "space_2dot_on"  ]
 
 
 

@@ -496,12 +496,14 @@ static void core1_main()
 
 		decoder34401_process();
 
-		if (time_passed(&t_dmm, 1000)) {
-			if (dmm_new_data_counter != dmm_last) {
-				dmm_last = dmm_new_data_counter;
-				log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm_ann_state, dmm_blink_mask, dmm_main);
-			}
+		if (dmm_new_data_counter != dmm_last) {
+			dmm_last = dmm_new_data_counter;
+			display_status(state, config);
 		}
+		if (time_passed(&t_dmm, 30000)) {
+			log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm_ann_state, dmm_blink_mask, dmm_main);
+		}
+
 	}
 }
 
@@ -605,10 +607,10 @@ int main()
 		}
 
 		/* Update display every 1000ms */
-		if (time_passed(&t_display, 100)) {
+		if (time_passed(&t_display, 1000)) {
 			log_msg(LOG_DEBUG, "update display start");
 			update_system_state();
-			display_status(fanpico_state, cfg);
+			//display_status(fanpico_state, cfg);
 			log_msg(LOG_DEBUG, "update display end");
 		}
 

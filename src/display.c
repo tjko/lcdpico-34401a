@@ -69,7 +69,8 @@ struct display_cell_state {
 };
 
 static uint8_t display_tile_map[256];
-static struct display_cell_state display_state[DISPLAY_COLS];
+static struct display_cell_state display_state[2][DISPLAY_COLS];
+static uint16_t indicator_state[2];
 
 
 static int png_decode_cb(PNGDRAW *d)
@@ -179,7 +180,7 @@ vmem_image_t* load_image_to_vmem(const char *buf, uint32_t len, uint16_t mono_co
 
 static void init_theme()
 {
-	int i;
+	int i, j;
 
 	/* Build lookup table for display character graphics tiles */
 	for(i = 0; i < 256; i++) {
@@ -187,19 +188,23 @@ static void init_theme()
 	}
 
 	i = 0;
-	while (display_chars[i] != 0) {
+	while (display_chars[i] >= 0) {
 		int c = display_chars[i];
 		if (c >= 0) {
 			display_tile_map[c] = i;
-			display_tile_map[tolower(c)] = i;
+			if (display_tile_map[tolower(c)] == DISPLAY_CHAR_BLANK_IDX)
+				display_tile_map[tolower(c)] = i;
 		}
 		i++;
 	}
 
-	for(i = 0; i < DISPLAY_COLS; i++) {
-		struct display_cell_state *cell = &display_state[i];
-		cell->c = 0;
-		cell->flags = 0;
+	for(j = 0; j < 2; j++) {
+		for(i = 0; i < DISPLAY_COLS; i++) {
+			struct display_cell_state *cell = &display_state[j][i];
+			cell->c = 0;
+			cell->flags = 0;
+		}
+		indicator_state[j] = 0;
 	}
 }
 
@@ -286,14 +291,14 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 	absolute_time_t t_start = get_absolute_time();
 
 	for (int i = 0; i < DISPLAY_COLS; i++) {
-		if (force_refresh || newstate[i].c != display_state[i].c
-			|| newstate[i].flags != display_state[i].flags) {
+		if (force_refresh || newstate[i].c != display_state[state][i].c
+			|| newstate[i].flags != display_state[state][i].flags) {
 
 			/* Draw character */
-			display_state[i] = newstate[i];
+			display_state[state][i] = newstate[i];
 			uint16_t y = DISPLAY_Y_OFFSET + (DISPLAY_COLS - 1 - i) * DISPLAY_CHAR_H;
 			uint16_t x = DISPLAY_X_OFFSET;
-			uint8_t tile = display_tile_map[(uint8_t)display_state[i].c];
+			uint8_t tile = display_tile_map[(uint8_t)display_state[state][i].c];
 			uint16_t tile_x = (tile % DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_W;
 			uint16_t tile_y = (tile / DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_H;
 
@@ -304,7 +309,7 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 
 			/* Draw character overlays */
 			for (int o = 0; o < DISPLAY_CHAR_OVERLAY_COUNT; o++) {
-				if (display_state[i].flags & (1 << o)) {
+				if (display_state[state][i].flags & (1 << o)) {
 					const struct lcd_char_overlay *ov = &display_char_overlays[o];
 					uint16_t ovtile_x = (ov->tile % DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_W;
 					uint16_t ovtile_y = (ov->tile / DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_H;
@@ -324,11 +329,18 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 		uint8_t tile = display_indicators[INDICATOR_BLANK].tile;
 		const struct lcd_indicator *d = &display_indicators[ind];
 
+
 		if (ind == INDICATOR_BLANK)
+			continue;
+
+		if ((ind_flags & (1 << i)) == (indicator_state[state] & (1 << i)) && d->mode == 0)
 			continue;
 
 		if (ind_flags & (1 << i)) {
 			tile = d->tile;
+		} else {
+			if (d->mode == 2)
+				continue;
 		}
 
 		uint16_t y = d->y;
@@ -341,6 +353,7 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 				disp2->base_addr, disp2->w, tile_x, tile_y,
 				DISPLAY_IND_W, h, 0x0a);
 	}
+	indicator_state[state] = ind_flags;
 
 	lt7680_set_misa_addr(fb);
 	if (state == 0)
@@ -367,7 +380,7 @@ void display_status(const struct fanpico_state *state,
 	//uint16_t w = LCD_WIDTH;
 	//uint16_t h = LCD_HEIGHT;
 	struct display_cell_state disp[DISPLAY_COLS];
-	uint32_t ind = 0x0000ffff;
+	//uint32_t ind = 0x0000ffff;
 
 	if (!display_active)
 		return;
@@ -396,7 +409,7 @@ void display_status(const struct fanpico_state *state,
 			break;
 	}
 	//printf("\n");
-	update_display(disp, dmm_ann_state, true);
+	update_display(disp, dmm_ann_state, false);
 	pos++;
 #if 0
 	lt7680_bte_memory_copy(0, w, 50, 0,

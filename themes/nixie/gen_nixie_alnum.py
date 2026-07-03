@@ -10,6 +10,8 @@ from pathlib import Path
 CH_FS = 250
 CH_TF = "matrix(1,0,0,1.4,0,-15)"   # text y=200 -> visual center y=265
 CH_TF_NUM = "matrix(1.4,0,0,1.7,-80,-100)"   # text y=200 -> visual center y=265
+CH_TF_HYP = "matrix(1.4,0,0,1.7,-80,-120)"
+CH_TF_U = "matrix(1.4,0,0,1.7,-80,-170)"
 
 TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
   <defs>
@@ -153,12 +155,12 @@ PUNCT = [
     ("[", "lbracket"), ("]", "rbracket"), ("/", "slash"), ("\\", "backslash"),
     ("@", "at"), ("#", "hash"), ("$", "dollar"), ("%", "percent"),
     ("&", "ampersand"), ("*", "asterisk"), ("+", "plus"), ("=", "equals"),
-    ("<", "less"), (">", "greater"),
+    ("<", "less"), (">", "greater"), ("_", "underscore"),
 ]
 SPACE = [(" ", "space")]
 
 # Build ordered (char, name) list
-ORDER = [(d, d) for d in DIGITS] + [(l, l) for l in LETTERS] + PUNCT + SPACE
+ORDER = [(d, d) for d in DIGITS] + [(l, l) for l in LETTERS] + [(l.lower(),l.lower() + '_lc') for l in LETTERS] + PUNCT + SPACE
 N = len(ORDER)
 
 # Faint background pool (clean glyphs only)
@@ -213,7 +215,7 @@ def make_tube(i, dot="dark", dot2="dark"):
     halo = "0" if is_space else "1"   # no central glow for a blank (space) tube
     return (TEMPLATE
             .replace("__FS__", str(CH_FS))
-            .replace("__TF__", CH_TF_NUM if ch.isdigit() else CH_TF)
+            .replace("__TF__", CH_TF_NUM if (ch.isdigit()) else CH_TF_U if (ch == '_') else CH_TF_HYP if (ch == '-') else  CH_TF)
             .replace("__HALO__", halo)
             .replace("__DOT__", lit_dot if dot == "lit" else DARK_DOT)
             .replace("__A__", esc(a))
