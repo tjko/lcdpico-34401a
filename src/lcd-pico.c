@@ -61,6 +61,9 @@ const struct fanpico_state *fanpico_state = &system_state;
 static struct fanpico_fw_settings system_settings;
 const struct fanpico_fw_settings *fw_settings = &system_settings;
 
+static dmm_context_t dmm_context;
+dmm_context_t *dmm = &dmm_context;
+
 #ifdef WIFI_SUPPORT
 static struct fanpico_network_state network_state;
 struct fanpico_network_state *net_state = &network_state;
@@ -399,7 +402,7 @@ void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
 	switch (gpio) {
 	case SCK_PIN:
 		st->int_count++;
-		decoder34401_sckedge();
+		decoder34401_sckedge(dmm);
 		break;
 	case RST_PIN:
 		st->rst_count++;
@@ -432,7 +435,7 @@ static void core1_main()
 	/* Allow core0 to pause this core... */
 	multicore_lockout_victim_init();
 
-	decoder34401_init();
+	decoder34401_init(dmm);
 
 	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_FALL, true, &core1_gpio_callback);
 	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_RISE, true);
@@ -494,14 +497,14 @@ static void core1_main()
 			}
 		}
 
-		decoder34401_process();
+		decoder34401_process(dmm);
 
-		if (dmm_new_data_counter != dmm_last) {
-			dmm_last = dmm_new_data_counter;
+		if (dmm->new_data_counter != dmm_last) {
+			dmm_last = dmm->new_data_counter;
 			display_status(state, config);
 		}
 		if (time_passed(&t_dmm, 30000)) {
-			log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm_ann_state, dmm_blink_mask, dmm_main);
+			log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm->ann_state, dmm->blink_mask, dmm->main);
 		}
 
 	}

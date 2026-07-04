@@ -31,6 +31,7 @@
 #include "lwip/ip_addr.h"
 #include "lwip/apps/sntp.h"
 #endif
+#include "decoder_34401a.h"
 
 
 #define FAN_MAX_COUNT     8   /* Max number of Fan outputs on the board */
@@ -397,6 +398,7 @@ struct persistent_memory_block {
 /* fanpico.c */
 extern struct persistent_memory_block *persistent_mem;
 extern const struct fanpico_state *fanpico_state;
+extern dmm_context_t *dmm;
 #if WIFI_SUPPORT
 extern struct fanpico_network_state *net_state;
 #endif

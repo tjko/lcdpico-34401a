@@ -376,21 +376,17 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 void display_status(const struct fanpico_state *state,
 	const struct fanpico_config *config)
 {
-	static int pos = 0;
-	//uint16_t w = LCD_WIDTH;
-	//uint16_t h = LCD_HEIGHT;
 	struct display_cell_state disp[DISPLAY_COLS];
-	//uint32_t ind = 0x0000ffff;
 
 	if (!display_active)
 		return;
 
 	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
-		disp[i].c = dmm_main[d++];
+		disp[i].c = dmm->main[d++];
 
 		disp[i].flags = 0;
-		switch (dmm_main[d]) {
+		switch (dmm->main[d]) {
 		case '.':
 			disp[i].flags = (1 << OVERLAY_PERIOD);
 			d++;
@@ -409,15 +405,7 @@ void display_status(const struct fanpico_state *state,
 			break;
 	}
 	//printf("\n");
-	update_display(disp, dmm_ann_state, false);
-	pos++;
-#if 0
-	lt7680_bte_memory_copy(0, w, 50, 0,
-			disp->base_addr, disp->w, (i % 4) * 190, 0,
-			0, 0, 0, 0,
-			190, 12*80, 0x0c);
-	i++;
-#endif
+	update_display(disp, dmm->ann_state, false);
 }
 
 void display_message(int rows, const char **text_lines)
