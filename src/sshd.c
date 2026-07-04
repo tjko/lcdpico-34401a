@@ -1,22 +1,22 @@
 /* sshd.c
-   Copyright (C) 2025-2026 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -32,11 +32,11 @@
 
 
 static const char *ssh_banner = "\r\n"
-	"  _____           ____  _\r\n"
-	" |  ___|_ _ _ __ |  _ \\(_) ___ ___\r\n"
-	" | |_ / _` | '_ \\| |_) | |/ __/ _ \\\r\n"
-	" |  _| (_| | | | |  __/| | (_| (_) |\r\n"
-	" |_|  \\__,_|_| |_|_|   |_|\\___\\___/\r\n"
+	"  _   _ ____    _____ _  _   _  _    ___  _    _    \r\n"
+	" | | | |  _ \\  |___ /| || | | || |  / _ \/ |  / \\   \r\n"
+	" | |_| | |_) |   |_ \| || |_| || |_| | | | | / _ \\  \r\n"
+	" |  _  |  __/   ___) |__   _|__   _| |_| | |/ ___ \\ \r\n"
+	" |_| |_|_|     |____/   |_|    |_|  \___/|_/_/   \_\\\r\n"
 	" ...ssh...\r\n\r\n";
 
 
