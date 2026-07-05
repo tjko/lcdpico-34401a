@@ -22,6 +22,3 @@
 [submodule "libs/pico-sshd"]
 	path = libs/pico-sshd
 	url = https://github.com/tjko/pico-sshd.git
-[submodule "libs/PNGdec"]
-	path = libs/PNGdec
-	url = https://github.com/bitbank2/PNGdec.git
