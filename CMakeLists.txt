@@ -92,16 +92,16 @@ target_sources(libb64 INTERFACE
 
 # PNGdec
 add_library(PNGdec INTERFACE)
-target_include_directories(PNGdec INTERFACE libs/PNGdec2/src)
+target_include_directories(PNGdec INTERFACE libs/PNGdec/src)
 target_sources(PNGdec INTERFACE
-  libs/PNGdec2/src/PNGdec.c
-  libs/PNGdec2/src/adler32.c
-  libs/PNGdec2/src/crc32.c
-  libs/PNGdec2/src/infback.c
-  libs/PNGdec2/src/inffast.c
-  libs/PNGdec2/src/inflate.c
-  libs/PNGdec2/src/inftrees.c
-  libs/PNGdec2/src/zutil.c
+  libs/PNGdec/src/PNGdec.c
+  libs/PNGdec/src/adler32.c
+  libs/PNGdec/src/crc32.c
+  libs/PNGdec/src/infback.c
+  libs/PNGdec/src/inffast.c
+  libs/PNGdec/src/inflate.c
+  libs/PNGdec/src/inftrees.c
+  libs/PNGdec/src/zutil.c
   )
 
 # pico-telnetd
