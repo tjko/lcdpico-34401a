@@ -45,6 +45,8 @@ extern "C"
 #define WOLFSSH_SMALL_STACK
 #define WOLFSSH_KEYGEN
 #define WOLFSSH_ALLOW_USERAUTH_NONE
+#define WOLFSSH_TERM
+#define NO_TERMIOS
 
 #if __GNUC__ >= 15
 #define WOLFSSL_HAVE_MLKEM
