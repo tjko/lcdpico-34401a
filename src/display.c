@@ -22,11 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
-#define __LINUX__
-#include "PNGdec.h"
-#undef __LINUX__
-
 #include "lcd-pico.h"
+#include "PNGdec.h"
 #include "lt7680.h"
 #include "st7701.h"
 #include "decoder_34401a.h"
