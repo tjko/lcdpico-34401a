@@ -61,8 +61,6 @@ const struct fanpico_state *fanpico_state = &system_state;
 static struct fanpico_fw_settings system_settings;
 const struct fanpico_fw_settings *fw_settings = &system_settings;
 
-static dmm_context_t dmm_context;
-dmm_context_t *dmm = &dmm_context;
 
 #ifdef WIFI_SUPPORT
 static struct fanpico_network_state network_state;
@@ -174,84 +172,21 @@ static void setup()
 	int i = 0;
 
 
+	/* Set "overclock" if configured using picotool */
 	if (fw_settings->sysclock > 0 && fw_settings->sysclock < 1000) {
 		rp2_set_sys_clock(fw_settings->sysclock * 1000);
 	}
 
-	stdio_usb_init();
-	/* Wait a while for USB Serial to connect... */
-	while (i++ < 40) {
-		if (stdio_usb_connected())
-			break;
-		sleep_ms(50);
-	}
-
-	if (fw_settings->bootdelay > 0)
-		sleep_ms(fw_settings->bootdelay * 1000);
-
-	lfs_setup(false);
-	read_config(fw_settings->safemode);
-
-
 #if TTL_SERIAL
 	/* Initialize serial console if configured... */
-	if(cfg->serial_active) {
-		stdio_uart_init_full(TTL_SERIAL_UART,
-				TTL_SERIAL_SPEED, TX_PIN, RX_PIN);
-	}
+	stdio_uart_init_full(TTL_SERIAL_UART,
+			TTL_SERIAL_SPEED, TX_PIN, RX_PIN);
 #endif
-	printf("\n\n");
-#ifndef NDEBUG
-	boot_reason();
-#endif
-	if (watchdog_enable_caused_reboot()) {
-		printf("\n[Rebooted by watchdog]\n");
-		rebooted_by_watchdog = true;
-	}
-	printf("\n");
+	stdio_usb_init();
 
 
-	/* Run "SYStem:VERsion?" command... */
-	cmd_version(NULL, NULL, 0, NULL);
-	/* Run "SYStem:BOARD?" command... */
-	cmd_board(NULL, NULL, 0, NULL);
-	printf("\n");
-
-	init_persistent_memory();
-	printf("\n");
-	if (fw_settings->safemode)
-		printf("*** Booting into Safe Mode ***\n\n");
-
-	log_msg(LOG_NOTICE, "System starting...");
-	if (m->prev_uptime) {
-		uptime_to_str(buf, sizeof(buf), m->prev_uptime, true);
-		log_msg(LOG_NOTICE, "Uptime before last soft reset: %s", buf);
-		uptime_to_str(buf, sizeof(buf), m->total_uptime, true);
-		log_msg(LOG_NOTICE, "Uptime since cold boot: %s (soft reset count: %lu)",
-			buf, m->warmstart);
-	}
-
-	/* Setup timezone */
-	if (strlen(cfg->timezone) > 1) {
-		log_msg(LOG_NOTICE, "Set timezone: %s", cfg->timezone);
-		update_persistent_memory_tz(cfg->timezone);
-		setenv("TZ", cfg->timezone, 1);
-		tzset();
-	}
-
-
-	if (aon_timer_is_running()) {
-		struct timespec ts;
-		aon_timer_get_time(&ts);
-		log_msg(LOG_NOTICE, "RTC clock time: %s",
-			time_t_to_str(buf, sizeof(buf), timespec_to_time_t(&ts)));
-	}
-
-	setup_i2c_bus((struct fanpico_config *)cfg);
-	network_init();
 
 	/* Enable ADC */
-	log_msg(LOG_NOTICE, "Initialize ADC...");
 	adc_init();
 	adc_set_temp_sensor_enabled(true);
 #if SENSOR_READ_PIN >= 0
@@ -259,7 +194,6 @@ static void setup()
 #endif
 
 	/* Setup GPIO pins... */
-	log_msg(LOG_NOTICE, "Initialize GPIO...");
 
 	/* Setup 34401A interface pins (inputs for sniffing signals) */
 	gpio_init(SCK_PIN);
@@ -273,27 +207,6 @@ static void setup()
 	gpio_init(RST_PIN);
 	gpio_set_dir(RST_PIN, GPIO_IN);
 
-
-	/* Initialize status LED... */
-	if (rp2_is_picow()) {
-		/* On pico_w, LED is connected to the radio GPIO... */
-#ifdef LIB_PICO_CYW43_ARCH
-		cyw43_arch_lwip_begin();
-		cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-		cyw43_arch_lwip_end();
-#endif
-	} else {
-#if LED_PIN > 0
-		gpio_init(LED_PIN);
-		gpio_set_dir(LED_PIN, GPIO_OUT);
-		gpio_put(LED_PIN, 0);
-#endif
-	}
-
-	setup_pwm_outputs();
-	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
-
-	log_msg(LOG_NOTICE, "Initialize SPI...");
 
 	/* LCD SPI interface */
 	spi_init(SPI_INSTANCE(LCD_SPI_HW), 100000);
@@ -348,7 +261,97 @@ static void setup()
 #endif
 
 
+	if (fw_settings->bootdelay > 0)
+		sleep_ms(fw_settings->bootdelay * 1000);
+
+        /* Wait a while for USB Serial to connect... */
+	while (i++ < 20) {
+		if (stdio_usb_connected())
+			break;
+		sleep_ms(50);
+	}
+
+
+	lfs_setup(false);
+	read_config(fw_settings->safemode);
+
+
+	printf("\n\n");
+#ifndef NDEBUG
+	boot_reason();
+#endif
+	if (watchdog_enable_caused_reboot()) {
+		printf("\n[Rebooted by watchdog]\n");
+		rebooted_by_watchdog = true;
+	}
+	printf("\n");
+
+
+	/* Run "SYStem:VERsion?" command... */
+	cmd_version(NULL, NULL, 0, NULL);
+	/* Run "SYStem:BOARD?" command... */
+	cmd_board(NULL, NULL, 0, NULL);
+	printf("\n");
+
+	init_persistent_memory();
+	printf("\n");
+	if (fw_settings->safemode)
+		printf("*** Booting into Safe Mode ***\n\n");
+
+	log_msg(LOG_NOTICE, "System starting...");
+	if (m->prev_uptime) {
+		uptime_to_str(buf, sizeof(buf), m->prev_uptime, true);
+		log_msg(LOG_NOTICE, "Uptime before last soft reset: %s", buf);
+		uptime_to_str(buf, sizeof(buf), m->total_uptime, true);
+		log_msg(LOG_NOTICE, "Uptime since cold boot: %s (soft reset count: %lu)",
+			buf, m->warmstart);
+	}
+
+	/* Setup timezone */
+	if (strlen(cfg->timezone) > 1) {
+		log_msg(LOG_NOTICE, "Set timezone: %s", cfg->timezone);
+		update_persistent_memory_tz(cfg->timezone);
+		setenv("TZ", cfg->timezone, 1);
+		tzset();
+	}
+
+
+	if (aon_timer_is_running()) {
+		struct timespec ts;
+		aon_timer_get_time(&ts);
+		log_msg(LOG_NOTICE, "RTC clock time: %s",
+			time_t_to_str(buf, sizeof(buf), timespec_to_time_t(&ts)));
+	}
+
+	setup_i2c_bus((struct fanpico_config *)cfg);
+
+	setup_pwm_outputs();
+	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
+
 	display_init();
+
+}
+
+
+static void setup2()
+{
+	network_init();
+
+	/* Initialize status LED... */
+	if (rp2_is_picow()) {
+		/* On pico_w, LED is connected to the radio GPIO... */
+#ifdef LIB_PICO_CYW43_ARCH
+		cyw43_arch_lwip_begin();
+		cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+		cyw43_arch_lwip_end();
+#endif
+	} else {
+#if LED_PIN > 0
+		gpio_init(LED_PIN);
+		gpio_set_dir(LED_PIN, GPIO_OUT);
+		gpio_put(LED_PIN, 0);
+#endif
+	}
 
 	log_msg(LOG_NOTICE, "System initialization complete.");
 }
@@ -401,11 +404,13 @@ void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
 
 	switch (gpio) {
 	case SCK_PIN:
-		st->int_count++;
-		decoder34401_sckedge(dmm);
+		decoder34401_sckedge(&st->dmm);
 		break;
 	case RST_PIN:
-		st->rst_count++;
+		decoder34401_reset(&st->dmm);
+		break;
+	case INT_PIN:
+		decoder34401_int(&st->dmm);
 		break;
 	case LCM_INT_PIN:
 		st->lcm_int_count++;
@@ -422,7 +427,6 @@ static void core1_main()
 {
 	struct fanpico_config *config = &core1_config;
 	struct fanpico_state *state = &core1_state;
-	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_dmm, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_temp, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_set_outputs, 0);
 	absolute_time_t t_last, t_now, t_config, t_state;
@@ -435,7 +439,7 @@ static void core1_main()
 	/* Allow core0 to pause this core... */
 	multicore_lockout_victim_init();
 
-	decoder34401_init(dmm);
+	decoder34401_init(&state->dmm);
 
 	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_FALL, true, &core1_gpio_callback);
 	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_RISE, true);
@@ -497,16 +501,12 @@ static void core1_main()
 			}
 		}
 
-		decoder34401_process(dmm);
+		decoder34401_process(&state->dmm);
 
-		if (dmm->new_data_counter != dmm_last) {
-			dmm_last = dmm->new_data_counter;
+		if (state->dmm.new_data_counter != dmm_last) {
+			dmm_last = state->dmm.new_data_counter;
 			display_status(state, config);
 		}
-		if (time_passed(&t_dmm, 30000)) {
-			log_msg(LOG_INFO, "DMM: c=%06d, ann=%04x, blink=%04x, dmm='%s'", dmm_last, dmm->ann_state, dmm->blink_mask, dmm->main);
-		}
-
 	}
 }
 
@@ -532,22 +532,20 @@ int main()
 	memset(&network_state, 0, sizeof(network_state));
 #endif
 
-	/* Initialize MCU and other hardware... */
-	if (get_debug_level() >= 2)
-		print_mallinfo();
 	setup();
-	if (get_debug_level() >= 2)
-		print_mallinfo();
 
 	/* Start second core (core1)... */
 	memcpy(&core1_config, cfg, sizeof(core1_config));
 	memcpy(&core1_state, &system_state, sizeof(core1_state));
 	multicore_launch_core1(core1_main);
 
+
 #if WATCHDOG_ENABLED
 	watchdog_enable(WATCHDOG_REBOOT_DELAY, 1);
 	log_msg(LOG_NOTICE, "Watchdog enabled.");
 #endif
+
+	setup2();
 
 	t_last = get_absolute_time();
 	t_i2c_temp = t_ram = t_display = t_last;

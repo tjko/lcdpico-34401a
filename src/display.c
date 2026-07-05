@@ -380,10 +380,10 @@ void display_status(const struct fanpico_state *state,
 
 	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
-		disp[i].c = dmm->main[d++];
+		disp[i].c = state->dmm.main[d++];
 
 		disp[i].flags = 0;
-		switch (dmm->main[d]) {
+		switch (state->dmm.main[d]) {
 		case '.':
 			disp[i].flags = (1 << OVERLAY_PERIOD);
 			d++;
@@ -402,7 +402,7 @@ void display_status(const struct fanpico_state *state,
 			break;
 	}
 	//printf("\n");
-	update_display(disp, dmm->ann_state, false);
+	update_display(disp, state->dmm.ann_state, false);
 }
 
 void display_message(int rows, const char **text_lines)

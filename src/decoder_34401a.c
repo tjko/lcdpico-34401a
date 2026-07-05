@@ -251,6 +251,7 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 	    ctx->byte_len = 0u;
     }
     ctx->last_us = now_us;
+    ctx->dbg_sck_count++;
 
     ctx->byte_len++;
     if (ctx->byte_len >= 8) {
@@ -273,6 +274,33 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 
 	    ctx->byte_len = 0;
     }
+}
+
+
+void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
+{
+	//uint32_t now_us = micros32();
+
+	endFrame(ctx);
+	ctx->shift_press_count = 0;
+	ctx->shift_window_active = false;
+	ctx->need_reset = true;
+
+	memset(ctx->main, 0, sizeof(ctx->main));
+	strncpy(ctx->main, "SYSTEM RESET", sizeof(ctx->main));
+	ctx->ann_state = 0;
+	ctx->blink_mask = 0;
+	ctx->ann_counter++;
+	ctx->new_data_counter++;
+	ctx->main_counter++;
+
+	ctx->dbg_reset_count++;
+}
+
+
+void __time_critical_func(decoder34401_int)(dmm_context_t *ctx)
+{
+	ctx->dbg_int_count++;
 }
 
 

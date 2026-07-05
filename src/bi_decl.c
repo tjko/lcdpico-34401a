@@ -98,11 +98,11 @@ void set_binary_info(struct fanpico_fw_settings *settings)
 	bi_decl(bi_1pin_with_name(CTP_RESET_PIN, "CTP Interrupt"));
 #endif
 
-	bi_decl(bi_1pin_with_name(DO_PIN, "DO"));
-	bi_decl(bi_1pin_with_name(DI_PIN, "DI"));
-	bi_decl(bi_1pin_with_name(SCK_PIN, "SCK"));
-	bi_decl(bi_1pin_with_name(INT_PIN, "INT"));
-	bi_decl(bi_1pin_with_name(RST_PIN, "RST"));
+	bi_decl(bi_1pin_with_name(DO_PIN, "DMM: DO"));
+	bi_decl(bi_1pin_with_name(DI_PIN, "DMM: DI"));
+	bi_decl(bi_1pin_with_name(SCK_PIN, "DMM: SCK"));
+	bi_decl(bi_1pin_with_name(INT_PIN, "DMM: INT"));
+	bi_decl(bi_1pin_with_name(RST_PIN, "DMM: RST"));
 
 }
 

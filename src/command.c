@@ -428,12 +428,14 @@ int cmd_zero(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 
 int cmd_read(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
-	int fixme;
-	
 	if (!query)
 		return 1;
 
-	//FIXME
+	char *s = strdup(st->dmm.main);
+	if (s) {
+		printf("%s\n", trim_str(s));
+		free(s);
+	}
 
 	return 0;
 }

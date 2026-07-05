@@ -369,8 +369,7 @@ struct fanpico_network_state {
 
 
 struct fanpico_state {
-	uint32_t int_count;
-	uint32_t rst_count;
+	dmm_context_t dmm;
 	uint32_t lcm_int_count;
 	uint32_t ctp_int_count;
 
@@ -398,7 +397,7 @@ struct persistent_memory_block {
 /* fanpico.c */
 extern struct persistent_memory_block *persistent_mem;
 extern const struct fanpico_state *fanpico_state;
-extern dmm_context_t *dmm;
+
 #if WIFI_SUPPORT
 extern struct fanpico_network_state *net_state;
 #endif

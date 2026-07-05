@@ -61,6 +61,9 @@ typedef struct dmm_context {
 
         // ===== Minimal debug =====
 	uint32_t dbg_byte_overrun_count;
+	uint32_t dbg_reset_count;
+	uint32_t dbg_int_count;
+	uint32_t dbg_sck_count;
 
 	uint32_t dbg_main_gap_us;
 	uint32_t dbg_main_gap_us_max;
@@ -109,6 +112,8 @@ typedef struct dmm_context {
 // ===== Decoder API =====
 void decoder34401_init(dmm_context_t *ctx);
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx);    // call from GPIO interrupt callback
+void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx);    // call from GPIO interrupt callback
+void __time_critical_func(decoder34401_int)(dmm_context_t *ctx);    // call from GPIO interrupt callback
 void decoder34401_process(dmm_context_t *ctx);    // call frequently in main loop
 
 
