@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "lcd-pico-compile.h"
 
-extern uint16_t fanpico_http_server_port;
-extern uint16_t fanpico_https_server_port;
+extern uint16_t lcdpico_http_server_port;
+extern uint16_t lcdpico_https_server_port;
 
 // Settings for FanPico when using Pico W...
 // (see https://www.nongnu.org/lwip/2_1_x/group__lwip__opts.html for details)
@@ -78,8 +78,8 @@ void pico_set_system_time(long int sec);
 #define MQTT_REQ_MAX_IN_FLIGHT          32
 #define HTTPD_FSDATA_FILE               "lcdpico_fsdata.c"
 #define HTTPD_USE_MEM_POOL              0
-#define HTTPD_SERVER_PORT               fanpico_http_server_port
-#define HTTPD_SERVER_PORT_HTTPS         fanpico_https_server_port
+#define HTTPD_SERVER_PORT               lcdpico_http_server_port
+#define HTTPD_SERVER_PORT_HTTPS         lcdpico_https_server_port
 #define LWIP_HTTPD_SSI                  1
 #define LWIP_HTTPD_SSI_RAW              1
 #define LWIP_HTTPD_SSI_MULTIPART        1

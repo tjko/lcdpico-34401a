@@ -71,7 +71,7 @@ void display_i2c_status()
 }
 
 
-void setup_i2c_bus(struct fanpico_config *config)
+void setup_i2c_bus(struct system_config *config)
 {
 	int res;
 	uint baudrate;
@@ -125,7 +125,7 @@ void setup_i2c_bus(struct fanpico_config *config)
 }
 
 
-int i2c_read_temps(struct fanpico_config *config)
+int i2c_read_temps(struct system_config *config)
 {
 	static uint step = 0;
 	static uint sensor = 0;

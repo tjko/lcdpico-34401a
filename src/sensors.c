@@ -1,5 +1,5 @@
 /* sensors.c
-   Copyright (C) 2021-2023 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -31,7 +31,7 @@
 
 
 
-double get_temperature(uint8_t input, const struct fanpico_config *config)
+double get_temperature(uint8_t input, const struct system_config *config)
 {
 	uint8_t pin;
 	uint32_t raw = 0;
@@ -81,7 +81,7 @@ double get_temperature(uint8_t input, const struct fanpico_config *config)
 	return t;
 }
 
-
+#if 0
 double sensor_get_duty(const struct temp_map *map, double temp)
 {
 	int i;
@@ -102,10 +102,10 @@ double sensor_get_duty(const struct temp_map *map, double temp)
 	a = (double)(map->temp[i][1] - map->temp[i-1][1]) / (double)(map->temp[i][0] - map->temp[i-1][0]);
 	return map->temp[i-1][1] + a * (t - map->temp[i-1][0]);
 }
+#endif
 
-
-double get_vsensor(uint8_t i, struct fanpico_config *config,
-		struct fanpico_state *state)
+double get_vsensor(uint8_t i, struct system_config *config,
+		struct system_state *state)
 {
 	struct vsensor_input *s = &config->vsensors[i];
 	double t = state->vtemp[i];

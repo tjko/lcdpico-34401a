@@ -1,22 +1,22 @@
 /* network.c
-   Copyright (C) 2022-2026 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -44,8 +44,8 @@
 #define WIFI_REJOIN_DELAY 10000 // Delay before attempting to re-join to WiFi (ms)
 #define FANPICO_WIFI_INACTIVE -255
 
-uint16_t fanpico_http_server_port = HTTP_SERVER_DEFAULT_PORT;
-uint16_t fanpico_https_server_port = HTTPS_SERVER_DEFAULT_PORT;
+uint16_t lcdpico_http_server_port = HTTP_SERVER_DEFAULT_PORT;
+uint16_t lcdpico_https_server_port = HTTPS_SERVER_DEFAULT_PORT;
 
 static absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_network_initialized, 0);
 static bool wifi_initialized = false;
@@ -286,7 +286,7 @@ static void wifi_init()
 	if (strlen(cfg->hostname) > 0) {
 		strncopy(net_state->hostname, cfg->hostname, sizeof(net_state->hostname));
 	} else {
-		snprintf(net_state->hostname, sizeof(net_state->hostname), "FanPico-%s", pico_serial_str());
+		snprintf(net_state->hostname, sizeof(net_state->hostname), "LcdPico-%s", pico_serial_str());
 	}
 	log_msg(LOG_NOTICE, "WiFi hostname: %s", net_state->hostname);
 	netif_set_hostname(n, net_state->hostname);
@@ -396,9 +396,9 @@ static void wifi_init()
 	if (cfg->http_active) {
 		log_msg(LOG_NOTICE, "HTTP Server enabled");
 		if (cfg->http_port > 0)
-			fanpico_http_server_port = cfg->http_port;
+			lcdpico_http_server_port = cfg->http_port;
 		if (cfg->https_port > 0)
-			fanpico_https_server_port = cfg->https_port;
+			lcdpico_https_server_port = cfg->https_port;
 		httpd_init();
 #if TLS_SUPPORT
 		struct altcp_tls_config *tls_config = tls_server_config();
@@ -407,7 +407,7 @@ static void wifi_init()
 			httpd_inits(tls_config);
 		}
 #endif
-		http_set_ssi_handler(fanpico_ssi_handler, NULL, 0);
+		http_set_ssi_handler(lcdpico_ssi_handler, NULL, 0);
 	}
 
 	/* Enable Telnet server */

@@ -370,8 +370,8 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 	}
 }
 
-void display_status(const struct fanpico_state *state,
-	const struct fanpico_config *config)
+void display_status(const struct system_state *state,
+	const struct system_config *config)
 {
 	struct display_cell_state disp[DISPLAY_COLS];
 

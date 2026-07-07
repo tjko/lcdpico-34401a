@@ -53,18 +53,19 @@
  #endif
 #endif
 
-static struct fanpico_state core1_state;
-static struct fanpico_config core1_config;
-static struct fanpico_state transfer_state;
-static struct fanpico_state system_state;
-const struct fanpico_state *fanpico_state = &system_state;
-static struct fanpico_fw_settings system_settings;
-const struct fanpico_fw_settings *fw_settings = &system_settings;
+static struct system_config core1_config;
+static struct system_state core1_state;
+static struct system_state transfer_state;
+static struct system_state core0_state;
+const struct system_state *sys_state = &core0_state;
+
+static struct fw_settings system_settings;
+const struct fw_settings *fw_settings = &system_settings;
 
 
 #ifdef WIFI_SUPPORT
-static struct fanpico_network_state network_state;
-struct fanpico_network_state *net_state = &network_state;
+static struct network_state network_state;
+struct network_state *net_state = &network_state;
 #endif
 
 struct persistent_memory_block __uninitialized_ram(persistent_memory);
@@ -323,7 +324,7 @@ static void setup()
 			time_t_to_str(buf, sizeof(buf), timespec_to_time_t(&ts)));
 	}
 
-	setup_i2c_bus((struct fanpico_config *)cfg);
+	setup_i2c_bus((struct system_config *)cfg);
 
 	setup_pwm_outputs();
 	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
@@ -357,11 +358,11 @@ static void setup2()
 }
 
 
-static void clear_state(struct fanpico_state *s)
+static void clear_state(struct system_state *s)
 {
 	int i;
 
-	memset(s, 0, sizeof(struct fanpico_state));
+	memset(s, 0, sizeof(struct system_state));
 
 
 	for (i = 0; i < VSENSOR_MAX_COUNT; i++) {
@@ -384,7 +385,7 @@ static void clear_state(struct fanpico_state *s)
 static void update_system_state()
 {
 	if (mutex_enter_timeout_us(state_mutex, 1000)) {
-		memcpy(&system_state, &transfer_state, sizeof(system_state));
+		memcpy(&core0_state, &transfer_state, sizeof(core0_state));
 		mutex_exit(state_mutex);
 	} else {
 		log_msg(LOG_INFO, "update_system_state(): failed to get system_mutex");
@@ -392,7 +393,7 @@ static void update_system_state()
 }
 
 
-static void update_outputs(struct fanpico_state *state, const struct fanpico_config *config)
+static void update_outputs(struct system_state *state, const struct system_config *config)
 {
 
 }
@@ -400,7 +401,7 @@ static void update_outputs(struct fanpico_state *state, const struct fanpico_con
 
 void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
 {
-	struct fanpico_state *st = &core1_state;
+	struct system_state *st = &core1_state;
 
 	switch (gpio) {
 	case SCK_PIN:
@@ -425,8 +426,8 @@ void __time_critical_func(core1_gpio_callback)(uint gpio, uint32_t events)
 
 static void core1_main()
 {
-	struct fanpico_config *config = &core1_config;
-	struct fanpico_state *state = &core1_state;
+	struct system_config *config = &core1_config;
+	struct system_state *state = &core1_state;
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_temp, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_set_outputs, 0);
 	absolute_time_t t_last, t_now, t_config, t_state;
@@ -516,7 +517,7 @@ int main()
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_led, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_network, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_watchdog, 0);
-	absolute_time_t t_now, t_last, t_display, t_ram, t_i2c_temp, t_led_start;
+	absolute_time_t t_now, t_last, t_state, t_ram, t_i2c_temp, t_led_start;
 	uint8_t led_state = 0;
 	int64_t max_delta = 0;
 	int64_t led_max_delta = 0;
@@ -526,7 +527,8 @@ int main()
 	int i2c_temp_delay =  1000;
 
 	set_binary_info(&system_settings);
-	clear_state(&system_state);
+	clear_state(&core0_state);
+	clear_state(&core1_state);
 	clear_state(&transfer_state);
 #ifdef WIFI_SUPPORT
 	memset(&network_state, 0, sizeof(network_state));
@@ -536,7 +538,6 @@ int main()
 
 	/* Start second core (core1)... */
 	memcpy(&core1_config, cfg, sizeof(core1_config));
-	memcpy(&core1_state, &system_state, sizeof(core1_state));
 	multicore_launch_core1(core1_main);
 
 
@@ -548,7 +549,7 @@ int main()
 	setup2();
 
 	t_last = get_absolute_time();
-	t_i2c_temp = t_ram = t_display = t_last;
+	t_i2c_temp = t_ram = t_state = t_last;
 
 	while (1) {
 		t_now = get_absolute_time();
@@ -607,18 +608,15 @@ int main()
 			}
 		}
 
-		/* Update display every 1000ms */
-		if (time_passed(&t_display, 1000)) {
-			log_msg(LOG_DEBUG, "update display start");
+		/* Update state (from core1) every 1000ms */
+		if (time_passed(&t_state, 1000)) {
 			update_system_state();
-			//display_status(fanpico_state, cfg);
-			log_msg(LOG_DEBUG, "update display end");
 		}
 
 		/* Poll I2C Temperature Sensors */
 		if (i2c_temp_delay > 0 && time_passed(&t_i2c_temp, i2c_temp_delay)) {
 			//log_msg(LOG_DEBUG, "I2C sensor poll start");
-			i2c_temp_delay = i2c_read_temps((struct fanpico_config*)cfg);
+			i2c_temp_delay = i2c_read_temps((struct system_config*)cfg);
 			//log_msg(LOG_DEBUG, "I2C sensor poll end");
 		}
 
@@ -638,7 +636,7 @@ int main()
 				if (i_ptr > 0) {
 					log_msg(LOG_DEBUG,"user command start");
 					update_system_state();
-					process_command(fanpico_state, (struct fanpico_config *)cfg, input_buf);
+					process_command(sys_state, (struct system_config *)cfg, input_buf);
 					log_msg(LOG_DEBUG,"user command end");
 					i_ptr = 0;
 				}

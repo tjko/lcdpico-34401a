@@ -1,5 +1,5 @@
 /* bi_decl.c
-   Copyright (C) 2021-2026 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -28,7 +28,7 @@
 #define BOOT_SETTINGS    0x0001
 
 
-void set_binary_info(struct fanpico_fw_settings *settings)
+void set_binary_info(struct fw_settings *settings)
 {
 	bi_decl(bi_program_description("LCD-Pico-" LCDPICO_BOARD " Display Controller"));
 	bi_decl(bi_program_version_string(LCDPICO_VERSION LCDPICO_BUILD_TAG));

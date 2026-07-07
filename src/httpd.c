@@ -1,5 +1,5 @@
 /* httpd.c
-   Copyright (C) 2022-2025 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -33,13 +33,13 @@
 
 u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next_tag_part)
 {
-	const struct fanpico_state *st = fanpico_state;
+	const struct system_state *st = sys_state;
 	static char *buf = NULL;
 	static char *p;
 	static u16_t part;
 	static size_t buf_left;
 	char row[128];
-	double rpm, pwm;
+	double pwm;
 	int i;
 	size_t printed, count;
 
@@ -50,7 +50,7 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 		buf[0] = 0;
 
 		for (i = 0; i < VSENSOR_COUNT; i++) {
-			pwm = sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
+			pwm = 0; //sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
 			snprintf(row, sizeof(row), "vsensor%d,\"%s\",%.1lf,%.1lf,%.0f,%.0f\n",
 				i+1,
 				cfg->vsensors[i].name,
@@ -91,7 +91,7 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 
 u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next_tag_part)
 {
-	const struct fanpico_state *st = fanpico_state;
+	const struct system_state *st = sys_state;
 	cJSON *json = NULL;
 	static char *buf = NULL;
 	static char *p;
@@ -112,7 +112,7 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 		if (!(array = cJSON_CreateArray()))
 			goto panic;
 		for (i = 0; i < VSENSOR_COUNT; i++) {
-			double pwm = sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
+			double pwm = 0; //sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
 			if (!(o = cJSON_CreateObject()))
 				goto panic;
 
@@ -162,10 +162,10 @@ panic:
 }
 
 
-u16_t fanpico_ssi_handler(const char *tag, char *insert, int insertlen,
+u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			u16_t current_tag_part, u16_t *next_tag_part)
 {
-	const struct fanpico_state *st = fanpico_state;
+	const struct system_state *st = sys_state;
 	size_t printed = 0;
 
 	/* printf("ssi_handler(\"%s\",%lx,%d,%u,%u)\n", tag, (uint32_t)insert, insertlen, current_tag_part, *next_tag_part); */

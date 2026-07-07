@@ -1,26 +1,26 @@
-/* firmware.h
-   Copyright (C) 2021-2026 Timo Kokkonen <tjko@iki.fi>
+/* lcd-pico.h
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef FIRMWARE_H
-#define FIRMWARE_H 1
+#ifndef LCD_PICO_H
+#define LCD_PICO_H 1
 
 #include "config.h"
 #include "log.h"
@@ -33,16 +33,15 @@
 #endif
 #include "decoder_34401a.h"
 
-
+#if 0
 #define FAN_MAX_COUNT     8   /* Max number of Fan outputs on the board */
 #define MBFAN_MAX_COUNT   4   /* Max number of (Motherboard) Fan inputs on the board */
+#endif
 #define SENSOR_MAX_COUNT  3   /* Max number of sensor inputs on the board */
 #define VSENSOR_MAX_COUNT 8   /* Max number of virtual sensors */
 
 #define VSENSOR_SOURCE_MAX_COUNT 8
 #define VSENSOR_COUNT            8
-
-#define ONEWIRE_MAX_COUNT        8
 
 #define SENSOR_SERIES_RESISTANCE 10000.0
 
@@ -53,20 +52,11 @@
 #define ADC_AVG_WINDOW  10
 
 #define MAX_NAME_LEN   64
-#define MAX_MAP_POINTS 32
 #define MAX_GPIO_PINS  32
 
 #define WIFI_SSID_MAX_LEN     32
 #define WIFI_PASSWD_MAX_LEN   64
 #define WIFI_COUNTRY_MAX_LEN  3
-
-#define MQTT_MAX_TOPIC_LEN            48
-#define MQTT_MAX_USERNAME_LEN         80
-#define MQTT_MAX_PASSWORD_LEN         64
-#define DEFAULT_MQTT_STATUS_INTERVAL  600
-#define DEFAULT_MQTT_TEMP_INTERVAL    60
-#define DEFAULT_MQTT_RPM_INTERVAL     60
-#define DEFAULT_MQTT_DUTY_INTERVAL    60
 
 #define HTTP_SERVER_DEFAULT_PORT      80
 #define HTTPS_SERVER_DEFAULT_PORT     443
@@ -156,64 +146,6 @@ struct ssh_public_key {
 	uint16_t pubkey_size;
 };
 
-struct pwm_map {
-	uint8_t points;
-	uint8_t pwm[MAX_MAP_POINTS][2];
-};
-
-struct tacho_map {
-	uint8_t points;
-	uint16_t tacho[MAX_MAP_POINTS][2];
-};
-
-struct temp_map {
-	uint8_t points;
-	float temp[MAX_MAP_POINTS][2];
-};
-
-struct fan_output {
-	char name[MAX_NAME_LEN];
-	float tacho_hyst;
-	float pwm_hyst;
-
-	/* output PWM signal settings */
-	uint8_t min_pwm;
-	uint8_t max_pwm;
-	float pwm_coefficient;
-	enum pwm_source_types s_type;
-	uint16_t s_id;
-	struct pwm_map map;
-	enum signal_filter_types filter;
-	void *filter_ctx;
-
-	/* input Tacho signal settings */
-	uint8_t rpm_mode;
-	uint8_t rpm_factor;
-	uint16_t lra_low;
-	uint16_t lra_high;
-};
-
-struct mb_input {
-	char name[MAX_NAME_LEN];
-
-	/* output Tacho signal settings */
-	uint8_t rpm_mode;
-	uint16_t min_rpm;
-	uint16_t max_rpm;
-	float rpm_coefficient;
-	uint8_t rpm_factor;
-	uint16_t lra_treshold;
-	bool lra_invert;
-	enum tacho_source_types s_type;
-	uint16_t s_id;
-	uint8_t sources[FAN_MAX_COUNT];
-	struct tacho_map map;
-
-	/* input PWM signal settings */
-	enum signal_filter_types filter;
-	void *filter_ctx;
-};
-
 struct sensor_input {
 	enum temp_sensor_types type;
 	char name[MAX_NAME_LEN];
@@ -222,7 +154,6 @@ struct sensor_input {
 	float beta_coefficient;
 	float temp_offset;
 	float temp_coefficient;
-	struct temp_map map;
 	enum signal_filter_types filter;
 	void *filter_ctx;
 };
@@ -236,28 +167,18 @@ struct vsensor_input {
 	uint64_t onewire_addr;
 	uint8_t i2c_type;
 	uint8_t i2c_addr;
-	struct temp_map map;
 	enum signal_filter_types filter;
 	void *filter_ctx;
 };
 
-struct fanpico_config {
+struct system_config {
 	struct sensor_input sensors[SENSOR_MAX_COUNT];
 	struct vsensor_input vsensors[VSENSOR_MAX_COUNT];
-	struct fan_output fans[FAN_MAX_COUNT];
-	struct mb_input mbfans[MBFAN_MAX_COUNT];
 	bool local_echo;
 	uint8_t led_mode;
 	uint8_t bl_brightness;
-	char display_type[64];
-	char display_theme[16];
-	char display_logo[16];
-	char display_layout_r[64];
 	char name[32];
 	char timezone[64];
-	bool spi_active;
-	bool serial_active;
-	bool onewire_active;
 	uint32_t i2c_speed;
 	float adc_vref;
 #ifdef WIFI_SUPPORT
@@ -275,37 +196,6 @@ struct fanpico_config {
 	ip_addr_t ip;
 	ip_addr_t netmask;
 	ip_addr_t gateway;
-	char mqtt_server[32];
-	uint16_t mqtt_port;
-	bool mqtt_tls;
-	bool mqtt_allow_scpi;
-	char mqtt_user[MQTT_MAX_USERNAME_LEN + 1];
-	char mqtt_pass[MQTT_MAX_PASSWORD_LEN + 1];
-	char mqtt_status_topic[MQTT_MAX_TOPIC_LEN + 1];
-	uint32_t mqtt_status_interval;
-	char mqtt_cmd_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_resp_topic[MQTT_MAX_TOPIC_LEN + 1];
-	uint16_t mqtt_temp_mask;
-	uint16_t mqtt_vtemp_mask;
-	uint16_t mqtt_vhumidity_mask;
-	uint16_t mqtt_vpressure_mask;
-	uint16_t mqtt_fan_rpm_mask;
-	uint16_t mqtt_fan_duty_mask;
-	uint16_t mqtt_mbfan_rpm_mask;
-	uint16_t mqtt_mbfan_duty_mask;
-	char mqtt_temp_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_vtemp_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_vhumidity_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_vpressure_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_fan_rpm_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_fan_duty_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_mbfan_rpm_topic[MQTT_MAX_TOPIC_LEN + 1];
-	char mqtt_mbfan_duty_topic[MQTT_MAX_TOPIC_LEN + 1];
-	uint32_t mqtt_temp_interval;
-	uint32_t mqtt_vsensor_interval;
-	uint32_t mqtt_rpm_interval;
-	uint32_t mqtt_duty_interval;
-	char mqtt_ha_discovery_prefix[32 + 1];
 	bool telnet_active;
 	bool telnet_auth;
 	bool telnet_raw_mode;
@@ -313,14 +203,6 @@ struct fanpico_config {
 	char telnet_user[MAX_USERNAME_LEN + 1];
 	char telnet_pwhash[MAX_PWHASH_LEN + 1];
 	acl_entry_t telnet_acls[TELNET_MAX_ACL_ENTRIES];
-	bool snmp_active;
-	char snmp_community[SNMP_MAX_COMMUNITY_STR_LEN + 1];
-	char snmp_community_write[SNMP_MAX_COMMUNITY_STR_LEN + 1];
-	char snmp_contact[32 + 1];
-	char snmp_location[32 + 1];
-	char snmp_community_trap[SNMP_MAX_COMMUNITY_STR_LEN + 1];
-	bool snmp_auth_traps;
-	ip_addr_t snmp_trap_dst;
 	bool ssh_active;
 	bool ssh_auth;
 	uint16_t ssh_port;
@@ -331,8 +213,6 @@ struct fanpico_config {
 	bool http_active;
 	uint16_t http_port;
 	uint16_t https_port;
-	uint16_t http_fan_mask;
-	uint16_t http_mbfan_mask;
 	uint16_t http_sensor_mask;
 	uint16_t http_vsensor_mask;
 #endif
@@ -345,14 +225,14 @@ struct fanpico_config {
 };
 
 /* Firmware settings that can be modified with picotool */
-struct fanpico_fw_settings {
+struct fw_settings {
 	bool safemode;      /* Safe mode disables loading saved configuration during boot. */
 	int bootdelay;      /* Delay (seconds) after initializing USB console during boot. */
 	int sysclock;       /* Set system clock in MHz (overclocking) */
 };
 
 #if WIFI_SUPPORT
-struct fanpico_network_state {
+struct network_state {
 	ip_addr_t ip;
 	ip_addr_t netmask;
 	ip_addr_t gateway;
@@ -368,7 +248,7 @@ struct fanpico_network_state {
 #endif
 
 
-struct fanpico_state {
+struct system_state {
 	dmm_context_t dmm;
 	uint32_t lcm_int_count;
 	uint32_t ctp_int_count;
@@ -394,12 +274,12 @@ struct persistent_memory_block {
 };
 
 
-/* fanpico.c */
+/* lcd-pico.c */
 extern struct persistent_memory_block *persistent_mem;
-extern const struct fanpico_state *fanpico_state;
+extern const struct system_state *sys_state;
 
 #if WIFI_SUPPORT
-extern struct fanpico_network_state *net_state;
+extern struct network_state *net_state;
 #endif
 extern bool rebooted_by_watchdog;
 extern mutex_t *state_mutex;
@@ -408,15 +288,15 @@ void update_persistent_memory();
 void update_persistent_memory_tz(const char *tz);
 
 /* bi_decl.c */
-void set_binary_info(struct fanpico_fw_settings *settings);
+void set_binary_info(struct fw_settings *settings);
 
 /* command.c */
-void process_command(const struct fanpico_state *state, struct fanpico_config *config, char *command);
+void process_command(const struct system_state *state, struct system_config *config, char *command);
 int last_command_status();
 
 /* config.c */
 extern mutex_t *config_mutex;
-extern const struct fanpico_config *cfg;
+extern const struct system_config *cfg;
 int str2pwm_source(const char *s);
 const char* pwm_source2str(enum pwm_source_types source);
 int str2vsmode(const char *s);
@@ -437,7 +317,7 @@ void upload_config();
 void display_init();
 void clear_display();
 void display_message(int rows, const char **text_lines);
-void display_status(const struct fanpico_state *state, const struct fanpico_config *config);
+void display_status(const struct system_state *state, const struct system_config *config);
 
 
 /* flash.h */
@@ -473,7 +353,7 @@ const char *network_ip();
 
 #if WIFI_SUPPORT
 /* httpd.c */
-u16_t fanpico_ssi_handler(const char *tag, char *insert, int insertlen,
+u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			u16_t current_tag_part, u16_t *next_tag_part);
 
 
@@ -504,8 +384,8 @@ const char* ssh_pubkey_to_str(const struct ssh_public_key *pk, char *s, size_t s
 /* i2c.c */
 void scan_i2c_bus();
 void display_i2c_status();
-void setup_i2c_bus(struct fanpico_config *config);
-int i2c_read_temps(struct fanpico_config *config);
+void setup_i2c_bus(struct system_config *config);
+int i2c_read_temps(struct system_config *config);
 
 /* tls.c */
 int read_pem_file(char *buf, uint32_t size, uint32_t timeout, bool append);
@@ -518,21 +398,21 @@ void setup_pwm_outputs();
 void set_pwm_duty_cycle(uint pin, float duty);
 
 /* sensors.c */
-double get_temperature(uint8_t input, const struct fanpico_config *config);
-double sensor_get_duty(const struct temp_map *map, double temp);
-double get_vsensor(uint8_t i, struct fanpico_config *config,
-		struct fanpico_state *state);
+double get_temperature(uint8_t input, const struct system_config *config);
+//double sensor_get_duty(const struct temp_map *map, double temp);
+double get_vsensor(uint8_t i, struct system_config *config,
+		struct system_state *state);
 
 /* tacho.c */
 void setup_tacho_inputs();
 void setup_tacho_input_interrupts();
 void setup_tacho_outputs();
 void read_tacho_inputs();
-void update_tacho_input_freq(struct fanpico_state *state);
+void update_tacho_input_freq(struct system_state *state);
 void set_tacho_output_freq(uint fan, double frequency);
 void set_lra_output(uint fan, bool lra);
-double tacho_map(const struct tacho_map *map, double val);
-double calculate_tacho_freq(struct fanpico_state *state, const struct fanpico_config *config, int i);
+//double tacho_map(const struct tacho_map *map, double val);
+//double calculate_tacho_freq(struct system_state *state, const struct system_config *config, int i);
 
 /* log.c */
 int str2log_priority(const char *pri);
@@ -598,4 +478,4 @@ int rp2_is_picow();
 /* crc32.c */
 unsigned int xcrc32 (const unsigned char *buf, int len, unsigned int init);
 
-#endif /* FIRMWARE_H */
+#endif /* LCD_PICO_H */

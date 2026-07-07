@@ -1,5 +1,5 @@
 /* command.c
-   Copyright (C) 2021-2026 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -66,11 +66,11 @@ const struct error_t error_codes[] = {
 
 int last_error_num = 0;
 
-const struct fanpico_state *st = NULL;
-struct fanpico_config *conf = NULL;
+const struct system_state *st = NULL;
+struct system_config *conf = NULL;
 
 /* credits.s */
-extern const char fanpico_credits_text[];
+extern const char lcdpico_credits_text[];
 
 
 
@@ -153,7 +153,7 @@ int cmd_board(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 
 int cmd_version(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
-	const char* credits = fanpico_credits_text;
+	const char* credits = lcdpico_credits_text;
 
 	if (cmd && !query)
 		return 1;
@@ -324,31 +324,6 @@ int cmd_echo(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 {
 	return bool_setting(cmd, args, query, prev_cmd,
 			&conf->local_echo, "Command Echo");
-}
-
-int cmd_display_type(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return string_setting(cmd, args, query, prev_cmd,
-			conf->display_type, sizeof(conf->display_type), "Display Type", NULL);
-}
-
-int cmd_display_theme(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return string_setting(cmd, args, query, prev_cmd,
-			conf->display_theme, sizeof(conf->display_theme), "Display Theme", NULL);
-}
-
-int cmd_display_logo(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return string_setting(cmd, args, query, prev_cmd,
-			conf->display_logo, sizeof(conf->display_logo), "Display Logo", NULL);
-}
-
-int cmd_display_layout_r(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return string_setting(cmd, args, query, prev_cmd,
-			conf->display_layout_r, sizeof(conf->display_layout_r),
-			"Display Layout (Right)", NULL);
 }
 
 int cmd_reset(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
@@ -549,13 +524,14 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 	return ret;
 }
 
+#if 0
 int cmd_vsensor_temp_map(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
 	int sensor, i, count;
 	float val;
 	char *arg, *t, *saveptr;
-	struct temp_map *map;
-	struct temp_map new_map;
+//	struct temp_map *map;
+//	struct temp_map new_map;
 	int ret = 0;
 
 	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
@@ -594,6 +570,7 @@ int cmd_vsensor_temp_map(const char *cmd, const char *args, int query, struct pr
 
 	return ret;
 }
+#endif
 
 int cmd_vsensor_temp(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
@@ -1230,7 +1207,7 @@ int cmd_http_tlsport(const char *cmd, const char *args, int query, struct prev_c
 	return uint16_setting(cmd, args, query, prev_cmd,
 			&conf->https_port, 0, 65535, "HTTPS Server Port");
 }
-
+#if 0
 int cmd_http_mask_fan(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
 	return bitmask16_setting(cmd, args, query, prev_cmd,
@@ -1244,7 +1221,7 @@ int cmd_http_mask_mbfan(const char *cmd, const char *args, int query, struct pre
 				&conf->http_mbfan_mask, MBFAN_MAX_COUNT,
 				1, "HTTP MBFan Mask");
 }
-
+#endif
 int cmd_http_mask_sensor(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
 	return bitmask16_setting(cmd, args, query, prev_cmd,
@@ -1566,26 +1543,7 @@ int cmd_i2c_speed(const char *cmd, const char *args, int query, struct prev_cmd_
 			&conf->i2c_speed, 10000, 3400000, "I2C Bus Speed (Hz)");
 }
 
-int cmd_serial(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return bool_setting(cmd, args, query, prev_cmd,
-			&conf->serial_active, "Serial Console status");
-}
 
-int cmd_spi(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return bool_setting(cmd, args, query, prev_cmd,
-			&conf->spi_active, "SPI (LCD Display) status");
-}
-
-
-
-const struct cmd_t display_commands[] = {
-	{ "LAYOUTR",   7, NULL,              cmd_display_layout_r },
-	{ "LOGO",      4, NULL,              cmd_display_logo },
-	{ "THEMe",     4, NULL,              cmd_display_theme },
-	{ 0, 0, 0, 0 }
-};
 
 const struct cmd_t lfs_commands[] = {
 	{ "COPY",      4, NULL,              cmd_lfs_copy },
@@ -1693,7 +1651,6 @@ const struct cmd_t i2c_commands[] = {
 const struct cmd_t system_commands[] = {
 	{ "BOARD",     5, NULL,              cmd_board },
 	{ "DEBUG",     5, NULL,              cmd_debug }, /* Obsolete ? */
-	{ "DISPlay",   4, display_commands,  cmd_display_type },
 	{ "ECHO",      4, NULL,              cmd_echo },
 	{ "ERRor",     3, NULL,              cmd_err },
 	{ "FLASH",     5, NULL,              cmd_flash },
@@ -1705,8 +1662,6 @@ const struct cmd_t system_commands[] = {
 	{ "MEMTEST",   7, NULL,              cmd_memtest },
 	{ "MEMory",    3, NULL,              cmd_memory },
 	{ "NAME",      4, NULL,              cmd_name },
-	{ "SERIAL",    6, NULL,              cmd_serial },
-	{ "SPI",       3, NULL,              cmd_spi },
 	{ "SYSLOG",    6, NULL,              cmd_syslog_level },
 	{ "TIMEZONE",  8, NULL,              cmd_timezone },
 	{ "TIME",      4, NULL,              cmd_time },
@@ -1799,7 +1754,7 @@ const struct cmd_t commands[] = {
  * @param config Current system configuration.
  * @param command command string
  */
-void process_command(const struct fanpico_state *state, struct fanpico_config *config, char *command)
+void process_command(const struct system_state *state, struct system_config *config, char *command)
 {
 	char *saveptr, *cmd;
 	struct prev_cmd_t cmd_stack;

@@ -61,7 +61,6 @@ void setup_pwm_outputs()
 	pwm_config config = pwm_get_default_config();
 	uint pwm_freq = 25000;
 	uint slice_num;
-	int i;
 
 	log_msg(LOG_NOTICE, "Initializing PWM outputs...");
 	log_msg(LOG_NOTICE, "PWM Frequency: %0.2f kHz", pwm_freq / 1000.0);

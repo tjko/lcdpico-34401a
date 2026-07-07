@@ -1,22 +1,22 @@
 /* config.c
-   Copyright (C) 2021-2025 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -37,8 +37,8 @@
 extern const char lcdpico_default_config[];
 
 
-struct fanpico_config fanpico_config;
-const struct fanpico_config *cfg = &fanpico_config;
+struct system_config system_config;
+const struct system_config *cfg = &system_config;
 auto_init_mutex(config_mutex_inst);
 mutex_t *config_mutex = &config_mutex_inst;
 
@@ -248,13 +248,13 @@ static cJSON* sshpubkeys2json(const struct ssh_public_key *keys)
 }
 #endif
 
-void clear_config(struct fanpico_config *cfg)
+void clear_config(struct system_config *cfg)
 {
 	int i, j;
 	struct sensor_input *s;
 	struct vsensor_input *vs;
 
-	memset(cfg, 0, sizeof(struct fanpico_config));
+	memset(cfg, 0, sizeof(struct system_config));
 
 	for (i = 0; i < SENSOR_MAX_COUNT; i++) {
 		s = &cfg->sensors[i];
@@ -266,7 +266,7 @@ void clear_config(struct fanpico_config *cfg)
 		s->temp_nominal = 0.0;
 		s->temp_offset = 0.0;
 		s->temp_coefficient = 0.0;
-		s->map.points = 0;
+//		s->map.points = 0;
 		s->filter = FILTER_NONE;
 		s->filter_ctx = NULL;
 	}
@@ -283,11 +283,6 @@ void clear_config(struct fanpico_config *cfg)
 		vs->onewire_addr = 0;
 		vs->i2c_type = 0;
 		vs->i2c_addr = 0;
-		vs->map.points = 2;
-		vs->map.temp[0][0] = 20.0;
-		vs->map.temp[0][1] = 0.0;
-		vs->map.temp[1][0] = 50.0;
-		vs->map.temp[1][1] = 100.0;
 		vs->filter = FILTER_NONE;
 		vs->filter_ctx = NULL;
 
@@ -300,18 +295,11 @@ void clear_config(struct fanpico_config *cfg)
 
 
 	cfg->local_echo = false;
-	cfg->spi_active = false;
-	cfg->serial_active = false;
-	cfg->onewire_active = false;
 	cfg->i2c_speed = I2C_DEFAULT_SPEED;
 	cfg->adc_vref = ADC_REF_VOLTAGE;
 	cfg->led_mode = 0;
 	cfg->bl_brightness = 100;
 	strncopy(cfg->name, "lcdpico1", sizeof(cfg->name));
-	strncopy(cfg->display_type, "default", sizeof(cfg->display_type));
-	strncopy(cfg->display_theme, "default", sizeof(cfg->display_theme));
-	strncopy(cfg->display_logo, "default", sizeof(cfg->display_logo));
-	strncopy(cfg->display_layout_r, "", sizeof(cfg->display_layout_r));
 	strncopy(cfg->timezone, "", sizeof(cfg->timezone));
 #ifdef WIFI_SUPPORT
 	cfg->wifi_ssid[0] = 0;
@@ -332,51 +320,12 @@ void clear_config(struct fanpico_config *cfg)
 	ip_addr_set_any(0, &cfg->ip);
 	ip_addr_set_any(0, &cfg->netmask);
 	ip_addr_set_any(0, &cfg->gateway);
-	cfg->mqtt_server[0] = 0;
-	cfg->mqtt_port = 0;
-	cfg->mqtt_tls = true;
-	cfg->mqtt_allow_scpi = false;
-	cfg->mqtt_user[0] = 0;
-	cfg->mqtt_pass[0] = 0;
-	cfg->mqtt_status_topic[0] = 0;
-	cfg->mqtt_cmd_topic[0] = 0;
-	cfg->mqtt_resp_topic[0] = 0;
-	cfg->mqtt_temp_mask = 0;
-	cfg->mqtt_vtemp_mask = 0;
-	cfg->mqtt_vhumidity_mask = 0;
-	cfg->mqtt_vpressure_mask = 0;
-	cfg->mqtt_fan_rpm_mask = 0;
-	cfg->mqtt_fan_duty_mask = 0;
-	cfg->mqtt_mbfan_rpm_mask = 0;
-	cfg->mqtt_mbfan_duty_mask = 0;
-	cfg->mqtt_temp_topic[0] = 0;
-	cfg->mqtt_vtemp_topic[0] = 0;
-	cfg->mqtt_vhumidity_topic[0] = 0;
-	cfg->mqtt_vpressure_topic[0] = 0;
-	cfg->mqtt_fan_rpm_topic[0] = 0;
-	cfg->mqtt_fan_duty_topic[0] = 0;
-	cfg->mqtt_mbfan_rpm_topic[0] = 0;
-	cfg->mqtt_mbfan_duty_topic[0] = 0;
-	cfg->mqtt_status_interval = DEFAULT_MQTT_STATUS_INTERVAL;
-	cfg->mqtt_temp_interval = DEFAULT_MQTT_TEMP_INTERVAL;
-	cfg->mqtt_vsensor_interval = DEFAULT_MQTT_TEMP_INTERVAL;
-	cfg->mqtt_rpm_interval = DEFAULT_MQTT_RPM_INTERVAL;
-	cfg->mqtt_duty_interval = DEFAULT_MQTT_DUTY_INTERVAL;
-	cfg->mqtt_ha_discovery_prefix[0] = 0;
 	cfg->telnet_active = false;
 	cfg->telnet_auth = true;
 	cfg->telnet_raw_mode = false;
 	cfg->telnet_port = 0;
 	cfg->telnet_user[0] = 0;
 	cfg->telnet_pwhash[0] = 0;
-	cfg->snmp_active = 0;
-	strncopy(cfg->snmp_community, "public", sizeof(cfg->snmp_community));
-	cfg->snmp_community_write[0] = 0;
-	cfg->snmp_contact[0] = 0;
-	cfg->snmp_location[0] = 0;
-	cfg->snmp_community_trap[0] = 0;
-	cfg->snmp_auth_traps = false;
-	ip_addr_set_any(0, &cfg->snmp_trap_dst);
 	cfg->ssh_active = false;
 	cfg->ssh_auth = true;
 	cfg->ssh_port = 0;
@@ -432,7 +381,7 @@ void clear_config(struct fanpico_config *cfg)
 	}
 
 
-cJSON *config_to_json(const struct fanpico_config *cfg)
+cJSON *config_to_json(const struct system_config *cfg)
 {
 	cJSON *config = cJSON_CreateObject();
 	cJSON *vsensors, *o;
@@ -441,22 +390,15 @@ cJSON *config_to_json(const struct fanpico_config *cfg)
 	if (!config)
 		return NULL;
 
-	cJSON_AddItemToObject(config, "id", cJSON_CreateString("fanpico-config-v1"));
+	cJSON_AddItemToObject(config, "id", cJSON_CreateString("lcdpico-config-v1"));
 	cJSON_AddItemToObject(config, "debug", cJSON_CreateNumber(get_debug_level()));
 	cJSON_AddItemToObject(config, "log_level", cJSON_CreateNumber(get_log_level()));
 	cJSON_AddItemToObject(config, "syslog_level", cJSON_CreateNumber(get_syslog_level()));
 	cJSON_AddItemToObject(config, "local_echo", cJSON_CreateBool(cfg->local_echo));
 	cJSON_AddItemToObject(config, "led_mode", cJSON_CreateNumber(cfg->led_mode));
 	cJSON_AddItemToObject(config, "bl_brightness", cJSON_CreateNumber(cfg->bl_brightness));
-	cJSON_AddItemToObject(config, "spi_active", cJSON_CreateNumber(cfg->spi_active));
-	cJSON_AddItemToObject(config, "serial_active", cJSON_CreateNumber(cfg->serial_active));
-	cJSON_AddItemToObject(config, "onewire_active", cJSON_CreateNumber(cfg->onewire_active));
 	cJSON_AddItemToObject(config, "i2c_speed", cJSON_CreateNumber(cfg->i2c_speed));
 	cJSON_AddItemToObject(config, "adc_vref", cJSON_CreateNumber(cfg->adc_vref)); //Zitt
-	STRING_TO_JSON("display_type", cfg->display_type);
-	STRING_TO_JSON("display_theme", cfg->display_theme);
-	STRING_TO_JSON("display_logo", cfg->display_logo);
-	STRING_TO_JSON("display_layout_r", cfg->display_layout_r);
 	STRING_TO_JSON("name", cfg->name);
 	STRING_TO_JSON("timezone", cfg->timezone);
 #ifdef WIFI_SUPPORT
@@ -481,45 +423,6 @@ cJSON *config_to_json(const struct fanpico_config *cfg)
 	IP_TO_JSON("ip", &cfg->ip);
 	IP_TO_JSON("netmask", &cfg->netmask);
 	IP_TO_JSON("gateway", &cfg->gateway);
-	STRING_TO_JSON("mqtt_server", cfg->mqtt_server);
-	if (cfg->mqtt_port > 0)
-		NUM_TO_JSON("mqtt_port", cfg->mqtt_port);
-	STRING_TO_JSON("mqtt_user", cfg->mqtt_user);
-	PASSWD_TO_JSON("mqtt_pass", cfg->mqtt_pass);
-	STRING_TO_JSON("mqtt_status_topic", cfg->mqtt_status_topic);
-	STRING_TO_JSON("mqtt_cmd_topic", cfg->mqtt_cmd_topic);
-	STRING_TO_JSON("mqtt_resp_topic", cfg->mqtt_resp_topic);
-	if (cfg->mqtt_tls != true)
-		NUM_TO_JSON("mqtt_tls", cfg->mqtt_tls);
-	if (cfg->mqtt_allow_scpi == true)
-		NUM_TO_JSON("mqtt_allow_scpi", cfg->mqtt_allow_scpi);
-	if (cfg->mqtt_status_interval != DEFAULT_MQTT_STATUS_INTERVAL)
-		NUM_TO_JSON("mqtt_status_interval", cfg->mqtt_status_interval);
-	if (cfg->mqtt_temp_interval != DEFAULT_MQTT_TEMP_INTERVAL)
-		NUM_TO_JSON("mqtt_temp_interval", cfg->mqtt_temp_interval);
-	if (cfg->mqtt_vsensor_interval != DEFAULT_MQTT_TEMP_INTERVAL)
-		NUM_TO_JSON("mqtt_vsensor_interval", cfg->mqtt_vsensor_interval);
-	if (cfg->mqtt_rpm_interval != DEFAULT_MQTT_RPM_INTERVAL)
-		NUM_TO_JSON("mqtt_rpm_interval", cfg->mqtt_rpm_interval);
-	if (cfg->mqtt_duty_interval != DEFAULT_MQTT_DUTY_INTERVAL)
-		NUM_TO_JSON("mqtt_duty_interval", cfg->mqtt_duty_interval);
-	BITMASK_TO_JSON("mqtt_temp_mask", cfg->mqtt_temp_mask, SENSOR_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_vtemp_mask", cfg->mqtt_vtemp_mask, VSENSOR_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_vhumidity_mask", cfg->mqtt_vhumidity_mask, VSENSOR_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_vpressure_mask", cfg->mqtt_vpressure_mask, VSENSOR_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_fan_rpm_mask", cfg->mqtt_fan_rpm_mask, FAN_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_fan_duty_mask", cfg->mqtt_fan_duty_mask, FAN_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_mbfan_rpm_mask", cfg->mqtt_mbfan_rpm_mask, MBFAN_MAX_COUNT);
-	BITMASK_TO_JSON("mqtt_mbfan_duty_mask", cfg->mqtt_mbfan_duty_mask, MBFAN_MAX_COUNT);
-	STRING_TO_JSON("mqtt_temp_topic", cfg->mqtt_temp_topic);
-	STRING_TO_JSON("mqtt_vtemp_topic", cfg->mqtt_vtemp_topic);
-	STRING_TO_JSON("mqtt_vhumidity_topic", cfg->mqtt_vhumidity_topic);
-	STRING_TO_JSON("mqtt_vpressure_topic", cfg->mqtt_vpressure_topic);
-	STRING_TO_JSON("mqtt_fan_rpm_topic", cfg->mqtt_fan_rpm_topic);
-	STRING_TO_JSON("mqtt_fan_duty_topic", cfg->mqtt_fan_duty_topic);
-	STRING_TO_JSON("mqtt_mbfan_rpm_topic", cfg->mqtt_mbfan_rpm_topic);
-	STRING_TO_JSON("mqtt_mbfan_duty_topic", cfg->mqtt_mbfan_duty_topic);
-	STRING_TO_JSON("mqtt_ha_discovery_prefix", cfg->mqtt_ha_discovery_prefix);
 	if (cfg->telnet_active)
 		NUM_TO_JSON("telnet_active", cfg->telnet_active);
 	if (cfg->telnet_auth != true)
@@ -532,16 +435,6 @@ cJSON *config_to_json(const struct fanpico_config *cfg)
 	STRING_TO_JSON("telnet_pwhash", cfg->telnet_pwhash);
 	if ((o = acllist2json(cfg->telnet_acls, TELNET_MAX_ACL_ENTRIES)))
 		cJSON_AddItemToObject(config, "telnet_acls", o);
-	if (cfg->snmp_active)
-		NUM_TO_JSON("snmp_active", cfg->snmp_active);
-	STRING_TO_JSON("snmp_community", cfg->snmp_community);
-	STRING_TO_JSON("snmp_community_write", cfg->snmp_community_write);
-	STRING_TO_JSON("snmp_contact", cfg->snmp_contact);
-	STRING_TO_JSON("snmp_location", cfg->snmp_location);
-	STRING_TO_JSON("snmp_community_trap", cfg->snmp_community_trap);
-	if (cfg->snmp_auth_traps)
-		cJSON_AddItemToObject(config, "snmp_auth_traps", cJSON_CreateNumber(cfg->snmp_auth_traps));
-	IP_TO_JSON("snmp_trap_dst", &cfg->snmp_trap_dst);
 	if (cfg->ssh_active)
 		NUM_TO_JSON("ssh_active", cfg->ssh_active);
 	if (cfg->ssh_auth != true)
@@ -644,7 +537,7 @@ panic:
 		}							\
 	}
 
-int json_to_config(cJSON *config, struct fanpico_config *cfg)
+int json_to_config(cJSON *config, struct system_config *cfg)
 {
 	cJSON *ref, *item, *r;
 	int id;
@@ -669,15 +562,8 @@ int json_to_config(cJSON *config, struct fanpico_config *cfg)
 		cfg->local_echo = (cJSON_IsTrue(ref) ? true : false);
 	JSON_TO_NUM(config, "led_mode", cfg->led_mode);
 	JSON_TO_NUM(config, "bl_brightness", cfg->bl_brightness);
-	JSON_TO_NUM(config, "spi_active", cfg->spi_active);
-	JSON_TO_NUM(config, "serial_active", cfg->serial_active);
-	JSON_TO_NUM(config, "onewire_active", cfg->onewire_active);
 	JSON_TO_NUM(config, "i2c_speed", cfg->i2c_speed);
 	JSON_TO_NUM(config, "adc_vref", cfg->adc_vref);
-	JSON_TO_STRING(config, "display_type", cfg->display_type);
-	JSON_TO_STRING(config, "display_theme", cfg->display_theme);
-	JSON_TO_STRING(config, "display_logo", cfg->display_logo);
-	JSON_TO_STRING(config, "display_layout_r", cfg->display_layout_r);
 	JSON_TO_STRING(config, "name", cfg->name);
 	JSON_TO_STRING(config, "timezone", cfg->timezone);
 
@@ -703,38 +589,6 @@ int json_to_config(cJSON *config, struct fanpico_config *cfg)
 	JSON_TO_IP(config, "netmask", &cfg->netmask);
 	JSON_TO_IP(config, "gateway", &cfg->gateway);
 
-	JSON_TO_STRING(config, "mqtt_server", cfg->mqtt_server);
-	JSON_TO_NUM(config, "mqtt_port", cfg->mqtt_port);
-	JSON_TO_NUM(config, "mqtt_tls", cfg->mqtt_tls);
-	JSON_TO_NUM(config, "mqtt_allow_scpi", cfg->mqtt_allow_scpi);
-	JSON_TO_STRING(config, "mqtt_user", cfg->mqtt_user);
-	JSON_TO_PASSWD(config, "mqtt_pass", cfg->mqtt_pass);
-	JSON_TO_STRING(config, "mqtt_status_topic", cfg->mqtt_status_topic);
-	JSON_TO_STRING(config, "mqtt_cmd_topic", cfg->mqtt_cmd_topic);
-	JSON_TO_STRING(config, "mqtt_resp_topic", cfg->mqtt_resp_topic);
-	JSON_TO_NUM(config, "mqtt_status_interval", cfg->mqtt_status_interval);
-	JSON_TO_NUM(config, "mqtt_temp_interval", cfg->mqtt_temp_interval);
-	JSON_TO_NUM(config, "mqtt_vsensor_interval", cfg->mqtt_vsensor_interval);
-	JSON_TO_NUM(config, "mqtt_rpm_interval", cfg->mqtt_rpm_interval);
-	JSON_TO_NUM(config, "mqtt_duty_interval", cfg->mqtt_duty_interval);
-	JSON_TO_BITMASK(config, "mqtt_temp_mask", cfg->mqtt_temp_mask, SENSOR_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_vtemp_mask", cfg->mqtt_vtemp_mask, VSENSOR_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_vhumidity_mask", cfg->mqtt_vhumidity_mask, VSENSOR_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_vpressure_mask", cfg->mqtt_vpressure_mask, VSENSOR_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_fan_rpm_mask", cfg->mqtt_fan_rpm_mask, FAN_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_fan_duty_mask", cfg->mqtt_fan_duty_mask, FAN_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_mbfan_rpm_mask", cfg->mqtt_mbfan_rpm_mask, MBFAN_MAX_COUNT);
-	JSON_TO_BITMASK(config, "mqtt_mbfan_duty_mask", cfg->mqtt_mbfan_duty_mask, MBFAN_MAX_COUNT);
-	JSON_TO_STRING(config, "mqtt_temp_topic", cfg->mqtt_temp_topic);
-	JSON_TO_STRING(config, "mqtt_vtemp_topic", cfg->mqtt_vtemp_topic);
-	JSON_TO_STRING(config, "mqtt_vhumidity_topic", cfg->mqtt_vhumidity_topic);
-	JSON_TO_STRING(config, "mqtt_vpressure_topic", cfg->mqtt_vpressure_topic);
-	JSON_TO_STRING(config, "mqtt_fan_rpm_topic", cfg->mqtt_fan_rpm_topic);
-	JSON_TO_STRING(config, "mqtt_fan_duty_topic", cfg->mqtt_fan_duty_topic);
-	JSON_TO_STRING(config, "mqtt_mbfan_rpm_topic", cfg->mqtt_mbfan_rpm_topic);
-	JSON_TO_STRING(config, "mqtt_mbfan_duty_topic", cfg->mqtt_mbfan_duty_topic);
-	JSON_TO_STRING(config, "mqtt_ha_discovery_prefix", cfg->mqtt_ha_discovery_prefix);
-
 	JSON_TO_NUM(config, "telnet_active", cfg->telnet_active);
 	JSON_TO_NUM(config, "telnet_auth", cfg->telnet_auth);
 	JSON_TO_NUM(config, "telnet_raw_mode", cfg->telnet_raw_mode);
@@ -743,15 +597,6 @@ int json_to_config(cJSON *config, struct fanpico_config *cfg)
 	JSON_TO_STRING(config, "telnet_pwhash", cfg->telnet_pwhash);
 	if ((ref = cJSON_GetObjectItem(config, "telnet_acls")))
 		json2acllist(ref, cfg->telnet_acls, TELNET_MAX_ACL_ENTRIES);
-
-	JSON_TO_NUM(config, "snmp_active", cfg->snmp_active);
-	JSON_TO_STRING(config, "snmp_community", cfg->snmp_community);
-	JSON_TO_STRING(config, "snmp_community_write", cfg->snmp_community_write);
-	JSON_TO_STRING(config, "snmp_contact", cfg->snmp_contact);
-	JSON_TO_STRING(config, "snmp_location", cfg->snmp_location);
-	JSON_TO_STRING(config, "snmp_community_trap", cfg->snmp_community_trap);
-	JSON_TO_NUM(config, "snmp_auth_traps", cfg->snmp_auth_traps);
-	JSON_TO_IP(config, "snmp_trap_dst", &cfg->snmp_trap_dst);
 
 	JSON_TO_NUM(config, "ssh_active", cfg->ssh_active);
 	JSON_TO_NUM(config, "ssh_auth", cfg->ssh_auth);
@@ -765,8 +610,6 @@ int json_to_config(cJSON *config, struct fanpico_config *cfg)
 	JSON_TO_NUM(config, "http_active", cfg->http_active);
 	JSON_TO_NUM(config, "http_port", cfg->http_port);
 	JSON_TO_NUM(config, "https_port", cfg->https_port);
-	JSON_TO_BITMASK(config, "http_fan_mask", cfg->http_fan_mask, FAN_MAX_COUNT);
-	JSON_TO_BITMASK(config, "http_mbfan_mask", cfg->http_mbfan_mask, MBFAN_MAX_COUNT);
 	JSON_TO_BITMASK(config, "http_sensor_mask", cfg->http_sensor_mask, SENSOR_MAX_COUNT);
 	JSON_TO_BITMASK(config, "http_vsensor_mask", cfg->http_vsensor_mask, VSENSOR_MAX_COUNT);
 #endif
@@ -810,7 +653,7 @@ void read_config(bool use_default_config)
 	if (!use_default_config) {
 		log_msg(LOG_INFO, "Reading configuration...");
 
-		res = flash_read_file(&buf, &file_size, "fanpico.cfg");
+		res = flash_read_file(&buf, &file_size, "lcdpico.cfg");
 		if (res == 0 && buf != NULL) {
 			/* parse saved config... */
 			config = cJSON_Parse(buf);
@@ -838,14 +681,14 @@ void read_config(bool use_default_config)
 
         /* Parse JSON configuration */
 	mutex_enter_blocking(config_mutex);
-	clear_config(&fanpico_config);
-	if (json_to_config(config, &fanpico_config) < 0) {
+	clear_config(&system_config);
+	if (json_to_config(config, &system_config) < 0) {
 		log_msg(LOG_ERR, "Error parsing JSON configuration");
 	}
 	if (use_default_config) {
 		/* Enable more verbose logging if in "safe-mode" ... */
 		set_log_level(LOG_INFO);
-		fanpico_config.local_echo = true;
+		system_config.local_echo = true;
 	}
 	mutex_exit(config_mutex);
 
@@ -870,7 +713,7 @@ void save_config()
 		log_msg(LOG_ERR, "Failed to generate JSON output");
 	} else {
 		uint32_t config_size = strlen(str) + 1;
-		flash_write_file(str, config_size, "fanpico.cfg");
+		flash_write_file(str, config_size, "lcdpico.cfg");
 		free(str);
 	}
 
@@ -925,7 +768,7 @@ void upload_config()
 	}
 
 	tmp[0] = 0;
-	printf("Paste FanPico configuration in JSON format:\n");
+	printf("Paste LcdPico configuration in JSON format:\n");
 	while (1) {
 		char *line;
 		uint32_t line_len;
@@ -990,15 +833,15 @@ void upload_config()
 		printf("Uploaded JSON object missing 'id' field.\n");
 		goto panic;
 	}
-	if (strncmp(ref->valuestring, "fanpico-config-v", 16)) {
+	if (strncmp(ref->valuestring, "lcdpico-config-v", 16)) {
 		printf("Invalid configuration uploaded.\n");
 		goto panic;
 	}
 
 	printf("Clearing config...\n");
-	clear_config(&fanpico_config);
+	clear_config(&system_config);
 	printf("Loading config...\n");
-	if (json_to_config(config, &fanpico_config) < 0) {
+	if (json_to_config(config, &system_config) < 0) {
 		printf("Error parsing JSON configuration\n");
 	} else {
 		printf("Configuration successfully loaded.\n");
@@ -1015,7 +858,7 @@ void delete_config()
 {
 	int res;
 
-	res = flash_delete_file("fanpico.cfg");
+	res = flash_delete_file("lcdpico.cfg");
 	if (res) {
 		log_msg(LOG_ERR, "Failed to delete configuration.");
 	}
