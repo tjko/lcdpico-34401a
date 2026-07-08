@@ -33,10 +33,7 @@
 #endif
 #include "decoder_34401a.h"
 
-#if 0
-#define FAN_MAX_COUNT     8   /* Max number of Fan outputs on the board */
-#define MBFAN_MAX_COUNT   4   /* Max number of (Motherboard) Fan inputs on the board */
-#endif
+
 #define SENSOR_MAX_COUNT  3   /* Max number of sensor inputs on the board */
 #define VSENSOR_MAX_COUNT 8   /* Max number of virtual sensors */
 
@@ -45,9 +42,7 @@
 
 #define SENSOR_SERIES_RESISTANCE 10000.0
 
-#define ADC_REF_VOLTAGE 3.0
-#define FAN_TACHO_HYSTERESIS 1.0
-#define FAN_PWM_HYSTERESIS 1.0
+#define ADC_REF_VOLTAGE 3.3
 #define ADC_MAX_VALUE   (1 << 12)
 #define ADC_AVG_WINDOW  10
 
@@ -83,15 +78,6 @@
 #define FANPICO_FS_OFFSET  (PICO_FLASH_SIZE_BYTES - FANPICO_FS_SIZE)
 
 
-enum pwm_source_types {
-	PWM_FIXED   = 0,     /* Fixed speed set by s_id */
-	PWM_MB      = 1,     /* Mb pwm signal */
-	PWM_SENSOR  = 2,     /* Sensor signal */
-	PWM_FAN     = 3,     /* Another fan */
-	PWM_VSENSOR = 4,     /* Virtual sensor */
-};
-#define PWM_SOURCE_ENUM_MAX 4
-
 enum signal_filter_types {
 	FILTER_NONE      = 0, /* No filtering */
 	FILTER_LOSSYPEAK = 1, /* "Lossy Peak Detector" with time decay */
@@ -99,37 +85,18 @@ enum signal_filter_types {
 };
 #define FILTER_ENUM_MAX 2
 
-enum tacho_source_types {
-	TACHO_FIXED  = 0,     /* Fixed speed set by s_id */
-	TACHO_FAN    = 1,     /* Fan tacho signal */
-	TACHO_MIN    = 2,     /* Slowest tacho signal from a group of fans. */
-	TACHO_MAX    = 3,     /* Fastest tacho signal from a group of fans. */
-	TACHO_AVG    = 4,     /* Average tacho signal from a group of fans. */
-};
-#define TACHO_ENUM_MAX 4
-
-enum temp_sensor_types {
-	TEMP_INTERNAL = 0,
-	TEMP_EXTERNAL = 1,
-};
-#define TEMP_ENUM_MAX 1
 
 enum vsensor_modes {
-	VSMODE_MANUAL  = 0,
-	VSMODE_MAX     = 1,
-	VSMODE_MIN     = 2,
-	VSMODE_AVG     = 3,
-	VSMODE_DELTA   = 4,
-	VSMODE_ONEWIRE = 5,
-	VSMODE_I2C     = 6,
+	VSMODE_MANUAL   = 0,
+	VSMODE_MAX      = 1,
+	VSMODE_MIN      = 2,
+	VSMODE_AVG      = 3,
+	VSMODE_DELTA    = 4,
+	VSMODE_INTERNAL = 5,
+	VSMODE_I2C      = 6,
 };
 #define VSMODE_ENUM_MAX 6
 
-enum rpm_modes {
-	RMODE_TACHO = 0,  /* Normal Tachometer signal */
-	RMODE_LRA   = 1,  /* Locked Rotor Alarm signal */
-};
-#define RPMMODE_ENUM_MAX 1
 
 #ifdef WIFI_SUPPORT
 typedef struct acl_entry_t {
@@ -146,25 +113,14 @@ struct ssh_public_key {
 	uint16_t pubkey_size;
 };
 
-struct sensor_input {
-	enum temp_sensor_types type;
-	char name[MAX_NAME_LEN];
-	float thermistor_nominal;
-	float temp_nominal;
-	float beta_coefficient;
-	float temp_offset;
-	float temp_coefficient;
-	enum signal_filter_types filter;
-	void *filter_ctx;
-};
-
 struct vsensor_input {
 	char name[MAX_NAME_LEN];
 	uint8_t mode;
 	float default_temp;
 	int32_t timeout;
+	float temp_offset;
+	float temp_coefficient;
 	uint8_t sensors[VSENSOR_SOURCE_MAX_COUNT];
-	uint64_t onewire_addr;
 	uint8_t i2c_type;
 	uint8_t i2c_addr;
 	enum signal_filter_types filter;
@@ -172,7 +128,6 @@ struct vsensor_input {
 };
 
 struct system_config {
-	struct sensor_input sensors[SENSOR_MAX_COUNT];
 	struct vsensor_input vsensors[VSENSOR_MAX_COUNT];
 	bool local_echo;
 	uint8_t led_mode;
@@ -297,16 +252,8 @@ int last_command_status();
 /* config.c */
 extern mutex_t *config_mutex;
 extern const struct system_config *cfg;
-int str2pwm_source(const char *s);
-const char* pwm_source2str(enum pwm_source_types source);
 int str2vsmode(const char *s);
 const char* vsmode2str(enum vsensor_modes mode);
-int str2rpm_mode(const char *s);
-const char* rpm_mode2str(enum rpm_modes mode);
-int valid_pwm_source_ref(enum pwm_source_types source, uint16_t s_id);
-int str2tacho_source(const char *s);
-const char* tacho_source2str(enum tacho_source_types source);
-int valid_tacho_source_ref(enum tacho_source_types source, uint16_t s_id);
 void read_config(bool use_default_config);
 void save_config();
 void delete_config();

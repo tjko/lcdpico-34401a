@@ -3,20 +3,20 @@
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,7 +30,7 @@
 
 
 
-
+#if 0
 double get_temperature(uint8_t input, const struct system_config *config)
 {
 	uint8_t pin;
@@ -79,28 +79,6 @@ double get_temperature(uint8_t input, const struct system_config *config)
 		input, sensor->type, raw, volt, t, end - start);
 
 	return t;
-}
-
-#if 0
-double sensor_get_duty(const struct temp_map *map, double temp)
-{
-	int i;
-	double a, t;
-
-	t = temp;
-
-	if (t <= map->temp[0][0])
-		return map->temp[0][1];
-
-	i = 1;
-	while (i < map->points-1 && map->temp[i][0] < t)
-		i++;
-
-	if (t >= map->temp[i][0])
-		return map->temp[i][1];
-
-	a = (double)(map->temp[i][1] - map->temp[i-1][1]) / (double)(map->temp[i][0] - map->temp[i-1][0]);
-	return map->temp[i-1][1] + a * (t - map->temp[i-1][0]);
 }
 #endif
 

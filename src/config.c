@@ -56,8 +56,8 @@ int str2vsmode(const char *s)
 			ret = VSMODE_AVG;
 		else if (!strncasecmp(s, "delta", 5))
 			ret = VSMODE_DELTA;
-		else if (!strncasecmp(s, "onewire", 7))
-			ret = VSMODE_ONEWIRE;
+		else if (!strncasecmp(s, "internal", 8))
+			ret = VSMODE_INTERNAL;
 		else if (!strncasecmp(s, "i2c", 3))
 			ret = VSMODE_I2C;
 	}
@@ -75,8 +75,8 @@ const char* vsmode2str(enum vsensor_modes mode)
 		return "avg";
 	else if (mode == VSMODE_DELTA)
 		return "delta";
-	else if (mode == VSMODE_ONEWIRE)
-		return "onewire";
+	else if (mode == VSMODE_INTERNAL)
+		return "internal";
 	else if (mode == VSMODE_I2C)
 		return "i2c";
 
@@ -251,25 +251,9 @@ static cJSON* sshpubkeys2json(const struct ssh_public_key *keys)
 void clear_config(struct system_config *cfg)
 {
 	int i, j;
-	struct sensor_input *s;
 	struct vsensor_input *vs;
 
 	memset(cfg, 0, sizeof(struct system_config));
-
-	for (i = 0; i < SENSOR_MAX_COUNT; i++) {
-		s = &cfg->sensors[i];
-
-		s->name[0] = 0;
-		s->type = TEMP_INTERNAL;
-		s->thermistor_nominal = 0.0;
-		s->beta_coefficient = 0.0;
-		s->temp_nominal = 0.0;
-		s->temp_offset = 0.0;
-		s->temp_coefficient = 0.0;
-//		s->map.points = 0;
-		s->filter = FILTER_NONE;
-		s->filter_ctx = NULL;
-	}
 
 	for (i = 0; i < VSENSOR_MAX_COUNT; i++) {
 		vs = &cfg->vsensors[i];
@@ -278,9 +262,10 @@ void clear_config(struct system_config *cfg)
 		vs->mode = VSMODE_MANUAL;
 		vs->default_temp = 0.0;
 		vs->timeout = 60;
+		vs->temp_offset = 0.0;
+		vs->temp_coefficient = 1.0;
 		for (j = 0; j < VSENSOR_SOURCE_MAX_COUNT; j++)
 			vs->sensors[j] = 0;
-		vs->onewire_addr = 0;
 		vs->i2c_type = 0;
 		vs->i2c_addr = 0;
 		vs->filter = FILTER_NONE;
@@ -292,7 +277,6 @@ void clear_config(struct system_config *cfg)
 		cfg->vtemp_updated[i] = from_us_since_boot(0);
 		cfg->i2c_context[i] = NULL;
 	}
-
 
 	cfg->local_echo = false;
 	cfg->i2c_speed = I2C_DEFAULT_SPEED;
@@ -477,6 +461,9 @@ cJSON *config_to_json(const struct system_config *cfg)
 					cJSON_CreateString(i2c_sensor_type_str(s->i2c_type)));
 			cJSON_AddItemToObject(o, "i2c_addr",
 					cJSON_CreateNumber(s->i2c_addr));
+		} else if (s->mode == VSMODE_INTERNAL) {
+			cJSON_AddItemToObject(o, "temp_offset", cJSON_CreateNumber(s->temp_offset));
+			cJSON_AddItemToObject(o, "temp_coefficient", cJSON_CreateNumber(s->temp_coefficient));
 		}
 		cJSON_AddItemToArray(vsensors, o);
 	}
@@ -632,6 +619,9 @@ int json_to_config(cJSON *config, struct system_config *cfg)
 				if ((r = cJSON_GetObjectItem(item, "i2c_type")))
 					s->i2c_type = get_i2c_sensor_type(cJSON_GetStringValue(r));
 				JSON_TO_NUM(item, "i2c_addr", s->i2c_addr);
+			} else if (s->mode == VSMODE_INTERNAL) {
+				JSON_TO_NUM(item, "temp_offset", s->temp_offset);
+				JSON_TO_NUM(item, "temp_coefficient", s->temp_coefficient);
 			}
 		}
 	}

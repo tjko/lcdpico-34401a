@@ -39,6 +39,7 @@
 #include "lcd-pico.h"
 #include "command_util.h"
 #include "pico_sensor_lib.h"
+#include "decoder_34401a.h"
 #include "lfs.h"
 #ifdef WIFI_SUPPORT
 #include "lwip/ip_addr.h"
@@ -232,8 +233,8 @@ int cmd_vsensors_sources(const char *cmd, const char *args, int query, struct pr
 		case VSMODE_MANUAL:
 			printf(",%0.2f,%ld", v->default_temp, v->timeout);
 			break;
-		case VSMODE_ONEWIRE:
-			printf(",%016llx", v->onewire_addr);
+		case VSMODE_INTERNAL:
+			printf(",%0.2f,%0.5f", v->temp_offset, v->temp_coefficient);
 			break;
 		case VSMODE_I2C:
 			printf(",0x%02x,%s", v->i2c_addr, i2c_sensor_type_str(v->i2c_type));
@@ -401,6 +402,26 @@ int cmd_zero(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 	return 0;
 }
 
+int cmd_annunciators(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
+{
+	if (!query)
+		return 1;
+
+	int count = 0;
+	for(int i = 0; i < ANNUNCIATOR_COUNT; i++) {
+		uint ann = (1 << i);
+
+		if (st->dmm.ann_state & ann) {
+			printf("%s%s", (count > 0 ? "," : ""), decoder34401_annunciator_name(i));
+			count++;
+		}
+
+	}
+	printf("\n");
+
+	return 0;
+}
+
 int cmd_read(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
 	if (!query)
@@ -450,7 +471,6 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 	int timeout;
 	char *tok, *saveptr, *param;
 	int ret = 0;
-//	int count = 0;
 
 	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
 	if (sensor < 0 || sensor >= VSENSOR_COUNT)
@@ -461,6 +481,8 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 		printf("%s", vsmode2str(v->mode));
 		if (v->mode == VSMODE_MANUAL) {
 			printf(",%0.2f,%ld", v->default_temp, v->timeout);
+		} else if (v->mode == VSMODE_INTERNAL) {
+			printf(",%0.2f,%0.5f", v->temp_offset, v->temp_coefficient);
 		} else if (v->mode == VSMODE_I2C) {
 			printf(",0x%02x,%s", v->i2c_addr, i2c_sensor_type_str(v->i2c_type));
 		} else {
@@ -514,6 +536,24 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 						}
 					}
 				}
+			} else if (vsmode == VSMODE_INTERNAL) {
+				float temp_o, temp_c;
+				tok = strtok_r(NULL, ",", &saveptr);
+				if (str_to_float(tok, &temp_o)) {
+					tok = strtok_r(NULL, ",", &saveptr);
+					if (str_to_float(tok, &temp_c)) {
+						if (temp_c != 0.0) {
+							log_msg(LOG_NOTICE, "vsensor%d: set source to %s,%0.2f,%0.5f",
+								sensor + 1,
+								vsmode2str(vsmode),
+								temp_o,
+								temp_c);
+							v->mode =vsmode;
+							v->temp_offset = temp_o;
+							v->temp_coefficient = temp_c;
+						}
+					}
+				}
 			} else {
 				log_msg(LOG_NOTICE, "unknown source");
 			}
@@ -523,54 +563,6 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 
 	return ret;
 }
-
-#if 0
-int cmd_vsensor_temp_map(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	int sensor, i, count;
-	float val;
-	char *arg, *t, *saveptr;
-//	struct temp_map *map;
-//	struct temp_map new_map;
-	int ret = 0;
-
-	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
-	if (sensor < 0 || sensor >= VSENSOR_COUNT)
-		return 1;
-	map = &conf->vsensors[sensor].map;
-	new_map.points = 0;
-
-	if (query) {
-		for (i = 0; i < map->points; i++) {
-			if (i > 0)
-				printf(",");
-			printf("%f,%f", map->temp[i][0], map->temp[i][1]);
-		}
-		printf("\n");
-	} else {
-		if (!(arg = strdup(args)))
-			return 2;
-		count = 0;
-		t = strtok_r(arg, ",", &saveptr);
-		while (t) {
-			val = atof(t);
-			new_map.temp[count / 2][count % 2] = val;
-			count++;
-			t = strtok_r(NULL, ",", &saveptr);
-		}
-		if ((count >= 4) && (count % 2 == 0)) {
-			new_map.points = count / 2;
-			*map = new_map;
-		} else {
-			log_msg(LOG_WARNING, "vsensor%d: invalid new map: %s", sensor + 1, args);
-			ret = 2;
-		}
-		free(arg);
-	}
-
-	return ret;
-}
-#endif
 
 int cmd_vsensor_temp(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
@@ -589,7 +581,7 @@ int cmd_vsensor_temp(const char *cmd, const char *args, int query, struct prev_c
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
 		d = st->vtemp[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d temperature = %fC", sensor + 1, d);
-		printf("%.0f\n", d);
+		printf("%.1f\n", d);
 		return 0;
 	}
 
@@ -608,7 +600,7 @@ int cmd_vsensor_humidity(const char *cmd, const char *args, int query, struct pr
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
 		d = st->vhumidity[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d humidity = %f%%", sensor + 1, d);
-		printf("%.0f\n", d);
+		printf("%.1f\n", d);
 		return 0;
 	}
 
@@ -627,7 +619,7 @@ int cmd_vsensor_pressure(const char *cmd, const char *args, int query, struct pr
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
 		d = st->vpressure[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d pressure = %fhPa", sensor + 1, d);
-		printf("%.0f\n", d);
+		printf("%.1f\n", d);
 		return 0;
 	}
 
@@ -1710,9 +1702,10 @@ const struct cmd_t vsensor_commands[] = {
 };
 
 const struct cmd_t measure_commands[] = {
-	{ "Read",      1, NULL,              cmd_read },
-	{ "VSENSORS",  8, NULL,              cmd_vsensors_read },
-	{ "VSENSOR",   7, vsensor_commands,  cmd_vsensor_temp },
+	{ "Read",         1, NULL,              cmd_read },
+	{ "ANNunciators", 3, NULL,              cmd_annunciators },
+	{ "VSENSORS",     8, NULL,              cmd_vsensors_read },
+	{ "VSENSOR",      7, vsensor_commands,  cmd_vsensor_temp },
 	{ 0, 0, 0, 0 }
 };
 

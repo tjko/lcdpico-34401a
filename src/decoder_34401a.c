@@ -44,6 +44,25 @@
 #include "config.h"
 
 
+static const char* annunciator_names[16] = {
+	"*",
+	"Adrs",
+	"Rmt",
+	"Man",
+	"Trig",
+	"Hold",
+	"Mem",
+	"Ratio",
+	"Math",
+	"ERROR",
+	"Rear",
+	"Shift",
+	"Diode",
+	"Continuity",
+	"4-Wire",
+	NULL
+};
+
 
 static void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
@@ -455,5 +474,11 @@ void decoder34401_process(dmm_context_t *ctx)
 			endFrame(ctx);
 		}
 	}
+}
+
+
+const char* decoder34401_annunciator_name(uint ann)
+{
+	return (ann < 16 ? annunciator_names[ann] : NULL);
 }
 

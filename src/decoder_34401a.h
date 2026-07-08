@@ -15,6 +15,7 @@ extern "C" {
 #define BYTE_FIFO_SIZE 256u
 #define BYTE_FIFO_MASK (BYTE_FIFO_SIZE - 1u)
 
+#define ANNUNCIATOR_COUNT 15
 
 typedef enum dmm_annunciators {
 	ANN_SMP   = 0,
@@ -115,6 +116,7 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx);    // call 
 void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx);    // call from GPIO interrupt callback
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx);    // call from GPIO interrupt callback
 void decoder34401_process(dmm_context_t *ctx);    // call frequently in main loop
+const char* decoder34401_annunciator_name(uint ann);
 
 
 #ifdef __cplusplus
