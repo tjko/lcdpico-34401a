@@ -437,6 +437,8 @@ cJSON *config_to_json(const struct system_config *cfg)
 		NUM_TO_JSON("http_port", cfg->http_port);
 	if (cfg->https_port > 0)
 		NUM_TO_JSON("https_port", cfg->https_port);
+        if (cfg->http_vsensor_mask != (1 << VSENSOR_COUNT) - 1)
+                BITMASK_TO_JSON("http_vsensor_mask", cfg->http_vsensor_mask, VSENSOR_MAX_COUNT);
 #endif
 
 
@@ -597,7 +599,6 @@ int json_to_config(cJSON *config, struct system_config *cfg)
 	JSON_TO_NUM(config, "http_active", cfg->http_active);
 	JSON_TO_NUM(config, "http_port", cfg->http_port);
 	JSON_TO_NUM(config, "https_port", cfg->https_port);
-	JSON_TO_BITMASK(config, "http_sensor_mask", cfg->http_sensor_mask, SENSOR_MAX_COUNT);
 	JSON_TO_BITMASK(config, "http_vsensor_mask", cfg->http_vsensor_mask, VSENSOR_MAX_COUNT);
 #endif
 

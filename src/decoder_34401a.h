@@ -11,6 +11,7 @@ extern "C" {
 
 #define MAX_SCK_DELAY_US 1500u  // 1.5ms
 
+#define DISPLAY_BUF_LEN 16
 // FIFO size must be power of 2 for simple wrap
 #define BYTE_FIFO_SIZE 256u
 #define BYTE_FIFO_MASK (BYTE_FIFO_SIZE - 1u)
@@ -50,11 +51,11 @@ typedef enum frame_state {
 } frame_state_t;
 
 typedef struct dmm_context {
-	char     main[16];          // null-terminated
-	uint16_t ann_state;         // annunciator bitfield (incl shift)
-	int16_t  bar;               // parsed bargraph value
-	uint8_t  bar_style;         // 0=POSITIVE, 1=FULLSCALE
-	uint32_t new_data_counter;  // increments whenever any of above changes
+	char     main[DISPLAY_BUF_LEN];  // null-terminated
+	uint16_t ann_state;              // annunciator bitfield (incl shift)
+	int16_t  bar;                    // parsed bargraph value
+	uint8_t  bar_style;              // 0=POSITIVE, 1=FULLSCALE
+	uint32_t new_data_counter;       // increments whenever any of above changes
 	uint32_t main_counter;
 	uint32_t ann_counter;
 	uint32_t bar_counter;
@@ -104,7 +105,7 @@ typedef struct dmm_context {
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
 	bool need_reset;
-	char msg_work[16];
+	char msg_work[DISPLAY_BUF_LEN];
 	uint16_t msg_blink_work;
 
 } dmm_context_t;

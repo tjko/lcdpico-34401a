@@ -3,8 +3,8 @@
   *
   * HP 34401A front display serial protocol decoder.
   *
-  * This code was modified for Raspberry Pi Pico (Pico-SDK) and changed not
-  * to use any global variables.
+  * Modified for Raspberry Pi Pico (Pico-SDK) and changed not
+  * to use any global variables by Timo Kokkonen (2026).
   *
   * This code is based on Ian Johnstons work found here:
   * https://github.com/Ian-Johnston/34401A_VS_Display
@@ -44,7 +44,7 @@
 #include "config.h"
 
 
-static const char* annunciator_names[16] = {
+static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 	"*",
 	"Adrs",
 	"Rmt",
@@ -59,8 +59,7 @@ static const char* annunciator_names[16] = {
 	"Shift",
 	"Diode",
 	"Continuity",
-	"4-Wire",
-	NULL
+	"4-Wire"
 };
 
 
@@ -306,7 +305,7 @@ void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 	ctx->need_reset = true;
 
 	memset(ctx->main, 0, sizeof(ctx->main));
-	strncpy(ctx->main, "SYSTEM RESET", sizeof(ctx->main));
+	strncpy(ctx->main, "SYSTEM RESET  ", sizeof(ctx->main));
 	ctx->ann_state = 0;
 	ctx->blink_mask = 0;
 	ctx->ann_counter++;
@@ -401,7 +400,7 @@ void decoder34401_process(dmm_context_t *ctx)
 
 				ctx->need_reset = true;
 
-				//updateBarGraphFromMessageFrame();         // not using tha bargraph
+				updateBarGraphFromMessageFrame(ctx);
 				endFrame(ctx);
 			}
 			else {
@@ -479,6 +478,6 @@ void decoder34401_process(dmm_context_t *ctx)
 
 const char* decoder34401_annunciator_name(uint ann)
 {
-	return (ann < 16 ? annunciator_names[ann] : NULL);
+	return (ann <= ANNUNCIATOR_COUNT ? annunciator_names[ann] : NULL);
 }
 

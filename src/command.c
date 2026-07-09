@@ -260,13 +260,26 @@ int cmd_null(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 
 int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
-	int level;
+	if (!query)
+		return 1;
 
-	if (query) {
-		printf("%d\n", get_debug_level());
-	} else if (str_to_int(args, &level, 10)) {
-		set_debug_level((level < 0 ? 0 : level));
-	}
+	printf("DMM Decoder:\n");
+	printf("       main gap: %lu us\n", st->dmm.dbg_main_gap_us);
+	printf("   max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
+	printf("        any gap: %lu us\n", st->dmm.dbg_any_gap_us);
+	printf("    max any gap: %lu us\n", st->dmm.dbg_any_gap_us_max);
+	printf("     fifo level: %lu\n", st->dmm.dbg_fifo_level);
+	printf(" max fifo level: %lu\n", st->dmm.dbg_fifo_level_max);
+	printf(" byte overrun count: %lu\n", st->dmm.dbg_byte_overrun_count);
+
+	printf("\nInterrupts:\n");
+	printf("        DMM_INT: %lu\n", st->dmm.dbg_int_count);
+	printf("        DMM_SCK: %lu\n", st->dmm.dbg_sck_count);
+	printf("      DMM_RESET: %lu\n", st->dmm.dbg_reset_count);
+	printf("        LCM_INT: %lu\n", st->lcm_int_count);
+	printf("        CTP_INT: %lu\n", st->ctp_int_count);
+	printf("\n");
+
 	return 0;
 }
 
@@ -1199,27 +1212,6 @@ int cmd_http_tlsport(const char *cmd, const char *args, int query, struct prev_c
 	return uint16_setting(cmd, args, query, prev_cmd,
 			&conf->https_port, 0, 65535, "HTTPS Server Port");
 }
-#if 0
-int cmd_http_mask_fan(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return bitmask16_setting(cmd, args, query, prev_cmd,
-				&conf->http_fan_mask, FAN_MAX_COUNT,
-				1, "HTTP Fan Mask");
-}
-
-int cmd_http_mask_mbfan(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return bitmask16_setting(cmd, args, query, prev_cmd,
-				&conf->http_mbfan_mask, MBFAN_MAX_COUNT,
-				1, "HTTP MBFan Mask");
-}
-#endif
-int cmd_http_mask_sensor(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
-{
-	return bitmask16_setting(cmd, args, query, prev_cmd,
-				&conf->http_sensor_mask, SENSOR_MAX_COUNT,
-				1, "HTTP Sensor Mask");
-}
 
 int cmd_http_mask_vsensor(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
@@ -1642,7 +1634,6 @@ const struct cmd_t i2c_commands[] = {
 
 const struct cmd_t system_commands[] = {
 	{ "BOARD",     5, NULL,              cmd_board },
-	{ "DEBUG",     5, NULL,              cmd_debug }, /* Obsolete ? */
 	{ "ECHO",      4, NULL,              cmd_echo },
 	{ "ERRor",     3, NULL,              cmd_err },
 	{ "FLASH",     5, NULL,              cmd_flash },
@@ -1726,6 +1717,7 @@ const struct cmd_t commands[] = {
 	{ "*TST",      4, NULL,              cmd_zero },
 	{ "*WAI",      4, NULL,              cmd_null },
 	{ "CONFigure", 4, config_commands,   cmd_print_config },
+	{ "DEBUG",     5, NULL,              cmd_debug },
 	{ "EXIT",      4, NULL,              cmd_exit },
 	{ "MEAsure",   3, measure_commands,  NULL },
 	{ "SYStem",    3, system_commands,   NULL },
