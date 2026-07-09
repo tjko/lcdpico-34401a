@@ -63,6 +63,9 @@ typedef struct dmm_context {
 
         // ===== Minimal debug =====
 	uint32_t dbg_byte_overrun_count;
+	uint32_t dbg_mid_byte_gap_count;
+	uint32_t dbg_buf_overflow_count;
+
 	uint32_t dbg_reset_count;
 	uint32_t dbg_int_count;
 	uint32_t dbg_sck_count;

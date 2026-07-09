@@ -36,6 +36,7 @@
   *******************************************************************************/
 
 
+#include <stdio.h>
 #include "decoder_34401a.h"
 #include "pico/stdlib.h"
 #include <ctype.h>
@@ -63,7 +64,7 @@ static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 };
 
 
-static void dmm_putc_safe(dmm_context_t *ctx, char c)
+static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
 	if (ctx->msg_idx < (sizeof(ctx->msg_work) - 2)) {
         ctx->msg_work[ctx->msg_idx++] = c;
@@ -267,6 +268,7 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
     uint32_t now_us = micros32();
     if (ctx->byte_len != 0u && (uint32_t)(now_us - ctx->last_us) > MAX_SCK_DELAY_US) {
 	    ctx->byte_len = 0u;
+	    ctx->dbg_mid_byte_gap_count++;
     }
     ctx->last_us = now_us;
     ctx->dbg_sck_count++;
@@ -298,6 +300,10 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 {
 	//uint32_t now_us = micros32();
+
+	ctx->byte_len = 0;
+	ctx->fifo_wr = 0;
+	ctx->fifo_rd = 0;
 
 	endFrame(ctx);
 	ctx->shift_press_count = 0;
@@ -377,6 +383,7 @@ void decoder34401_process(dmm_context_t *ctx)
 					break;
 				}
 			}
+			//printf("unknown frame: len=%d: %02x %02x\n", ctx->buf_len, ctx->input_buf[0], ctx->output_buf[0]);
 			break;
 
 		case FRAME_MESSAGE:
@@ -471,6 +478,7 @@ void decoder34401_process(dmm_context_t *ctx)
 		// Avoid buffer overflow in bad sync conditions
 		if (ctx->buf_len >= sizeof(ctx->input_buf)) {
 			endFrame(ctx);
+			ctx->dbg_buf_overflow_count++;
 		}
 	}
 }

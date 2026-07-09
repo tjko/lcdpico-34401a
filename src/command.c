@@ -264,20 +264,22 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 		return 1;
 
 	printf("DMM Decoder:\n");
-	printf("       main gap: %lu us\n", st->dmm.dbg_main_gap_us);
-	printf("   max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
-	printf("        any gap: %lu us\n", st->dmm.dbg_any_gap_us);
-	printf("    max any gap: %lu us\n", st->dmm.dbg_any_gap_us_max);
-	printf("     fifo level: %lu\n", st->dmm.dbg_fifo_level);
-	printf(" max fifo level: %lu\n", st->dmm.dbg_fifo_level_max);
+	printf("           main gap: %lu us\n", st->dmm.dbg_main_gap_us);
+	printf("       max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
+	printf("            any gap: %lu us\n", st->dmm.dbg_any_gap_us);
+	printf("        max any gap: %lu us\n", st->dmm.dbg_any_gap_us_max);
+	printf("         fifo level: %lu\n", st->dmm.dbg_fifo_level);
+	printf("     max fifo level: %lu\n", st->dmm.dbg_fifo_level_max);
 	printf(" byte overrun count: %lu\n", st->dmm.dbg_byte_overrun_count);
+	printf(" mid byte gap count: %lu\n", st->dmm.dbg_mid_byte_gap_count);
+	printf(" buf overflow count: %lu\n", st->dmm.dbg_buf_overflow_count);
 
 	printf("\nInterrupts:\n");
-	printf("        DMM_INT: %lu\n", st->dmm.dbg_int_count);
-	printf("        DMM_SCK: %lu\n", st->dmm.dbg_sck_count);
-	printf("      DMM_RESET: %lu\n", st->dmm.dbg_reset_count);
-	printf("        LCM_INT: %lu\n", st->lcm_int_count);
-	printf("        CTP_INT: %lu\n", st->ctp_int_count);
+	printf("            DMM_INT: %lu\n", st->dmm.dbg_int_count);
+	printf("            DMM_SCK: %lu\n", st->dmm.dbg_sck_count);
+	printf("          DMM_RESET: %lu\n", st->dmm.dbg_reset_count);
+	printf("            LCM_INT: %lu\n", st->lcm_int_count);
+	printf("            CTP_INT: %lu\n", st->ctp_int_count);
 	printf("\n");
 
 	return 0;

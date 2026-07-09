@@ -376,6 +376,7 @@ void display_status(const struct system_state *state,
 	const struct system_config *config)
 {
 	static char last_main[16] = "              ";
+	static uint16_t last_ann_state = 0;
 	struct display_cell_state disp[DISPLAY_COLS];
 	const char *dmm = state->dmm.main;
 
@@ -417,6 +418,11 @@ void display_status(const struct system_state *state,
 		}
 	}
 
+	/* Log annunciator changes */
+	if ((last_ann_state & 0xfffe) != (state->dmm.ann_state & 0xfffe)) {
+		log_msg(LOG_INFO, "DMM annunciator change: %04x -> %04x", last_ann_state, state->dmm.ann_state);
+		last_ann_state = state->dmm.ann_state;
+	}
 }
 
 void display_message(int rows, const char **text_lines)
