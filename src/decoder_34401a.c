@@ -67,8 +67,8 @@ static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
 	if (ctx->msg_idx < (sizeof(ctx->msg_work) - 2)) {
-        ctx->msg_work[ctx->msg_idx++] = c;
-    }
+		ctx->msg_work[ctx->msg_idx++] = c;
+	}
 }
 
 static inline uint32_t micros32(void)
@@ -141,7 +141,7 @@ static void updateBarGraphFromMessageFrame(dmm_context_t *ctx)
 
 static void publishAnnunciators(dmm_context_t *ctx, uint8_t h, uint8_t l)
 {
-    uint16_t state = ((uint16_t)h << 8) | (uint16_t)l;
+    uint16_t state = ((uint16_t)h << 8) | l;
 
     // Preserve SHIFT bit (bit11) from local button tracking
     uint16_t new_state = (uint16_t)((state & 0xF7FFu) | (ctx->ann_state & 0x0800u));
@@ -161,6 +161,7 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		memset((void*)ctx->msg_work, ' ', (sizeof(ctx->msg_work) - 2));   // build a fixed-width field here
 		ctx->msg_work[sizeof(ctx->msg_work) - 2] = 0;
 		ctx->msg_work[sizeof(ctx->msg_work) - 1] = 0;
+		ctx->corrupt_msg = false;
 		ctx->need_reset = false;
 	}
 
@@ -193,6 +194,9 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		break;
 
 	default:
+		if (iscntrl(byte) || !isprint(byte)) {
+			ctx->corrupt_msg = true;
+		}
 		dmm_putc_safe(ctx, (char)byte);
 		break;
 	}
@@ -259,19 +263,27 @@ void decoder34401_init(dmm_context_t *ctx)
 
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 {
+    uint32_t now_us = micros32();
     uint32_t all = gpio_get_all();
 
+    // read in one bit from DO and DI pins
     ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (all & (1 << DO_PIN) ? 1 : 0));
     ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
 
     // mid-byte gap detection (power-on / pause)
-    uint32_t now_us = micros32();
-    if (ctx->byte_len != 0u && (uint32_t)(now_us - ctx->last_us) > MAX_SCK_DELAY_US) {
+    ctx->dbg_sck_gap_us = now_us - ctx->last_us;
+    if (ctx->dbg_sck_gap_us > ctx->dbg_sck_gap_us_max)
+	    ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
+    ctx->last_us = now_us;
+
+    if (ctx->byte_len != 0u && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
 	    ctx->byte_len = 0u;
 	    ctx->dbg_mid_byte_gap_count++;
+
+	    ctx->fifo_wr = 0;
+	    ctx->fifo_rd = 0;
+	    endFrame(ctx);
     }
-    ctx->last_us = now_us;
-    ctx->dbg_sck_count++;
 
     ctx->byte_len++;
     if (ctx->byte_len >= 8) {
@@ -286,20 +298,20 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 		    ctx->fifo_wr = next_wr;
 
 		    ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
-
-		    if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max) {
+		    if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
 			    ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
-		    }
 	    }
 
 	    ctx->byte_len = 0;
     }
+
+    ctx->dbg_sck_count++;
 }
 
 
 void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 {
-	//uint32_t now_us = micros32();
+	ctx->dbg_last_reset_us = micros32();
 
 	ctx->byte_len = 0;
 	ctx->fifo_wr = 0;
@@ -324,6 +336,7 @@ void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx)
 {
+	ctx->dbg_last_int_us = micros32();
 	ctx->dbg_int_count++;
 }
 
@@ -388,26 +401,27 @@ void decoder34401_process(dmm_context_t *ctx)
 
 		case FRAME_MESSAGE:
 			if (lastBytesAreEof(ctx)) {
-				memcpy((void*)ctx->main, (const void*)ctx->msg_work, sizeof(ctx->main));
-				ctx->blink_mask = ctx->msg_blink_work;
-				ctx->new_data_counter++;
-				ctx->main_counter++;
+				uint32_t now_us = micros32();
 
-				// Main-message timing debug
-				{
-					uint32_t now_us = micros32();
+				if (ctx->corrupt_msg) {
+					ctx->dbg_bad_msg_last_us = now_us;
+					ctx->dbg_bad_msg_count++;
+				} else {
+					memcpy((void*)ctx->main, (const void*)ctx->msg_work, sizeof(ctx->main));
+					ctx->blink_mask = ctx->msg_blink_work;
+					ctx->new_data_counter++;
+					ctx->main_counter++;
 
+					// Main-message timing debug
 					ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
 					if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max) {
 						ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
 					}
-
 					ctx->dbg_last_main_us = now_us;
+
+					updateBarGraphFromMessageFrame(ctx);
 				}
-
 				ctx->need_reset = true;
-
-				updateBarGraphFromMessageFrame(ctx);
 				endFrame(ctx);
 			}
 			else {

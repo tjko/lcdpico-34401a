@@ -442,7 +442,7 @@ static void core1_main()
 
 	decoder34401_init(&state->dmm);
 
-	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_FALL, true, &core1_gpio_callback);
+	gpio_set_irq_enabled_with_callback(SCK_PIN, GPIO_IRQ_EDGE_RISE, true, &core1_gpio_callback);
 	gpio_set_irq_enabled(INT_PIN, GPIO_IRQ_EDGE_RISE, true);
 	gpio_set_irq_enabled(RST_PIN, GPIO_IRQ_EDGE_RISE, true);
 	gpio_set_irq_enabled(LCM_INT_PIN, GPIO_IRQ_EDGE_FALL, true);

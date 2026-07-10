@@ -70,6 +70,15 @@ typedef struct dmm_context {
 	uint32_t dbg_int_count;
 	uint32_t dbg_sck_count;
 
+	uint32_t dbg_bad_msg_count;
+	uint32_t dbg_bad_msg_last_us;
+
+	uint32_t dbg_last_reset_us;
+	uint32_t dbg_last_int_us;
+
+	uint32_t dbg_sck_gap_us;
+	uint32_t dbg_sck_gap_us_max;
+
 	uint32_t dbg_main_gap_us;
 	uint32_t dbg_main_gap_us_max;
 	uint32_t dbg_last_main_us;
@@ -108,6 +117,7 @@ typedef struct dmm_context {
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
 	bool need_reset;
+	bool corrupt_msg;
 	char msg_work[DISPLAY_BUF_LEN];
 	uint16_t msg_blink_work;
 

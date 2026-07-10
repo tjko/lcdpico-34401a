@@ -85,7 +85,7 @@ int cmd_idn(const char *cmd, const char *args, int query, struct prev_cmd_t *pre
 	if (!query)
 		return 1;
 
-	printf("TJKO Industries,LCDICO-%s,", LCDPICO_MODEL);
+	printf("TJKO Industries,LCDPICO-%s,", LCDPICO_MODEL);
 	pico_get_unique_board_id(&board_id);
 	for (i = 0; i < PICO_UNIQUE_BOARD_ID_SIZE_BYTES; i++)
 		printf("%02x", board_id.id[i]);
@@ -264,6 +264,8 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 		return 1;
 
 	printf("DMM Decoder:\n");
+	printf("            sck gap: %lu us\n", st->dmm.dbg_sck_gap_us);
+	printf("        max sck gap: %lu us\n", st->dmm.dbg_sck_gap_us_max);
 	printf("           main gap: %lu us\n", st->dmm.dbg_main_gap_us);
 	printf("       max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
 	printf("            any gap: %lu us\n", st->dmm.dbg_any_gap_us);
@@ -273,6 +275,12 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf(" byte overrun count: %lu\n", st->dmm.dbg_byte_overrun_count);
 	printf(" mid byte gap count: %lu\n", st->dmm.dbg_mid_byte_gap_count);
 	printf(" buf overflow count: %lu\n", st->dmm.dbg_buf_overflow_count);
+	printf("      bad msg count: %lu\n", st->dmm.dbg_bad_msg_count);
+	printf("       last bad msg: %lu\n", st->dmm.dbg_bad_msg_last_us);
+	printf("         last reset: %lu\n", st->dmm.dbg_last_reset_us);
+	printf("           last int: %lu\n", st->dmm.dbg_last_int_us);
+	printf("          last main: %lu\n", st->dmm.dbg_last_main_us);
+	printf("           last any: %lu\n", st->dmm.dbg_last_any_us);
 
 	printf("\nInterrupts:\n");
 	printf("            DMM_INT: %lu\n", st->dmm.dbg_int_count);

@@ -383,11 +383,16 @@ void display_status(const struct system_state *state,
 	if (!display_active)
 		return;
 
+	bool corrupt = false;
 	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
 		if (d > DISPLAY_BUF_LEN - 2)
 			d = DISPLAY_BUF_LEN - 2;
 
+		if (iscntrl((int)dmm[d]) || !isprint((int)dmm[d])) {
+			corrupt = true;
+			break;
+		}
 		disp[i].c = dmm[d++];
 		disp[i].flags = 0;
 
@@ -405,6 +410,11 @@ void display_status(const struct system_state *state,
 			if (dmm[d - 1] != ':') d++;
 			break;
 		}
+	}
+
+	if (corrupt) {
+		log_msg(LOG_INFO, "DMM corrupt message: '%s'", state->dmm.main);
+		return;
 	}
 
 	update_display(disp, state->dmm.ann_state, false);
