@@ -276,6 +276,7 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf(" mid byte gap count: %lu\n", st->dmm.dbg_mid_byte_gap_count);
 	printf(" buf overflow count: %lu\n", st->dmm.dbg_buf_overflow_count);
 	printf("      bad msg count: %lu\n", st->dmm.dbg_bad_msg_count);
+	printf("  last mid byte gap: %lu\n", st->dmm.dbg_mid_byte_gap_last_us);
 	printf("       last bad msg: %lu\n", st->dmm.dbg_bad_msg_last_us);
 	printf("         last reset: %lu\n", st->dmm.dbg_last_reset_us);
 	printf("           last int: %lu\n", st->dmm.dbg_last_int_us);
@@ -450,7 +451,7 @@ int cmd_read(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 	if (!query)
 		return 1;
 
-	char *s = strdup(st->dmm.main);
+	char *s = strdup((char*)st->dmm.main);
 	if (s) {
 		printf("%s\n", trim_str(s));
 		free(s);

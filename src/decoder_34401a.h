@@ -9,7 +9,8 @@
 extern "C" {
 #endif
 
-#define MAX_SCK_DELAY_US 1500u  // 1.5ms
+//#define MAX_SCK_DELAY_US 1500u  // 1.5ms
+#define MAX_SCK_DELAY_US 100u  // 0.1ms
 
 #define DISPLAY_BUF_LEN 16
 // FIFO size must be power of 2 for simple wrap
@@ -62,43 +63,45 @@ typedef struct dmm_context {
 	uint16_t blink_mask;   // bits 0..13 = blink this character position
 
         // ===== Minimal debug =====
-	uint32_t dbg_byte_overrun_count;
-	uint32_t dbg_mid_byte_gap_count;
-	uint32_t dbg_buf_overflow_count;
+	volatile uint32_t dbg_byte_overrun_count;
+	volatile uint32_t dbg_buf_overflow_count;
+	volatile uint32_t dbg_mid_byte_gap_count;
+	volatile uint32_t dbg_mid_byte_gap_last_us;
 
-	uint32_t dbg_reset_count;
-	uint32_t dbg_int_count;
-	uint32_t dbg_sck_count;
+	volatile uint32_t dbg_reset_count;
+	volatile uint32_t dbg_int_count;
+	volatile uint32_t dbg_sck_count;
 
-	uint32_t dbg_bad_msg_count;
-	uint32_t dbg_bad_msg_last_us;
+	volatile uint32_t dbg_bad_msg_count;
+	volatile uint32_t dbg_bad_msg_last_us;
 
-	uint32_t dbg_last_reset_us;
-	uint32_t dbg_last_int_us;
+	volatile uint32_t dbg_last_reset_us;
+	volatile uint32_t dbg_last_int_us;
 
-	uint32_t dbg_sck_gap_us;
-	uint32_t dbg_sck_gap_us_max;
+	volatile uint32_t dbg_sck_gap_us;
+	volatile uint32_t dbg_sck_gap_us_max;
 
-	uint32_t dbg_main_gap_us;
-	uint32_t dbg_main_gap_us_max;
-	uint32_t dbg_last_main_us;
+	volatile uint32_t dbg_main_gap_us;
+	volatile uint32_t dbg_main_gap_us_max;
+	volatile uint32_t dbg_last_main_us;
 
-	uint32_t dbg_any_gap_us;
-	uint32_t dbg_any_gap_us_max;
-	uint32_t dbg_last_any_us;
+	volatile uint32_t dbg_any_gap_us;
+	volatile uint32_t dbg_any_gap_us_max;
+	volatile uint32_t dbg_last_any_us;
 
-	uint32_t dbg_fifo_level_max;
-	uint32_t dbg_fifo_level;
+	volatile uint32_t dbg_fifo_level_max;
+	volatile uint32_t dbg_fifo_level;
 
         // ===== Internal sniff state =====
-	uint8_t  byte_len;
-	uint8_t  input_acc, output_acc;
+	volatile uint8_t  byte_len;
+	volatile uint8_t  input_acc, output_acc;
 
-	sniff_byte_t byte_fifo[BYTE_FIFO_SIZE];
-	uint8_t fifo_wr;
-	uint8_t fifo_rd;
+	volatile sniff_byte_t byte_fifo[BYTE_FIFO_SIZE];
+	volatile uint8_t fifo_wr;
+	volatile uint8_t fifo_rd;
 
-	uint32_t last_us;
+	volatile uint32_t last_us;
+	volatile bool reset_received;
 
         // ===== Frame buffers & parse =====
 	uint8_t input_buf[100];
@@ -111,12 +114,11 @@ typedef struct dmm_context {
 	uint8_t  shift_press_count;
 	bool     shift_window_active;
 
-
 	frame_state_t frame_state;
 
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
-	bool need_reset;
+	bool msg_work_need_reset;
 	bool corrupt_msg;
 	char msg_work[DISPLAY_BUF_LEN];
 	uint16_t msg_blink_work;

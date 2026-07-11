@@ -397,7 +397,7 @@ cJSON *config_to_json(const struct system_config *cfg)
 		cJSON_AddItemToObject(config, "dns_servers",
 				iplist2json(cfg->dns_servers, DNS_MAX_SERVERS));
 	if (cfg->syslog_active != true)
-		NUM_TO_JSON("ntp_active", cfg->syslog_active);
+		NUM_TO_JSON("syslog_active", cfg->syslog_active);
 	IP_TO_JSON("syslog_server", &cfg->syslog_server);
 	if (cfg->ntp_active != true)
 		NUM_TO_JSON("ntp_active", cfg->ntp_active);

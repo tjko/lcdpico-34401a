@@ -66,7 +66,7 @@ static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 
 static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
-	if (ctx->msg_idx < (sizeof(ctx->msg_work) - 2)) {
+	if (ctx->msg_idx < (DISPLAY_BUF_LEN - 2)) {
 		ctx->msg_work[ctx->msg_idx++] = c;
 	}
 }
@@ -155,14 +155,14 @@ static void publishAnnunciators(dmm_context_t *ctx, uint8_t h, uint8_t l)
 
 static void messageByte(dmm_context_t *ctx, uint8_t byte)
 {
-	if (ctx->need_reset) {
+	if (ctx->msg_work_need_reset) {
 		ctx->msg_idx = 0;
 		ctx->msg_blink_work = 0;
-		memset((void*)ctx->msg_work, ' ', (sizeof(ctx->msg_work) - 2));   // build a fixed-width field here
-		ctx->msg_work[sizeof(ctx->msg_work) - 2] = 0;
-		ctx->msg_work[sizeof(ctx->msg_work) - 1] = 0;
+		memset(ctx->msg_work, ' ', (DISPLAY_BUF_LEN - 2));   // build a fixed-width field here
+		ctx->msg_work[DISPLAY_BUF_LEN - 2] = 0;
+		ctx->msg_work[DISPLAY_BUF_LEN - 1] = 0;
 		ctx->corrupt_msg = false;
-		ctx->need_reset = false;
+		ctx->msg_work_need_reset = false;
 	}
 
 	switch (byte) {
@@ -230,6 +230,24 @@ static void decodeControlFrame(dmm_context_t *ctx)
 	ctx->main_counter++;
 }
 
+static void process_reset(dmm_context_t *ctx)
+{
+	endFrame(ctx);
+	ctx->shift_press_count = 0;
+	ctx->shift_window_active = false;
+	ctx->msg_work_need_reset = true;
+
+	memset(ctx->main, 0, DISPLAY_BUF_LEN);
+	strncpy(ctx->main, "SYSTEM RESET  ", DISPLAY_BUF_LEN);
+	ctx->ann_state = 0;
+	ctx->blink_mask = 0;
+	ctx->ann_counter++;
+	ctx->new_data_counter++;
+	ctx->main_counter++;
+
+	ctx->reset_received = false;
+}
+
 
 // -----------------------------------------------------------------------------
 // Public API
@@ -241,23 +259,15 @@ void decoder34401_init(dmm_context_t *ctx)
 	memset(ctx, 0, sizeof(dmm_context_t));
 
 	// Clear outputs
-	memset((void*)ctx->main, ' ', (sizeof(ctx->main) - 2));
-	ctx->main[sizeof(ctx->main) - 2] = 0;
-	ctx->main[sizeof(ctx->main) - 1] = 0;
-
-	memset((void*)ctx->msg_work, ' ', (sizeof(ctx->msg_work) - 2));
-	ctx->msg_work[sizeof(ctx->msg_work) - 2] = 0;
-	ctx->msg_work[sizeof(ctx->msg_work) - 1] = 0;
+	memset(ctx->main, ' ', (DISPLAY_BUF_LEN - 2));
+	ctx->main[DISPLAY_BUF_LEN - 2] = 0;
+	ctx->main[DISPLAY_BUF_LEN - 1] = 0;
+	memcpy(ctx->msg_work, ctx->main, DISPLAY_BUF_LEN);
 
 	// Internal
 	ctx->frame_state = FRAME_INIT;
-	ctx->need_reset = true;
+	ctx->msg_work_need_reset = true;
 	ctx->shift_window_active = false;
-
-	uint32_t t_now = micros32();
-	ctx->dbg_last_main_us = t_now;
-	ctx->dbg_last_any_us = t_now;
-	ctx->last_us = t_now;
 }
 
 
@@ -271,19 +281,19 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
     ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
 
     // mid-byte gap detection (power-on / pause)
-    ctx->dbg_sck_gap_us = now_us - ctx->last_us;
-    if (ctx->dbg_sck_gap_us > ctx->dbg_sck_gap_us_max)
-	    ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
+    if (ctx->last_us > 0) {
+	    ctx->dbg_sck_gap_us = now_us - ctx->last_us;
+	    if (ctx->dbg_sck_gap_us > ctx->dbg_sck_gap_us_max)
+		    ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
+
+	    if (ctx->byte_len != 0u && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
+		    ctx->byte_len = 0u;
+		    ctx->dbg_mid_byte_gap_count++;
+		    ctx->dbg_mid_byte_gap_last_us = now_us;
+	    }
+    }
     ctx->last_us = now_us;
 
-    if (ctx->byte_len != 0u && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
-	    ctx->byte_len = 0u;
-	    ctx->dbg_mid_byte_gap_count++;
-
-	    ctx->fifo_wr = 0;
-	    ctx->fifo_rd = 0;
-	    endFrame(ctx);
-    }
 
     ctx->byte_len++;
     if (ctx->byte_len >= 8) {
@@ -317,19 +327,7 @@ void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 	ctx->fifo_wr = 0;
 	ctx->fifo_rd = 0;
 
-	endFrame(ctx);
-	ctx->shift_press_count = 0;
-	ctx->shift_window_active = false;
-	ctx->need_reset = true;
-
-	memset(ctx->main, 0, sizeof(ctx->main));
-	strncpy(ctx->main, "SYSTEM RESET  ", sizeof(ctx->main));
-	ctx->ann_state = 0;
-	ctx->blink_mask = 0;
-	ctx->ann_counter++;
-	ctx->new_data_counter++;
-	ctx->main_counter++;
-
+	ctx->reset_received = true;
 	ctx->dbg_reset_count++;
 }
 
@@ -337,12 +335,18 @@ void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx)
 {
 	ctx->dbg_last_int_us = micros32();
+	ctx->byte_len = 0;
 	ctx->dbg_int_count++;
 }
 
 
 void decoder34401_process(dmm_context_t *ctx)
 {
+	if (ctx->reset_received) {
+		process_reset(ctx);
+		return;
+	}
+
 	processShiftWindow(ctx);
 
 	while (ctx->fifo_rd != ctx->fifo_wr) {
@@ -351,16 +355,13 @@ void decoder34401_process(dmm_context_t *ctx)
 		ctx->fifo_rd = (uint8_t)((ctx->fifo_rd + 1u) & BYTE_FIFO_MASK);
 
 		// Any-byte timing debug
-		{
-			uint32_t now_us = micros32();
-
+		uint32_t now_us = micros32();
+		if (ctx->dbg_last_any_us > 0) {
 			ctx->dbg_any_gap_us = now_us - ctx->dbg_last_any_us;
-			if (ctx->dbg_any_gap_us > ctx->dbg_any_gap_us_max) {
+			if (ctx->dbg_any_gap_us > ctx->dbg_any_gap_us_max)
 				ctx->dbg_any_gap_us_max = ctx->dbg_any_gap_us;
-			}
-
-			ctx->dbg_last_any_us = now_us;
 		}
+		ctx->dbg_last_any_us = now_us;
 
 		// consume byte
 		ctx->input_buf[ctx->buf_len] = input_byte;
@@ -407,21 +408,22 @@ void decoder34401_process(dmm_context_t *ctx)
 					ctx->dbg_bad_msg_last_us = now_us;
 					ctx->dbg_bad_msg_count++;
 				} else {
-					memcpy((void*)ctx->main, (const void*)ctx->msg_work, sizeof(ctx->main));
+					memcpy(ctx->main, ctx->msg_work, DISPLAY_BUF_LEN);
 					ctx->blink_mask = ctx->msg_blink_work;
 					ctx->new_data_counter++;
 					ctx->main_counter++;
 
 					// Main-message timing debug
-					ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
-					if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max) {
-						ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
+					if (ctx->dbg_last_main_us > 0) {
+						ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
+						if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max)
+							ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
 					}
 					ctx->dbg_last_main_us = now_us;
 
 					updateBarGraphFromMessageFrame(ctx);
 				}
-				ctx->need_reset = true;
+				ctx->msg_work_need_reset = true;
 				endFrame(ctx);
 			}
 			else {

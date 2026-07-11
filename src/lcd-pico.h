@@ -204,8 +204,8 @@ struct network_state {
 
 struct system_state {
 	dmm_context_t dmm;
-	uint32_t lcm_int_count;
-	uint32_t ctp_int_count;
+	volatile uint32_t lcm_int_count;
+	volatile uint32_t ctp_int_count;
 
 	float vtemp[VSENSOR_MAX_COUNT];
 	float vhumidity[VSENSOR_MAX_COUNT];
