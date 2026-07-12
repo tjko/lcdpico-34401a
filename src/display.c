@@ -385,8 +385,8 @@ void display_status(const struct system_state *state,
 
 	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
-		if (d > DISPLAY_BUF_LEN - 2)
-			d = DISPLAY_BUF_LEN - 2;
+		if (d > DISPLAY_BUF_LEN - 1)
+			d = DISPLAY_BUF_LEN - 1;
 
 		disp[i].c = dmm[d++];
 		disp[i].flags = 0;
@@ -410,12 +410,9 @@ void display_status(const struct system_state *state,
 	update_display(disp, state->dmm.ann_state, false);
 
 	/* Log "menu" screens displayed */
-	if ( !((dmm[0] == ' ' || dmm[0] == '-' || isdigit((int)dmm[0])) &&
-			(isdigit((int)dmm[1]) || dmm[1] == '_')) ) {
+	if (!state->dmm.valid_reading && !state->dmm.corrupt_msg) {
 		if (strncmp(last_main, dmm, sizeof(last_main))) {
-			uint32_t d = time_us_32() - state->dmm.dbg_last_int_us;
-			uint32_t d2 = time_us_32() - state->dmm.dbg_mid_byte_gap_last_us;
-			log_msg(LOG_INFO, "DMM menu display: '%s' (%lu, %lu)", dmm, d, d2);
+			log_msg(LOG_INFO, "DMM menu display: '%s'", dmm);
 			memcpy(last_main, dmm, sizeof(last_main));
 		}
 	}

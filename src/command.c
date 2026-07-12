@@ -451,6 +451,20 @@ int cmd_read(const char *cmd, const char *args, int query, struct prev_cmd_t *pr
 	if (!query)
 		return 1;
 
+	char *s = strdup((char*)st->dmm.last_reading);
+	if (s) {
+		printf("%s\n", trim_str(s));
+		free(s);
+	}
+
+	return 0;
+}
+
+int cmd_main(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
+{
+	if (!query)
+		return 1;
+
 	char *s = strdup((char*)st->dmm.main);
 	if (s) {
 		printf("%s\n", trim_str(s));
@@ -1705,6 +1719,7 @@ const struct cmd_t vsensor_commands[] = {
 
 const struct cmd_t measure_commands[] = {
 	{ "Read",         1, NULL,              cmd_read },
+	{ "Main",         1, NULL,              cmd_main },
 	{ "ANNunciators", 3, NULL,              cmd_annunciators },
 	{ "VSENSORS",     8, NULL,              cmd_vsensors_read },
 	{ "VSENSOR",      7, vsensor_commands,  cmd_vsensor_temp },

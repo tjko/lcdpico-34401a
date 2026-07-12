@@ -66,8 +66,64 @@ static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 
 static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
-	if (ctx->msg_idx < (DISPLAY_BUF_LEN - 2)) {
-		ctx->msg_work[ctx->msg_idx++] = c;
+	int *state = &ctx->work_state;
+
+	if (ctx->msg_idx >= (DISPLAY_BUF_LEN - 1))
+		return;
+
+	ctx->msg_work[ctx->msg_idx++] = (isprint(c) ? c : ' ');
+
+	/* validate message for errors */
+
+	if (ctx->corrupt_msg)
+		return;
+	if (!isprint(c) || iscntrl(c)) {
+		ctx->corrupt_msg = true;
+		return;
+	}
+
+	/* check if message looks like a valid measurement/reading */
+	if (isdigit(c))
+		ctx->num_count++;
+	if (c == '.')
+		ctx->period_count++;
+
+	if (*state < 0) {
+		return;
+	}
+	else if (*state == 0) {
+		if (c == '-' || c  == ' ') {
+			*state = 1;
+		} else if (isdigit(c)) {
+			*state = 2;
+		} else {
+			*state = -1;
+		}
+	}
+	else if (*state == 1) {
+		if (isdigit(c)) {
+			*state = 2;
+		}
+		else if (c == ' ') {
+			if (ctx->msg_idx > 3)
+				*state = -1;
+		}
+		else {
+			*state = -1;
+		}
+	}
+	else if (*state == 2) {
+		if (isdigit(c)) {
+			if (ctx->num_count >= 7)
+				*state = 3;
+		} else if (c == ' ') {
+			*state = 3;
+		} else if (c == '.' || c == ',') {
+			if (ctx->period_count > 1)
+				*state = -1;
+		} else {
+			*state = -1;
+		}
 	}
 }
 
@@ -161,7 +217,11 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		memset(ctx->msg_work, ' ', (DISPLAY_BUF_LEN - 2));   // build a fixed-width field here
 		ctx->msg_work[DISPLAY_BUF_LEN - 2] = 0;
 		ctx->msg_work[DISPLAY_BUF_LEN - 1] = 0;
+		ctx->work_state = 0;
+		ctx->num_count = 0;
+		ctx->period_count = 0;
 		ctx->corrupt_msg = false;
+		ctx->valid_reading = false;
 		ctx->msg_work_need_reset = false;
 	}
 
@@ -194,9 +254,6 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		break;
 
 	default:
-		if (iscntrl(byte) || !isprint(byte)) {
-			ctx->corrupt_msg = true;
-		}
 		dmm_putc_safe(ctx, (char)byte);
 		break;
 	}
@@ -236,6 +293,8 @@ static void process_reset(dmm_context_t *ctx)
 	ctx->shift_press_count = 0;
 	ctx->shift_window_active = false;
 	ctx->msg_work_need_reset = true;
+	ctx->corrupt_msg = false;
+	ctx->valid_reading = false;
 
 	memset(ctx->main, 0, DISPLAY_BUF_LEN);
 	strncpy(ctx->main, "SYSTEM RESET  ", DISPLAY_BUF_LEN);
@@ -263,6 +322,7 @@ void decoder34401_init(dmm_context_t *ctx)
 	ctx->main[DISPLAY_BUF_LEN - 2] = 0;
 	ctx->main[DISPLAY_BUF_LEN - 1] = 0;
 	memcpy(ctx->msg_work, ctx->main, DISPLAY_BUF_LEN);
+	ctx->last_reading[0] = 0;
 
 	// Internal
 	ctx->frame_state = FRAME_INIT;
@@ -335,7 +395,6 @@ void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx)
 {
 	ctx->dbg_last_int_us = micros32();
-	ctx->byte_len = 0;
 	ctx->dbg_int_count++;
 }
 
@@ -404,25 +463,35 @@ void decoder34401_process(dmm_context_t *ctx)
 			if (lastBytesAreEof(ctx)) {
 				uint32_t now_us = micros32();
 
+				if (ctx->work_state == 3) {
+					ctx->valid_reading = true;
+				}
+				else if (ctx->num_count >= 3 && ctx->period_count == 1) {
+					//printf("invalid format: '%s' [%d]\n", ctx->msg_work,ctx->work_state);
+					ctx->corrupt_msg = true;
+				}
+
 				if (ctx->corrupt_msg) {
 					ctx->dbg_bad_msg_last_us = now_us;
 					ctx->dbg_bad_msg_count++;
-				} else {
-					memcpy(ctx->main, ctx->msg_work, DISPLAY_BUF_LEN);
-					ctx->blink_mask = ctx->msg_blink_work;
-					ctx->new_data_counter++;
-					ctx->main_counter++;
-
-					// Main-message timing debug
-					if (ctx->dbg_last_main_us > 0) {
-						ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
-						if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max)
-							ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
-					}
-					ctx->dbg_last_main_us = now_us;
-
-					updateBarGraphFromMessageFrame(ctx);
 				}
+
+				memcpy(ctx->main, ctx->msg_work, DISPLAY_BUF_LEN);
+				if (ctx->valid_reading)
+					memcpy(ctx->last_reading, ctx->msg_work, DISPLAY_BUF_LEN);
+				ctx->blink_mask = ctx->msg_blink_work;
+				ctx->new_data_counter++;
+				ctx->main_counter++;
+
+				// Main-message timing debug
+				if (ctx->dbg_last_main_us > 0) {
+					ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
+					if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max)
+						ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
+				}
+				ctx->dbg_last_main_us = now_us;
+
+				updateBarGraphFromMessageFrame(ctx);
 				ctx->msg_work_need_reset = true;
 				endFrame(ctx);
 			}

@@ -53,6 +53,7 @@ typedef enum frame_state {
 
 typedef struct dmm_context {
 	char     main[DISPLAY_BUF_LEN];  // null-terminated
+	char     last_reading[DISPLAY_BUF_LEN]; // copy of last reading displayed on main
 	uint16_t ann_state;              // annunciator bitfield (incl shift)
 	int16_t  bar;                    // parsed bargraph value
 	uint8_t  bar_style;              // 0=POSITIVE, 1=FULLSCALE
@@ -118,8 +119,12 @@ typedef struct dmm_context {
 
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
+	int work_state;
+	uint8_t num_count;
+	uint8_t period_count;
 	bool msg_work_need_reset;
 	bool corrupt_msg;
+	bool valid_reading;
 	char msg_work[DISPLAY_BUF_LEN];
 	uint16_t msg_blink_work;
 
