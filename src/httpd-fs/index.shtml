@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <title>FanPico: <!--#name--></title>
+    <link rel="stylesheet" href="fanpico.css">
+    <link rel="icon" type="image/png" href="img/fanpico-icon.png">
+    <meta http-equiv="refresh" content="<!--#refresh-->">
+    <meta name="viewport" content="width=device-width,initial-scale=0.93,user-scaleable=yes">
+  </head>
+  <body bgcolor="white" text="black">
+    <table id="b1">
+      <tr>
+	<td>
+	  <table border=0>
+	    <tr>
+	      <td>
+		<a href="https://github.com/tjko/fanpico/">
+		  <img src="img/fanpico.png" border="0" alt="FanPico logo" title="FanPico logo">
+		</a>
+	      </td>
+	      <td valign="bottom">
+		<h2><font color="#03a3aa">FanPico: <!--#name--></h2>
+	      </td>
+	    </tr>
+	  </table>
+	</td>
+      </tr>
+      <tr>
+	<td>
+	  <table width="100%">
+	    <tr>
+	      <td valign="top">
+		Fans:<br>
+		<table width="100%">
+		  <tr><td id="l1">
+		      <table class="pretty" width="100%">
+			<tr style="font-size: 14px;"><th>#</th><th>Name</th><th>RPM&darr;</th><th>PWM&uarr;</th></tr>
+			<!--#fanrow1-->
+			<!--#fanrow2-->
+			<!--#fanrow3-->
+			<!--#fanrow4-->
+			<!--#fanrow5-->
+			<!--#fanrow6-->
+			<!--#fanrow7-->
+			<!--#fanrow8-->
+		      </table>
+		  </td></tr>
+		</table>
+	      <br>
+		MB Fans:<br>
+		<table width="100%">
+		  <tr><td id="l1">
+		      <table class="pretty" width="100%">
+			<tr style="font-size: 14px;"><th>#</th><th>Name</th><th>RPM&uarr;</th><th>PWM&darr;</th></tr>
+			<!--#mfanrow1-->
+			<!--#mfanrow2-->
+			<!--#mfanrow3-->
+			<!--#mfanrow4-->
+		      </table>
+		  </td></tr>
+		</table>
+
+	      </td>
+
+	      <td valign="top">
+		Sensors:<br>
+		<table width="100%">
+		  <tr><td id="l1">
+		      <table class="pretty" width="100%">
+			<tr style="font-size: 14px;"><th>#</th><th>Name</th><th>Temp &#x2600;</th></tr>
+			<!--#sensrow1-->
+			<!--#sensrow2-->
+			<!--#sensrow3-->
+		      </table>
+		  </td></tr>
+		</table>
+	      <br>
+		Virtual Sensors:<br>
+		<table width="100%">
+		  <tr><td id="l1">
+		      <table class="pretty" width="100%">
+			<tr style="font-size: 14px;"><th>#</th><th>Name</th><th>Temp &#x2600;</th><th>Other</th>
+			<!--#vsenrow1-->
+			<!--#vsenrow2-->
+			<!--#vsenrow3-->
+			<!--#vsenrow4-->
+			<!--#vsenrow5-->
+			<!--#vsenrow6-->
+			<!--#vsenrow7-->
+			<!--#vsenrow8-->
+		      </table>
+		  </td></tr>
+		</table>
+	      </td>
+
+	    </tr>
+	  </table>
+	  <br>
+	</td>
+      </tr>
+      <tr>
+	<td>
+	  <table width="100%">
+	    <tr valign="bottom">
+	      <td width="45%"><font size=-1>FanPico-<!--#model--> v<!--#version--></font></td>
+	      <td width="10%"><!--#watchdog--></td>
+	      <td width="45%" align="right"><font size="-1"><!--#datetime--><br>Uptime: <!--#uptime--></font></td>
+	    </tr>
+	  </table>
+	</td>
+      </tr>
+    </table>
+  </body>
+</html>
