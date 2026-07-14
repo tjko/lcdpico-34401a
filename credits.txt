@@ -9,7 +9,17 @@ the terms of GNU General Public License, either version 3 of the License,
 or (at your option) any later version.
 
 
-Libraries used in LCD-Pico:
+HP 34401A Display Protocol Decoder used in this project is based on following work:
+
+Original Arduino C++ version:
+ Copyright (c) 2018 qu1ck
+ https://github.com/openscopeproject/HP34401a-OLED-FW
+STM32 C version:
+ by Ian Johnston
+ https://github.com/Ian-Johnston/34401A_VS_Display
+
+
+Libraries used:
 
 pico-sdk
 Copyright 2020 (c) 2020 Raspberry Pi (Trading) Ltd.
@@ -43,6 +53,10 @@ https://github.com/tjko/pico-sensor-lib
 pico-sshd
 Copryight (c) 2025 Timo Kokkonen
 https://github.com/tjko/pico-sshd
+
+PNGdec
+Copyright (c) 2021 BitBank Software, Inc.
+https://github.com/bitbank2/PNGdec
 
 wolfssl
 Copyright (C) 2006-2025 wolfSSL Inc.
