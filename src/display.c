@@ -377,6 +377,9 @@ void display_status(const struct system_state *state,
 {
 	static char last_main[16] = "              ";
 	static uint16_t last_ann_state = 0;
+	static uint16_t old_ann_state = 0;
+	static uint16_t new_ann_state = 0;
+	static uint64_t last_ann_change = 0;
 	struct display_cell_state disp[DISPLAY_COLS];
 	const char *dmm = state->dmm.main;
 
@@ -419,10 +422,18 @@ void display_status(const struct system_state *state,
 
 	/* Log annunciator changes */
 	if ((last_ann_state & 0xfffe) != (state->dmm.ann_state & 0xfffe)) {
-		uint32_t d = time_us_32() - state->dmm.dbg_last_int_us;
-		uint32_t d2 = time_us_32() - state->dmm.dbg_mid_byte_gap_last_us;
-		log_msg(LOG_INFO, "DMM annunciator change: %04x -> %04x (%lu, %lu)", last_ann_state & 0xfffe, state->dmm.ann_state & 0xfffe, d, d2);
+		if (last_ann_change == 0) {
+			last_ann_change = time_us_64();
+			old_ann_state = last_ann_state & 0xfffe;
+			//new_ann_state = state->dmm.ann_state & 0xfffe;
+		}
 		last_ann_state = state->dmm.ann_state;
+	}
+	else if (last_ann_change > 0 && (time_us_64() - last_ann_change > 350000)) {
+		if ((state->dmm.ann_state & 0xfffe) != old_ann_state) {
+			log_msg(LOG_INFO, "DMM annunciator change: %04x -> %04x", old_ann_state, state ->dmm.ann_state & 0xfffe);
+		}
+		last_ann_change = 0;
 	}
 }
 

@@ -132,11 +132,11 @@ typedef struct dmm_context {
 
 
 // ===== Decoder API =====
-void decoder34401_init(dmm_context_t *ctx);
-void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx);    // call from GPIO interrupt callback
-void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx);    // call from GPIO interrupt callback
-void __time_critical_func(decoder34401_int)(dmm_context_t *ctx);    // call from GPIO interrupt callback
-void decoder34401_process(dmm_context_t *ctx);    // call frequently in main loop
+void decoder34401_init(dmm_context_t *ctx);                          // initialize decoder
+void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx); // call from GPIO interrupt callback
+void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx);   // call from GPIO interrupt callback
+void __time_critical_func(decoder34401_int)(dmm_context_t *ctx);     // call from GPIO interrupt callback
+void decoder34401_process(dmm_context_t *ctx);                       // call frequently in main loop
 const char* decoder34401_annunciator_name(uint ann);
 
 

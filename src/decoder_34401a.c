@@ -456,7 +456,6 @@ void decoder34401_process(dmm_context_t *ctx)
 					break;
 				}
 			}
-			//printf("unknown frame: len=%d: %02x %02x\n", ctx->buf_len, ctx->input_buf[0], ctx->output_buf[0]);
 			break;
 
 		case FRAME_MESSAGE:
@@ -466,7 +465,7 @@ void decoder34401_process(dmm_context_t *ctx)
 				if (ctx->work_state == 3) {
 					ctx->valid_reading = true;
 				}
-				else if (ctx->num_count >= 3 && ctx->period_count == 1) {
+				else if ((ctx->num_count >= 3 && ctx->period_count == 1) || ctx->num_count >=5) {
 					//printf("invalid format: '%s' [%d]\n", ctx->msg_work,ctx->work_state);
 					ctx->corrupt_msg = true;
 				}

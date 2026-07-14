@@ -27,7 +27,7 @@
 #include "cJSON.h"
 
 #include "lcd-pico.h"
-
+#include "decoder_34401a.h"
 
 #define BUF_LEN 1024
 
@@ -48,6 +48,19 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 		if (!(buf = malloc(BUF_LEN)))
 			return 0;
 		buf[0] = 0;
+
+		snprintf(row, sizeof(row), "display,\"%s\"\nannunciators,", st->dmm.main);
+		strncatenate(buf, row, BUF_LEN);
+
+		count = 0;
+		for(i = 0; i < ANNUNCIATOR_COUNT; i++) {
+			uint ann = (1 << i);
+			snprintf(row, sizeof(row), "%s%s", (count++ > 0 ? "," : ""),
+				st->dmm.ann_state & ann ? decoder34401_annunciator_name(i) : "");
+			strncatenate(buf, row, BUF_LEN);
+		}
+		snprintf(row, sizeof(row), "\n");
+		strncatenate(buf, row, BUF_LEN);
 
 		for (i = 0; i < VSENSOR_COUNT; i++) {
 			pwm = 0; //sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
@@ -107,6 +120,16 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 		if (!(json = cJSON_CreateObject()))
 			goto panic;
 
+		cJSON_AddItemToObject(json, "display", cJSON_CreateString(st->dmm.main));
+
+		/* Annunciators */
+		if (!(o = cJSON_CreateObject()))
+			goto panic;
+		for(i = 0; i < ANNUNCIATOR_COUNT; i++) {
+			uint ann = (1 << i);
+			cJSON_AddItemToObject(o, decoder34401_annunciator_name(i), cJSON_CreateBool(st->dmm.ann_state & ann));
+		}
+		cJSON_AddItemToObject(json, "annunciators", o);
 
 		/* Virtual Sensors */
 		if (!(array = cJSON_CreateArray()))
