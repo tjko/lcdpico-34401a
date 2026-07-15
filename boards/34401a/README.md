@@ -1,6 +1,6 @@
 # LCDPICO-34401A PCB
 
-PCB Size: 81.0mm x 60.0mm
+PCB Size: 125.0mm x 37.2mm
 
 ![PCB Render](board.png)
 
