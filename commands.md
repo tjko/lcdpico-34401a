@@ -3,9 +3,12 @@ LcdPico uses "SCPI like" command set. Command syntax should be mostly SCPI and I
 to make it easier to control and configure LcdPico units.
 
 LcdPico is a TFT LCD display module for the HP/Agilent/Keysight 34401A digital multimeter. It
-sniffs the multimeter's front-panel display bus and mirrors the reading on an external LCD, while
-also exposing this command interface over the USB serial console and (on Pico W boards) Telnet
-and SSH.
+sniffs the multimeter's front-panel display bus and mirrors the reading on an external LCD.
+This command interface is meant to be accessed over SSH or Telnet connection (when using Pico 2 W).
+
+WARNING! Command interface is also available over USB serial connection, but is only meant for upgrading
+the firmware etc. For safe operation make sure to disconnect the USB interface before performing any measurements.
+
 
 
 ## Command Set
