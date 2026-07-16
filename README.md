@@ -18,13 +18,14 @@ Additionally LCD display is drawn in graphics mode (16bit colors) allowing use o
 
 - PCB:[LCDpico for 34401A](boards/34401a/)
 - MCU Module: Raspberry Pi Pico 2 W (or plain "Pico 2" if WiFi functionality is not desired).
-- Display Controller (GPU): ER-PCBA5981-1 (LTLT7680 graphics controller board with FFC & ZIF connectors)
-- TFT Panel: ER-TFT3.71-1  (3.71" TFT with ST7701S controller)
-  - Panel and controller can be found here: https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface)
-- USB cable that fits in (unused) pre-drilled holes for BNC connectors at 34401A back panel (for updating firmware easily)
-  - USB cable that works can be found here: https://www.adafruit.com/product/6069 (requires additional USB-C to micro USB adapter)
+- Display Controller (GPU): [ER-PCBA5981-1](https://www.buydisplay.com/download/manual/ER-PCBA5981-1_Datasheet.pdf) (LTLT7680 graphics controller board with FFC & ZIF connectors)
+- TFT Panel: [ER-TFT3.71-1](https://www.buydisplay.com/download/manual/ER-TFT3.71-1_Datasheet.pdf)  (3.71" TFT with ST7701S controller)
+- Panel mount USB cable that fits in (unused) pre-drilled holes for BNC connectors at 34401A back panel (for updating firmware easily)
+- 5V buck converter module (TO-220 form factor)
 
-
+#### Sources for parts:
+- TFT Panel and LT7680 controller: https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface
+- USB panel mount cable: https://www.adafruit.com/product/6069 (requires additional USB-C to Micro-USB adapter)
 
 ### Connection to 34401A
 
