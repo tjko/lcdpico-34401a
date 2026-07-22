@@ -11,8 +11,8 @@ else ()
 endif ()
 message("Pico SDK version: ${PICO_SDK_VERSION_STRING}")
 
-if (PICO_SDK_VERSION_STRING VERSION_LESS "2.0.0")
-   message(FATAL_ERROR "Pico-SDK version 2.0.0 or later required.")
+if (PICO_SDK_VERSION_STRING VERSION_LESS "2.3.0")
+   message(FATAL_ERROR "Pico-SDK version 2.3.0 or later required.")
 endif()
 
 
@@ -151,7 +151,6 @@ add_executable(firmware
   src/pwm.c
   src/sensors.c
   src/i2c.c
-  src/psram.c
   src/memtest.c
   src/util.c
   src/util_rp2.c
@@ -160,8 +159,6 @@ add_executable(firmware
   src/lt7680.c
   src/st7701.c
   src/decoder_34401a.c
-#  src/st7701_lcd.c
-#  src/lt7680_lcd.c
   src/lcd/er-tft371-1.c
   src/lcd/er-tft458-1.c
   src/default_config.S
@@ -271,9 +268,16 @@ target_compile_definitions(firmware PRIVATE
 
 
 if (${PICO_PLATFORM} MATCHES rp2350)
-  pico_set_linker_script(firmware ${CMAKE_SOURCE_DIR}/src/memmap_custom_rp2350.ld)
+   pico_set_linker_script_var(firmware SCRATCH_X_ORIGIN 0x2007f000)
+   pico_set_linker_script_var(firmware SCRATCH_X_LENGTH 0x1000)
+   pico_set_linker_script_var(firmware SCRATCH_Y_ORIGIN 0x20080000)
+   pico_set_linker_script_var(firmware SCRATCH_Y_LENGTH 0x2000)
 else()
-  pico_set_linker_script(firmware ${CMAKE_SOURCE_DIR}/src/memmap_custom_rp2040.ld)
+   pico_set_linker_script_var(firmware SCRATCH_X_ORIGIN 0x2003f000)
+   pico_set_linker_script_var(firmware SCRATCH_X_LENGTH 0x1000)
+   pico_set_linker_script_var(firmware SCRATCH_Y_ORIGIN 0x20040000)
+   pico_set_linker_script_var(firmware SCRATCH_Y_LENGTH 0x2000)
 endif()
+
 
 # eof :-)

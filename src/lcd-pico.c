@@ -44,14 +44,6 @@
 #include "command_util.h"
 #include "decoder_34401a.h"
 
-#ifdef FANPICO_PSRAM_PIN
- #if TX_PIN == 0
-  /* Check for non-standard boards that may have PSRAM on pin 0 (Serial TX) */
-  #if FANPICO_PSRAM_PIN == TX_PIN
-   #undef TTL_SERIAL
-  #endif
- #endif
-#endif
 
 static struct system_config core1_config;
 static struct system_state core1_state;
