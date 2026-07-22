@@ -151,7 +151,6 @@ add_executable(firmware
   src/pwm.c
   src/sensors.c
   src/i2c.c
-  src/psram.c
   src/memtest.c
   src/util.c
   src/util_rp2.c
@@ -160,8 +159,6 @@ add_executable(firmware
   src/lt7680.c
   src/st7701.c
   src/decoder_34401a.c
-#  src/st7701_lcd.c
-#  src/lt7680_lcd.c
   src/lcd/er-tft371-1.c
   src/lcd/er-tft458-1.c
   src/default_config.S
