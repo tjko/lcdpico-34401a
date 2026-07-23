@@ -3,6 +3,8 @@
 
 cmake_minimum_required(VERSION 3.18)
 
+set(PICO_BOARD pico2_w CACHE STRING "Pico Board")
+
 # Include Pico-SDK
 if (DEFINED ENV{PICO_SDK_PATH})
    include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
@@ -16,7 +18,7 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "2.3.0")
 endif()
 
 
-project(firmware
+project(lcdpico
   VERSION 0.1.0
   DESCRIPTION "LCD Driver for HP34401A"
   HOMEPAGE_URL https://kokkonen.net/lcd-pico-34401a/
@@ -24,7 +26,6 @@ project(firmware
   )
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-
 
 set(LCDPICO_BUILD beta CACHE STRING "LCD-Pico Build Tag")
 set(LCDPICO_BOARD 34401A CACHE STRING "LCD-Pico Board Model")
@@ -136,9 +137,9 @@ include_directories(src/wolfssl)
 
 
 
-# FanPico Firmware
+# LCD-Pico Firmware
 
-add_executable(firmware
+add_executable(lcdpico
   src/lcd-pico.c
   src/bi_decl.c
   src/command.c
@@ -172,16 +173,16 @@ set_property(SOURCE src/*.s APPEND PROPERTY COMPILE_OPTIONS -I${CMAKE_CURRENT_LI
 set_property(SOURCE src/credits.s APPEND PROPERTY COMPILE_OPTIONS -I${CMAKE_CURRENT_LIST_DIR})
 
 
-pico_enable_stdio_usb(firmware 1)
-pico_enable_stdio_uart(firmware 0)
-pico_add_extra_outputs(firmware)
+pico_enable_stdio_usb(lcdpico 1)
+pico_enable_stdio_uart(lcdpico 0)
+pico_add_extra_outputs(lcdpico)
 
-target_include_directories(firmware PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(lcdpico PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
 
 configure_file(src/config.h.in config.h)
 configure_file(src/lcd-pico-compile.h.in lcd-pico-compile.h)
 
-target_link_libraries(firmware PRIVATE
+target_link_libraries(lcdpico PRIVATE
   pico_stdlib
   pico_stdio_uart
   pico_multicore
@@ -201,7 +202,7 @@ target_link_libraries(firmware PRIVATE
 
 if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
   message("Enabling WiFi stuff...")
-  target_sources(firmware PRIVATE
+  target_sources(lcdpico PRIVATE
     src/dhcp.c
     src/syslog.c
     src/httpd.c
@@ -213,7 +214,7 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
 #    ${WOLFSSL_ROOT}/wolfcrypt/test/test.c
     src/util_net.c
     )
-  target_link_libraries(firmware PRIVATE
+  target_link_libraries(lcdpico PRIVATE
     pico_cyw43_arch_lwip_threadsafe_background
     pico_lwip_sntp
     pico_lwip_http
@@ -225,7 +226,7 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
     wolfssh
     )
   if (TLS_SUPPORT)
-    target_link_libraries(firmware PRIVATE
+    target_link_libraries(lcdpico PRIVATE
       pico_lwip_mbedtls
       pico_mbedtls
       )
@@ -238,27 +239,27 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
   endif()
 endif()
 
-target_compile_options(firmware PRIVATE -Wall)
-#target_compile_options(firmware PRIVATE -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations)
-#target_compile_options(firmware PRIVATE -fstack-protector-all)
-target_compile_options(firmware PRIVATE -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=)
+target_compile_options(lcdpico PRIVATE -Wall)
+#target_compile_options(lcdpico PRIVATE -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations)
+#target_compile_options(lcdpico PRIVATE -fstack-protector-all)
+target_compile_options(lcdpico PRIVATE -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=)
 
-target_compile_definitions(firmware PRIVATE USBD_MANUFACTURER="TJKO Industries")
-target_compile_definitions(firmware PRIVATE USBD_PRODUCT="LCD-PICO-34401A Display Controller")
-target_compile_definitions(firmware PRIVATE USBD_DESC_STR_MAX=40)
-target_compile_definitions(firmware PRIVATE PARAM_ASSERTIONS_ENABLE_ALL=1)
-target_compile_definitions(firmware PRIVATE PICO_MALLOC_PANIC=0)
-target_compile_definitions(firmware PRIVATE PICO_DEBUG_MALLOC=0)
-#target_compile_definitions(firmware PRIVATE PICO_DEOPTIMIZED_DEBUG=1)
-target_compile_definitions(firmware PRIVATE PICO_STACK_SIZE=0x2000)
-target_compile_definitions(firmware PRIVATE PICO_CORE1_STACK_SIZE=0x1000)
-target_compile_definitions(firmware PRIVATE PICO_USE_STACK_GUARDS=1)
-target_compile_definitions(firmware PRIVATE PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
-target_compile_definitions(firmware PRIVATE PICO_USE_FASTEST_SUPPORTED_CLOCK=1)
-target_compile_definitions(firmware PRIVATE PICO_EMBED_XIP_SETUP=1)
+target_compile_definitions(lcdpico PRIVATE USBD_MANUFACTURER="TJKO Industries")
+target_compile_definitions(lcdpico PRIVATE USBD_PRODUCT="LCD-PICO-34401A Display Controller")
+target_compile_definitions(lcdpico PRIVATE USBD_DESC_STR_MAX=40)
+target_compile_definitions(lcdpico PRIVATE PARAM_ASSERTIONS_ENABLE_ALL=1)
+target_compile_definitions(lcdpico PRIVATE PICO_MALLOC_PANIC=0)
+target_compile_definitions(lcdpico PRIVATE PICO_DEBUG_MALLOC=0)
+#target_compile_definitions(lcdpico PRIVATE PICO_DEOPTIMIZED_DEBUG=1)
+target_compile_definitions(lcdpico PRIVATE PICO_STACK_SIZE=0x2000)
+target_compile_definitions(lcdpico PRIVATE PICO_CORE1_STACK_SIZE=0x1000)
+target_compile_definitions(lcdpico PRIVATE PICO_USE_STACK_GUARDS=1)
+target_compile_definitions(lcdpico PRIVATE PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
+target_compile_definitions(lcdpico PRIVATE PICO_USE_FASTEST_SUPPORTED_CLOCK=1)
+target_compile_definitions(lcdpico PRIVATE PICO_EMBED_XIP_SETUP=1)
 #target_compile_definitions(bs2_default PRIVATE PICO_FLASH_SPI_CLKDIV=2)
 
-target_compile_definitions(firmware PRIVATE
+target_compile_definitions(lcdpico PRIVATE
   LFS_THREADSAFE=1
   LFS_NO_DEBUG=1
 #  LFS_YES_TRACE=1
@@ -268,15 +269,15 @@ target_compile_definitions(firmware PRIVATE
 
 
 if (${PICO_PLATFORM} MATCHES rp2350)
-   pico_set_linker_script_var(firmware SCRATCH_X_ORIGIN 0x2007f000)
-   pico_set_linker_script_var(firmware SCRATCH_X_LENGTH 0x1000)
-   pico_set_linker_script_var(firmware SCRATCH_Y_ORIGIN 0x20080000)
-   pico_set_linker_script_var(firmware SCRATCH_Y_LENGTH 0x2000)
+   pico_set_linker_script_var(lcdpico SCRATCH_X_ORIGIN 0x2007f000)
+   pico_set_linker_script_var(lcdpico SCRATCH_X_LENGTH 0x1000)
+   pico_set_linker_script_var(lcdpico SCRATCH_Y_ORIGIN 0x20080000)
+   pico_set_linker_script_var(lcdpico SCRATCH_Y_LENGTH 0x2000)
 else()
-   pico_set_linker_script_var(firmware SCRATCH_X_ORIGIN 0x2003f000)
-   pico_set_linker_script_var(firmware SCRATCH_X_LENGTH 0x1000)
-   pico_set_linker_script_var(firmware SCRATCH_Y_ORIGIN 0x20040000)
-   pico_set_linker_script_var(firmware SCRATCH_Y_LENGTH 0x2000)
+   pico_set_linker_script_var(lcdpico SCRATCH_X_ORIGIN 0x2003f000)
+   pico_set_linker_script_var(lcdpico SCRATCH_X_LENGTH 0x1000)
+   pico_set_linker_script_var(lcdpico SCRATCH_Y_ORIGIN 0x20040000)
+   pico_set_linker_script_var(lcdpico SCRATCH_Y_LENGTH 0x2000)
 endif()
 
 

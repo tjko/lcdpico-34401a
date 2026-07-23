@@ -457,7 +457,7 @@ static void core1_main()
 
 		/* Read temperature sensors periodically */
 		if (time_passed(&t_temp, 2000)) {
-			log_msg(LOG_DEBUG, "Update virtual sensors");
+			//log_msg(LOG_DEBUG, "Update virtual sensors");
 			for (int i = 0; i < VSENSOR_COUNT; i++) {
 				state->vtemp[i] = get_vsensor(i, config, state);
 				if (check_for_change(state->vtemp_prev[i], state->vtemp[i], 0.5)) {
@@ -471,7 +471,7 @@ static void core1_main()
 		}
 
 		if (time_passed(&t_set_outputs, 500)) {
-			log_msg(LOG_DEBUG, "Updating output signals.");
+			//log_msg(LOG_DEBUG, "Updating output signals.");
 			update_outputs(state, config);
 		}
 
@@ -557,7 +557,7 @@ int main()
 			network_poll();
 		}
 		if (time_passed(&t_ram, 1000)) {
-			log_msg(LOG_DEBUG, "update persistent mem start");
+			//log_msg(LOG_DEBUG, "update persistent mem start");
 			update_persistent_memory();
 			//log_msg(LOG_DEBUG, "update persistent mem end");
 		}
@@ -576,7 +576,7 @@ int main()
 				led_state = 0;
 			}
 			if (led_state != old_led_state) {
-				log_msg(LOG_DEBUG, "toggle LED start: %u", led_state);
+				//log_msg(LOG_DEBUG, "toggle LED start: %u", led_state);
 				t_led_start = get_absolute_time();
 				if (rp2_is_picow()) {
 #ifdef LIB_PICO_CYW43_ARCH
@@ -591,7 +591,7 @@ int main()
 				}
 
 				t_now = get_absolute_time();
-				log_msg(LOG_DEBUG, "toggle LED end");
+				//log_msg(LOG_DEBUG, "toggle LED end");
 				delta = absolute_time_diff_us(t_led_start, t_now);
 				if (delta > led_max_delta) {
 					led_max_delta = delta;

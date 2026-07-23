@@ -3,7 +3,7 @@
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of LanPico.
+   This file is part of LcdPico.
 
    LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ extern const char lcdpico_indicator_graphics[];
 extern const char lcdpico_indicator_graphics_end[];
 
 #define ROMIMAGESIZE(img) ((uint32_t)((img ## _end) - img))
-#define RGB888_TO_RGB565(r,g,b) ((uint16_t)( ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3) ))
+#define RGB888_TO_RGB565(r,g,b) ( ((uint16_t)((uint8_t)r >> 3) << 11) | ((uint16_t)((uint8_t)g >> 2) << 5) | ((uint8_t)b >> 3) )
 
 
 static bool display_active = false;
@@ -211,39 +211,27 @@ void display_init()
 	uint16_t w = LCD_WIDTH;
 	uint16_t h = LCD_HEIGHT;
 
-	log_msg(LOG_NOTICE, "Initialize Display...");
+	log_msg(LOG_NOTICE, "Initializing Display...");
 	lt7680_hw_reset();
 
-	//st7701_read_id();
 	if (st7701_init()) {
 		log_msg(LOG_NOTICE, "LCD initialized");
 	} else {
 		log_msg(LOG_NOTICE, "LCD initialization failed!");
 		return;
 	}
-	//sleep_ms(150);
+
 	if (lt7680_system_check()) {
 		if (lt7680_init()) {
 			log_msg(LOG_NOTICE, "GPU intialized");
-			display_active = true;
 		} else {
 			log_msg(LOG_NOTICE, "GPU initialization failed!");
 			return;
 		}
+		display_active = true;
 		lt7680_setup(w, h);
-#if 0
-		lt7680_display_on(false);
-		lt7680_set_fg_16bpp(Red);
-		lt7680_draw_rect(0,0,w,h,true);
-		lt7680_set_fg_16bpp(Green);
-		lt7680_draw_rect(10,10,w-10,h-10,true);
-		lt7680_set_fg_16bpp(Black);
-		lt7680_draw_rect(20,20,w-20,h-20,true);
-		lt7680_set_fg_16bpp(Blue);
-		lt7680_draw_rect(25,25,75,50,true);
-#endif
 		clear_display();
-		log_msg(LOG_INFO, "display on");
+		log_msg(LOG_DEBUG, "display on");
 		lt7680_display_on(true);
 	} else {
 		log_msg(LOG_NOTICE, "No GPU found!");
@@ -266,7 +254,7 @@ void display_init()
 	clear_display();
 
 	init_theme();
-	log_msg(LOG_INFO, "Display initialized");
+	log_msg(LOG_INFO, "Display initialization complete");
 }
 
 void clear_display()
@@ -378,7 +366,6 @@ void display_status(const struct system_state *state,
 	static char last_main[16] = "              ";
 	static uint16_t last_ann_state = 0;
 	static uint16_t old_ann_state = 0;
-	static uint16_t new_ann_state = 0;
 	static uint64_t last_ann_change = 0;
 	struct display_cell_state disp[DISPLAY_COLS];
 	const char *dmm = state->dmm.main;
@@ -425,13 +412,19 @@ void display_status(const struct system_state *state,
 		if (last_ann_change == 0) {
 			last_ann_change = time_us_64();
 			old_ann_state = last_ann_state & 0xfffe;
-			//new_ann_state = state->dmm.ann_state & 0xfffe;
 		}
 		last_ann_state = state->dmm.ann_state;
 	}
 	else if (last_ann_change > 0 && (time_us_64() - last_ann_change > 350000)) {
-		if ((state->dmm.ann_state & 0xfffe) != old_ann_state) {
-			log_msg(LOG_INFO, "DMM annunciator change: %04x -> %04x", old_ann_state, state ->dmm.ann_state & 0xfffe);
+		uint16_t ann_state = state->dmm.ann_state & 0xfffe;
+		if (ann_state != old_ann_state) {
+			log_msg(LOG_DEBUG, "DMM annunciator change: %04x -> %04x", old_ann_state, ann_state);
+			for (int i = 0; i < ANNUNCIATOR_COUNT; i++) {
+				uint ann = (1 << i);
+				if ((ann_state & ann) != (old_ann_state & ann)) {
+					log_msg(LOG_INFO, "DMM: %s %s", decoder34401_annunciator_name(i), (ann_state & ann) ? "ON" : "OFF");
+				}
+			}
 		}
 		last_ann_change = 0;
 	}
