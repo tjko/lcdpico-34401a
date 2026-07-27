@@ -1679,6 +1679,7 @@ const struct cmd_t system_commands[] = {
 	{ "VSENSORS",  8, NULL,              cmd_vsensors },
 	{ "WIFI",      4, wifi_commands,     cmd_wifi },
 #if WIFI_SUPPORT
+	{ "IFCONFIG",  8, NULL,              cmd_wifi_info },
 	{ "HTTP",      4, http_commands,     NULL },
 	{ "TELNET",    6, telnet_commands,   NULL },
 	{ "SSH",       3, ssh_commands,      NULL },

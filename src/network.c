@@ -42,7 +42,7 @@
 #include "syslog.h"
 
 #define WIFI_REJOIN_DELAY 10000 // Delay before attempting to re-join to WiFi (ms)
-#define FANPICO_WIFI_INACTIVE -255
+#define LCDPICO_WIFI_INACTIVE -255
 
 uint16_t lcdpico_http_server_port = HTTP_SERVER_DEFAULT_PORT;
 uint16_t lcdpico_https_server_port = HTTPS_SERVER_DEFAULT_PORT;
@@ -126,7 +126,7 @@ const char* wifi_link_status_text(int status)
 	case CYW43_LINK_BADAUTH:
 		return "Auth Fail";
 
-	case FANPICO_WIFI_INACTIVE:
+	case LCDPICO_WIFI_INACTIVE:
 		return "<Inactive>";
 	}
 
@@ -253,7 +253,7 @@ static void wifi_init()
 	ip_addr_set_zero(&net_state->gateway);
 	net_state->hostname[0] = 0;
 	net_state->netif_up = false;
-	net_state->wifi_status = FANPICO_WIFI_INACTIVE;
+	net_state->wifi_status = LCDPICO_WIFI_INACTIVE;
 
 	if (!rp2_is_picow())
 		return;
@@ -435,7 +435,7 @@ void wifi_status()
 	int res;
 
 	if (!wifi_initialized) {
-		res = FANPICO_WIFI_INACTIVE;
+		res = LCDPICO_WIFI_INACTIVE;
 	} else {
 		res = cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA);
 	}
@@ -448,7 +448,19 @@ void wifi_status()
 
 void wifi_info_display()
 {
+	uint8_t bssid[6] = { 0, 0, 0, 0, 0, 0 };
+	int32_t rssi = 0;
 	char buf[32];
+	int res;
+
+	if  (wifi_initialized) {
+		if ((res = cyw43_wifi_get_rssi(&cyw43_state, &rssi))) {
+			log_msg(LOG_ERR, "cyw43_wifi_get_rssi() failed: %d", res);
+		}
+		if ((res = cyw43_wifi_get_bssid(&cyw43_state, bssid))) {
+			log_msg(LOG_ERR, "cyw43_wifi_get_bssid() failed: %d", res);
+		}
+	}
 
 	printf(" Network Link: %s\n", (net_state->netif_up ? "Up" : "Down"));
 	uptime_to_str(buf, sizeof(buf),
@@ -457,6 +469,8 @@ void wifi_info_display()
 	printf("  WiFi Status: %s (%s since last change)\n",
 		wifi_link_status_text(net_state->wifi_status), buf);
 	printf("  MAC Address: %s\n", mac_address_str(net_state->mac));
+	printf("         RSSI: %li dBm\n", rssi);
+	printf("        BSSID: %s\n\n", mac_address_str(bssid));
 	printf("  DHCP Client: %s\n", (ip_addr_isany(&cfg->ip) ? "Enabled" : "Disabled"));
 	printf("DHCP Hostname: %s\n", net_state->hostname);
 	printf("\n");
