@@ -162,7 +162,6 @@ static void setup()
 {
 	struct persistent_memory_block *m = persistent_mem;
 	char buf[32];
-	int i = 0;
 
 
 	/* Set "overclock" if configured using picotool */
@@ -253,17 +252,8 @@ static void setup()
 	gpio_put(CTP_RESET_PIN, 1);
 #endif
 
-
 	if (fw_settings->bootdelay > 0)
 		sleep_ms(fw_settings->bootdelay * 1000);
-
-        /* Wait a while for USB Serial to connect... */
-	while (i++ < 20) {
-		if (stdio_usb_connected())
-			break;
-		sleep_ms(50);
-	}
-
 
 	lfs_setup(false);
 	read_config(fw_settings->safemode);
@@ -278,7 +268,6 @@ static void setup()
 		rebooted_by_watchdog = true;
 	}
 	printf("\n");
-
 
 	/* Run "SYStem:VERsion?" command... */
 	cmd_version(NULL, NULL, 0, NULL);
@@ -316,8 +305,6 @@ static void setup()
 			time_t_to_str(buf, sizeof(buf), timespec_to_time_t(&ts)));
 	}
 
-	setup_i2c_bus((struct system_config *)cfg);
-
 	setup_pwm_outputs();
 	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
 
@@ -328,6 +315,8 @@ static void setup()
 
 static void setup2()
 {
+	setup_i2c_bus((struct system_config *)cfg);
+
 	network_init();
 
 	/* Initialize status LED... */
