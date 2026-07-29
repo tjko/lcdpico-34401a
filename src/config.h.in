@@ -2,9 +2,9 @@
 #ifndef LCDPICO_CONFIG_H
 #define LCDPICO_CONFIG_H 1
 
-#define LCDPICO_VERSION         "@firmware_VERSION@"
-#define LCDPICO_VERSION_MAJOR   "@firmware_VERSION_MAJOR@"
-#define LCDPICO_VERSION_MINOR   "@firmware_VERSION_MINOR@"
+#define LCDPICO_VERSION         "@lcdpico_VERSION@"
+#define LCDPICO_VERSION_MAJOR   "@lcdpico_VERSION_MAJOR@"
+#define LCDPICO_VERSION_MINOR   "@lcdpico_VERSION_MINOR@"
 
 #include "boards/@LCDPICO_BOARD@.h"
 #define LCDPICO_BOARD            "@LCDPICO_BOARD@"

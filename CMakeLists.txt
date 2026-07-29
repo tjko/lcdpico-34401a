@@ -19,7 +19,7 @@ endif()
 
 
 project(lcdpico
-  VERSION 0.1.0
+  VERSION 1.0.0
   DESCRIPTION "LCD Driver for HP34401A"
   HOMEPAGE_URL https://kokkonen.net/lcd-pico-34401a/
   LANGUAGES C CXX ASM
@@ -206,9 +206,7 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
     src/dhcp.c
     src/syslog.c
     src/httpd.c
-#    src/mqtt.c
     src/telnetd.c
-#    src/snmp.c
     src/sshd.c
     src/ssh_util.c
 #    ${WOLFSSL_ROOT}/wolfcrypt/test/test.c

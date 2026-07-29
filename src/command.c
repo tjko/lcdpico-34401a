@@ -159,7 +159,7 @@ int cmd_version(const char *cmd, const char *args, int query, struct prev_cmd_t 
 	if (cmd && !query)
 		return 1;
 
-	printf("Lcdpico-%s v%s%s (%s; %s; SDK v%s; %s)\n\n",
+	printf("LCDpico-%s v%s%s (%s; %s; SDK v%s; %s)\n\n",
 		LCDPICO_MODEL,
 		LCDPICO_VERSION,
 		LCDPICO_BUILD_TAG,
