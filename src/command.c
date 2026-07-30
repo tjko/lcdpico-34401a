@@ -49,6 +49,7 @@
 #include "pico_telnetd/util.h"
 #include "util_net.h"
 #endif
+#include "util_rp2.h"
 
 
 struct error_t {

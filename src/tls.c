@@ -23,6 +23,7 @@
 #include <string.h>
 #include <malloc.h>
 #include "pico/stdlib.h"
+#include "util_rp2.h"
 #include "lcd-pico.h"
 
 #if WIFI_SUPPORT

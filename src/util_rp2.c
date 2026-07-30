@@ -25,11 +25,8 @@
 #include "pico/stdlib.h"
 #include "pico/mutex.h"
 #include "pico/unique_id.h"
-#include "pico/multicore.h"
-#include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
-#include "hardware/watchdog.h"
 #if PICO_RP2040
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "hardware/structs/ssi.h"
@@ -37,10 +34,12 @@
 #include "hardware/structs/powman.h"
 #include "hardware/structs/qmi.h"
 #endif
+#ifdef LIB_PICO_CYW43_ARCH
+#include "pico/cyw43_arch.h"
+#endif
 #include "memtest.h"
-
 #include "pico_lfs.h"
-
+#include "util_rp2.h"
 #include "lcd-pico.h"
 
 
@@ -83,13 +82,6 @@ void print_rp2_meminfo()
 	printf("Core%d stack free:                      %lu\n",
 		get_core_num(), get_stack_free());
 }
-
-#if PICO_SDK_VERSION_MAJOR < 2
-void watchdog_disable()
-{
-	hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
-}
-#endif
 
 void print_irqinfo()
 {
@@ -383,5 +375,17 @@ int rp2_is_picow(void)
 
 	return pico_w;
 }
+
+
+#ifdef LIB_PICO_CYW43_ARCH
+int cyw43_wifi_get_channel(cyw43_t *self, uint32_t *channel)
+{
+	if (!self || !channel) {
+		return -CYW43_EPERM;
+	}
+	return cyw43_ioctl(self, CYW43_IOCTL_GET_CHANNEL, sizeof(*channel), (uint8_t*)channel, CYW43_ITF_STA);
+}
+#endif /* LIB_PICO_CYW43_ARCH */
+
 
 /* eof */

@@ -30,6 +30,7 @@
 #ifdef WIFI_SUPPORT
 #include "lwip/ip_addr.h"
 #endif
+#include "util_rp2.h"
 
 #include "lcd-pico.h"
 

@@ -400,6 +400,7 @@ void* memmem(const void *haystack, size_t haystacklen, const void *needle, size_
 char *bitmask_to_str(uint32_t mask, uint16_t len, uint8_t base, bool range);
 int str_to_bitmask(const char *str, uint16_t len, uint32_t *mask, uint8_t base);
 
+#if 0
 /* util_rp2.c */
 uint32_t get_stack_pointer();
 uint32_t get_stack_free();
@@ -419,7 +420,8 @@ void print_psram_info();
 void rp2_memtest();
 void rp2_set_sys_clock(uint32_t khz);
 int rp2_is_picow();
-
+int cyw43_wifi_get_channel(cyw43_t *self, uint32_t *channel);
+#endif
 
 /* crc32.c */
 unsigned int xcrc32 (const unsigned char *buf, int len, unsigned int init);

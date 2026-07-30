@@ -42,6 +42,7 @@
 
 #include "lcd-pico.h"
 #include "command_util.h"
+#include "util_rp2.h"
 #include "decoder_34401a.h"
 
 
@@ -628,7 +629,7 @@ int main()
 		}
 		if (time_passed(&t_watchdog, 1000)) {
 #if WATCHDOG_ENABLED
-			log_msg(LOG_DEBUG,"watchdog update");
+			//log_msg(LOG_DEBUG,"watchdog update");
 			watchdog_update();
 #endif
 		}
