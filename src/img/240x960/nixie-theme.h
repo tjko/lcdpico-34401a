@@ -3,24 +3,28 @@
 #define DISPLAY_GRAPHICS "img/240x960/nixie1.png"
 #define INDICATOR_GRAPHICS "img/240x960/nixie2.png"
 
-#define DISPLAY_X_OFFSET   50
-#define DISPLAY_Y_OFFSET   0
+#define DISPLAY_X_OFFSET           0
+#define DISPLAY_Y_OFFSET           0
 
-#define DISPLAY_CHAR_W     190
-#define DISPLAY_CHAR_H     80
-#define DISPLAY_CHAR_COUNT 55
-#define DISPLAY_CHAR_MAP_W 4
-#define DISPLAY_CHAR_MAP_H 14
-#define DISPLAY_CHAR_BLANK_IDX 53
+#define DISPLAY_CHAR_W             190
+#define DISPLAY_CHAR_H             80
+#define DISPLAY_CHAR_COUNT         55
+#define DISPLAY_CHAR_MAP_W         4
+#define DISPLAY_CHAR_MAP_H         14
+#define DISPLAY_CHAR_BLANK_IDX     53
 
 #define DISPLAY_CHAR_OVERLAY_COUNT 3
 
-#define DISPLAY_IND_W      38
-#define DISPLAY_IND_H      80
 
-#define DISPLAY_IND_COUNT  16
-#define DISPLAY_IND_MAP_W  8
-#define DISPLAY_IND_MAP_H  2
+#define DISPLAY_IND_X_OFFSET       (190 + 12)
+#define DISPLAY_IND_Y_OFFSET       0
+
+#define DISPLAY_IND_W              38
+#define DISPLAY_IND_H              80
+
+#define DISPLAY_IND_COUNT          16
+#define DISPLAY_IND_MAP_W          8
+#define DISPLAY_IND_MAP_H          2
 
 
 

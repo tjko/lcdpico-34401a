@@ -275,6 +275,7 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 
 	absolute_time_t t_start = get_absolute_time();
 
+	/* Draw main display */
 	for (int i = 0; i < DISPLAY_COLS; i++) {
 		if (force_refresh || newstate[i].c != display_state[state][i].c
 			|| newstate[i].flags != display_state[state][i].flags) {
@@ -308,7 +309,7 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 		}
 	}
 
-	/* Set indicator "lights" */
+	/* Draw indicator "lights" */
 	for (int i = 0; i < 16; i++) {
 		int ind = lcd_indicator_map[i];
 		uint8_t tile = display_indicators[INDICATOR_BLANK].tile;
@@ -328,12 +329,13 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 				continue;
 		}
 
-		uint16_t y = d->y;
+		uint16_t x = DISPLAY_IND_X_OFFSET;
+		uint16_t y = DISPLAY_IND_Y_OFFSET + d->y;
 		uint16_t h = d->h > 0 ? d->h : DISPLAY_IND_H;
 		uint16_t tile_x = (tile % DISPLAY_IND_MAP_W) * DISPLAY_IND_W;
 		uint16_t tile_y = (tile / DISPLAY_IND_MAP_W) * DISPLAY_IND_H;
 
-		lt7680_bte_memory_copy(fb, LCD_WIDTH, 0, y,
+		lt7680_bte_memory_copy(fb, LCD_WIDTH, x, y,
 				0, 0, 0, 0,
 				disp2->base_addr, disp2->w, tile_x, tile_y,
 				DISPLAY_IND_W, h, 0x0a);
