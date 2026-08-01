@@ -148,11 +148,12 @@
 	'S': mk('A', 'F', 'G1', 'G2', 'C', 'D'),
 	'T': mk('A', 'I', 'L'),
 	'U': mk('F', 'E', 'B', 'C', 'D'),
-	'V': mk('F', 'E', 'B', 'C', 'D'),
+	'V': mk('H', 'J'),
 	'W': mk('F', 'E', 'B', 'C', 'K', 'M'),
 	'X': mk('H', 'J', 'K', 'M'),
 	'Y': mk('H', 'J', 'L'),
-	'Z': mk('A', 'D', 'J', 'K')
+	'Z': mk('A', 'D', 'J', 'K'),
+	'm': mk('G1', 'G2', 'E', 'C', 'L')
       };
 
       /* Segments meet at shared vertices (TL, CC, ...); pull each end in a bit so lit
@@ -173,7 +174,7 @@
 	ctx.beginPath();
 	ctx.moveTo(x1, y1);
 	ctx.lineTo(x2, y2);
-	ctx.lineWidth = 6;
+	ctx.lineWidth = 3;
 	ctx.lineCap = 'butt';
 	ctx.strokeStyle = on ? LIT : UNLIT;
 	if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 6; }
@@ -192,8 +193,8 @@
 
       function drawComma(cx, cy, on) {
 	ctx.beginPath();
-	ctx.moveTo(cx - 2, cy - 3);
-	ctx.lineTo(cx + 2, cy + 4);
+	ctx.moveTo(cx + 2, cy - 3);
+	ctx.lineTo(cx - 2, cy + 4);
 	ctx.lineWidth = 2.4;
 	ctx.lineCap = 'round';
 	ctx.strokeStyle = on ? LIT : UNLIT;
@@ -203,7 +204,9 @@
       }
 
       function drawCell(x, y, cell) {
-	var mask = FONT[(cell.ch || ' ').toUpperCase()] || 0;
+	var ch = cell.ch || ' ';
+	var mask = FONT[ch];
+	if (mask === undefined) mask = FONT[ch.toUpperCase()] || 0;
 	SEG_NAMES.forEach(function(name, i) {
 	  var on = (mask & (1 << i)) !== 0;
 	  var pts = shrink(SEG_DEF[name][0], SEG_DEF[name][1], SEG_GAP);
@@ -211,9 +214,14 @@
 	  strokeSeg(x + p1[0], y + p1[1], x + p2[0], y + p2[1], on);
 	});
 	var mx = x + CELL_W + GAP / 2;
-	drawDot(mx, y + CELL_H - 12, cell.dp);
+	if (cell.dot) {
+	  /* Colon: two dots spread across the cell height instead of huddled at the baseline. */
+	  drawDot(mx, y + 20, true);
+	  drawDot(mx, y + CELL_H - 16, true);
+	} else {
+	  drawDot(mx, y + CELL_H - 12, cell.dp);
+	}
 	drawComma(mx, y + CELL_H - 3, cell.comma);
-	if (cell.dot) drawDot(mx, y + CELL_H - 26, true);
       }
 
       var ANN_LABELS = ['*', 'Adrs', 'Rmt', 'Man', 'Trig', 'Hold', 'Mem', 'Ratio', 'Math', 'ERROR', 'Rear', 'Shift'];
