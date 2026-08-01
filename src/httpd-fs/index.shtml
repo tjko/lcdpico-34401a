@@ -345,10 +345,34 @@
 
       render(null);
 
+      var sensorTbl = document.getElementById('sensor-tbl');
+
+      function updateSensorTable(vsensors) {
+        if (!sensorTbl || !vsensors) return;
+        var rows = sensorTbl.rows;
+        for (var r = 1; r < rows.length; r++) {
+          var cells = rows[r].cells;
+          if (cells.length < 5) continue;
+          var num = parseInt(cells[0].textContent, 10);
+          var data = null;
+          for (var k = 0; k < vsensors.length; k++) {
+            if (vsensors[k].sensor === num) { data = vsensors[k]; break; }
+          }
+          if (!data) continue;
+          cells[2].textContent = data.temperature.toFixed(1) + ' ' + String.fromCharCode(8451);
+          cells[3].textContent = (data.humidity !== undefined) ? Math.round(data.humidity) + ' %' : '';
+          cells[4].textContent = (data.pressure !== undefined) ? Math.round(data.pressure) + ' hPa' : '';
+        }
+      }
+
       function pollStatus() {
         fetch('/status.json', { cache: 'no-store' })
           .then(function(res) { return res.ok ? res.json() : null; })
-          .then(function(data) { if (data) render(data); })
+          .then(function(data) {
+            if (!data) return;
+            render(data);
+            updateSensorTable(data.vsensors);
+          })
           .catch(function() { /* keep last rendered state on network error */ });
       }
       pollStatus();
