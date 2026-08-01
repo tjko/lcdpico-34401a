@@ -70,3 +70,10 @@
 .x1 {
     margin-left: 10px;
 }
+
+.vfd-frame {
+    background: #000;
+    border-radius: 6px;
+    padding: 10px;
+    display: inline-block;
+}
