@@ -1,58 +1,62 @@
 <html>
   <head>
     <title>LCDpico: <!--#name--></title>
-    <link rel="stylesheet" href="fanpico.css">
-    <link rel="icon" type="image/png" href="img/fanpico-icon.png">
-    <meta http-equiv="refresh" content="<!--#refresh-->">
+    <link rel="stylesheet" href="lcdpico.css">
+    <link rel="icon" type="image/png" href="img/lcdpico-icon.png">
+    <!-- <meta http-equiv="refresh" content="<!--#refresh-->"> -->
     <meta name="viewport" content="width=device-width,initial-scale=0.93,user-scaleable=yes">
   </head>
   <body bgcolor="white" text="black">
+    <div class="header-line">
+      <a href="https://kokkonen.net/lcdpico/"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
+      <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
+    </div>
     <table id="b1">
       <tr>
-	<td>
-	  <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
-	</td>
+        <td>
+        </td>
       </tr>
       <tr>
-	<td id="l1">
-	  <div class="vfd-frame">
-	    <canvas id="vfd" aria-label="HP 34401A display">
-	      Your browser does not support the HTML5 canvas element.
-	    </canvas>
-	  </div>
-	</td>
+        <td id="l1">
+	  34401A 6&frac12; Digit Multimeter:<br>
+          <div class="vfd-frame">
+            <canvas id="vfd" aria-label="HP 34401A display">
+              Your browser does not support the HTML5 canvas element.
+            </canvas>
+          </div>
+        </td>
       </tr>
       <tr>
-	<td>
-	  Virtual Sensors:<br>
-	  <table width="100%">
-	    <tr><td id="l1">
-		<table class="pretty" width="100%">
-		  <tr style="font-size: 14px;"><th>#</th><th>Name</th><th>Temp &#x2600;</th><th>Other</th>
-		  <!--#vsenrow1-->
-		  <!--#vsenrow2-->
-		  <!--#vsenrow3-->
-		  <!--#vsenrow4-->
-		  <!--#vsenrow5-->
-		  <!--#vsenrow6-->
-		  <!--#vsenrow7-->
-		  <!--#vsenrow8-->
-		</table>
-	    </td></tr>
-	  </table>
-	  <br>
-	</td>
+        <td>
+          Sensors:<br>
+          <table width="100%">
+            <tr><td id="l1">
+                <table class="pretty" id="sensor-tbl" width="100%">
+                  <tr style="font-size: 14px;"><th>#</th><th>Name</th><th>Temp &#x2600;</th><th>Humidity</th><th>Pressure</th>
+                  <!--#vsenrow1-->
+                  <!--#vsenrow2-->
+                  <!--#vsenrow3-->
+                  <!--#vsenrow4-->
+                  <!--#vsenrow5-->
+                  <!--#vsenrow6-->
+                  <!--#vsenrow7-->
+                  <!--#vsenrow8-->
+                </table>
+            </td></tr>
+          </table>
+          <br>
+        </td>
       </tr>
       <tr>
-	<td>
-	  <table width="100%">
-	    <tr valign="bottom">
-	      <td width="45%"><font size=-1>LCDpico-<!--#model--> v<!--#version--></font></td>
-	      <td width="10%"><!--#watchdog--></td>
-	      <td width="45%" align="right"><font size="-1"><!--#datetime--><br>Uptime: <!--#uptime--></font></td>
-	    </tr>
-	  </table>
-	</td>
+        <td>
+          <table width="100%">
+            <tr valign="bottom">
+              <td width="45%"><font size=-1>LCDpico-<!--#model--> v<!--#version--></font></td>
+              <td width="10%"><!--#watchdog--></td>
+              <td width="45%" align="right"><font size="-1"><!--#datetime--><br>Uptime: <!--#uptime--></font></td>
+            </tr>
+          </table>
+        </td>
       </tr>
     </table>
 
@@ -77,258 +81,302 @@
       ctx.scale(DPR, DPR);
 
       var LIT = '#57ffb8';
-      var UNLIT = '#123a30';
+      var UNLIT = '#0e2b24';
 
       /* ---- 14-segment font geometry (relative to a cell's top-left corner) ---- */
       /* Each character cell is 14 segments plus 3 adjacent overlay segments (period, comma, colon-dot). */
       var xL = 5, xM = CELL_W / 2, xR = CELL_W - 5;
       var yT = 5, yM = CELL_H / 2, yB = CELL_H - 5;
       var PT = {
-	TL: [xL, yT], TR: [xR, yT],
-	ML: [xL, yM], CC: [xM, yM], MR: [xR, yM],
-	BL: [xL, yB], BR: [xR, yB],
-	TM: [xM, yT], BM: [xM, yB]
+        TL: [xL, yT], TR: [xR, yT],
+        ML: [xL, yM], CC: [xM, yM], MR: [xR, yM],
+        BL: [xL, yB], BR: [xR, yB],
+        TM: [xM, yT], BM: [xM, yB]
       };
-      /* Segment order also defines the font bitmask bit positions below. */
+        /* Segment order also defines the font bitmask bit positions below. */
       var SEG_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G1', 'G2', 'H', 'I', 'J', 'K', 'L', 'M'];
       var SEG_DEF = {
-	A:  [PT.TL, PT.TR],
-	B:  [PT.TR, PT.MR], C:  [PT.MR, PT.BR],
-	D:  [PT.BL, PT.BR],
-	E:  [PT.ML, PT.BL], F:  [PT.TL, PT.ML],
-	G1: [PT.ML, PT.CC], G2: [PT.CC, PT.MR],
-	H:  [PT.TL, PT.CC], I:  [PT.TM, PT.CC], J: [PT.TR, PT.CC],
-	K:  [PT.BL, PT.CC], L:  [PT.CC, PT.BM], M: [PT.CC, PT.BR]
+        A:  [PT.TL, PT.TR],
+        B:  [PT.TR, PT.MR], C:  [PT.MR, PT.BR],
+        D:  [PT.BL, PT.BR],
+        E:  [PT.ML, PT.BL], F:  [PT.TL, PT.ML],
+        G1: [PT.ML, PT.CC], G2: [PT.CC, PT.MR],
+        H:  [PT.TL, PT.CC], I:  [PT.TM, PT.CC], J: [PT.TR, PT.CC],
+        K:  [PT.BL, PT.CC], L:  [PT.CC, PT.BM], M: [PT.CC, PT.BR]
       };
       var BIT = {};
       SEG_NAMES.forEach(function(n, i) { BIT[n] = i; });
       function mk() {
-	var m = 0;
-	for (var i = 0; i < arguments.length; i++) m |= (1 << BIT[arguments[i]]);
-	return m;
+        var m = 0;
+        for (var i = 0; i < arguments.length; i++) m |= (1 << BIT[arguments[i]]);
+        return m;
       }
 
       var FONT = {
-	' ': mk(),
-	'-': mk('G1', 'G2'),
-	'_': mk('D'),
-	'+': mk('G1', 'G2', 'I', 'L'),
-	'*': mk('H', 'I', 'J', 'K', 'L', 'M', 'G1', 'G2'),
-	'/': mk('J', 'K'),
-	'\\': mk('H', 'M'),
-	'=': mk('G1', 'G2', 'D'),
-	'0': mk('A', 'B', 'C', 'D', 'E', 'F', 'M'),
-	'1': mk('B', 'C'),
-	'2': mk('A', 'B', 'G1', 'G2', 'E', 'D'),
-	'3': mk('A', 'B', 'G1', 'G2', 'C', 'D'),
-	'4': mk('F', 'B', 'G1', 'G2', 'C'),
-	'5': mk('A', 'F', 'G1', 'G2', 'C', 'D'),
-	'6': mk('A', 'F', 'G1', 'G2', 'E', 'C', 'D'),
-	'7': mk('A', 'B', 'C'),
-	'8': mk('A', 'B', 'C', 'D', 'E', 'F', 'G1', 'G2'),
-	'9': mk('A', 'B', 'C', 'D', 'F', 'G1', 'G2'),
-	'A': mk('A', 'B', 'C', 'E', 'F', 'G1', 'G2'),
-	'B': mk('A', 'B', 'C', 'D', 'G1', 'G2', 'I', 'L'),
-	'C': mk('A', 'F', 'E', 'D'),
-	'D': mk('A', 'B', 'C', 'D', 'I', 'L'),
-	'E': mk('A', 'F', 'E', 'G1', 'G2', 'D'),
-	'F': mk('A', 'F', 'E', 'G1', 'G2'),
-	'G': mk('A', 'F', 'E', 'D', 'G2', 'C'),
-	'H': mk('F', 'E', 'B', 'C', 'G1', 'G2'),
-	'I': mk('A', 'D', 'I', 'L'),
-	'J': mk('B', 'C', 'D', 'E'),
-	'K': mk('F', 'E', 'J', 'M'),
-	'L': mk('F', 'E', 'D'),
-	'M': mk('F', 'E', 'B', 'C', 'H', 'J'),
-	'N': mk('F', 'E', 'B', 'C', 'H', 'M'),
-	'O': mk('A', 'B', 'C', 'D', 'E', 'F'),
-	'P': mk('A', 'F', 'B', 'G1', 'G2', 'E'),
-	'Q': mk('A', 'B', 'C', 'D', 'E', 'F', 'M'),
-	'R': mk('A', 'F', 'B', 'G1', 'G2', 'E', 'M'),
-	'S': mk('A', 'F', 'G1', 'G2', 'C', 'D'),
-	'T': mk('A', 'I', 'L'),
-	'U': mk('F', 'E', 'B', 'C', 'D'),
-	'V': mk('F', 'E', 'B', 'C', 'D'),
-	'W': mk('F', 'E', 'B', 'C', 'K', 'M'),
-	'X': mk('H', 'J', 'K', 'M'),
-	'Y': mk('H', 'J', 'L'),
-	'Z': mk('A', 'D', 'J', 'K')
+        ' ': mk(),
+        '-': mk('G1', 'G2'),
+        '_': mk('D'),
+        '+': mk('G1', 'G2', 'I', 'L'),
+        '*': mk('H', 'I', 'J', 'K', 'L', 'M', 'G1', 'G2'),
+        '/': mk('J', 'K'),
+        '\\': mk('H', 'M'),
+        '=': mk('G1', 'G2', 'D'),
+        '0': mk('A', 'B', 'C', 'D', 'E', 'F'),
+        '1': mk('B', 'C'),
+        '2': mk('A', 'B', 'G1', 'G2', 'E', 'D'),
+        '3': mk('A', 'B', 'G1', 'G2', 'C', 'D'),
+        '4': mk('F', 'B', 'G1', 'G2', 'C'),
+        '5': mk('A', 'F', 'G1', 'G2', 'C', 'D'),
+        '6': mk('A', 'F', 'G1', 'G2', 'E', 'C', 'D'),
+        '7': mk('A', 'B', 'C'),
+        '8': mk('A', 'B', 'C', 'D', 'E', 'F', 'G1', 'G2'),
+        '9': mk('A', 'B', 'C', 'D', 'F', 'G1', 'G2'),
+        'A': mk('A', 'B', 'C', 'E', 'F', 'G1', 'G2'),
+        'B': mk('A', 'B', 'C', 'D', 'G1', 'G2', 'I', 'L'),
+        'C': mk('A', 'F', 'E', 'D'),
+        'D': mk('A', 'B', 'C', 'D', 'I', 'L'),
+        'E': mk('A', 'F', 'E', 'G1', 'G2', 'D'),
+        'F': mk('A', 'F', 'E', 'G1', 'G2'),
+        'G': mk('A', 'F', 'E', 'D', 'G2', 'C'),
+        'H': mk('F', 'E', 'B', 'C', 'G1', 'G2'),
+        'I': mk('A', 'D', 'I', 'L'),
+        'J': mk('B', 'C', 'D', 'E'),
+        'K': mk('F', 'E', 'J', 'M'),
+        'L': mk('F', 'E', 'D'),
+        'M': mk('F', 'E', 'B', 'C', 'H', 'J'),
+        'N': mk('F', 'E', 'B', 'C', 'H', 'M'),
+        'O': mk('A', 'B', 'C', 'D', 'E', 'F'),
+        'P': mk('A', 'F', 'B', 'G1', 'G2', 'E'),
+        'Q': mk('A', 'B', 'C', 'D', 'E', 'F', 'M'),
+        'R': mk('A', 'F', 'B', 'G1', 'G2', 'E', 'M'),
+        'S': mk('A', 'F', 'G1', 'G2', 'C', 'D'),
+        'T': mk('A', 'I', 'L'),
+        'U': mk('F', 'E', 'B', 'C', 'D'),
+        'V': mk('F', 'E', 'J', 'K'),
+        'W': mk('F', 'E', 'B', 'C', 'K', 'M'),
+        'X': mk('H', 'J', 'K', 'M'),
+        'Y': mk('H', 'J', 'L'),
+        'Z': mk('A', 'D', 'J', 'K'),
+        'm': mk('G1', 'G2', 'E', 'C', 'L')
       };
 
       /* Segments meet at shared vertices (TL, CC, ...); pull each end in a bit so lit
-	 neighbours don't visually fuse together at the joint. */
+         neighbours don't visually fuse together at the joint. */
       var SEG_GAP = 3;
       function shrink(p1, p2, amt) {
-	var dx = p2[0] - p1[0], dy = p2[1] - p1[1];
-	var len = Math.sqrt(dx * dx + dy * dy);
-	if (len <= amt * 2) return [p1, p2];
-	var ux = dx / len, uy = dy / len;
-	return [
-	  [p1[0] + ux * amt, p1[1] + uy * amt],
-	  [p2[0] - ux * amt, p2[1] - uy * amt]
-	];
+        var dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+        var len = Math.sqrt(dx * dx + dy * dy);
+        if (len <= amt * 2) return [p1, p2];
+        var ux = dx / len, uy = dy / len;
+        return [
+          [p1[0] + ux * amt, p1[1] + uy * amt],
+          [p2[0] - ux * amt, p2[1] - uy * amt]
+        ];
       }
 
       function strokeSeg(x1, y1, x2, y2, on) {
-	ctx.beginPath();
-	ctx.moveTo(x1, y1);
-	ctx.lineTo(x2, y2);
-	ctx.lineWidth = 6;
-	ctx.lineCap = 'butt';
-	ctx.strokeStyle = on ? LIT : UNLIT;
-	if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 6; }
-	ctx.stroke();
-	ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = on ? LIT : UNLIT;
+        if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 6; }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
 
       function drawDot(cx, cy, on) {
-	ctx.beginPath();
-	ctx.arc(cx, cy, 2.6, 0, Math.PI * 2);
-	ctx.fillStyle = on ? LIT : UNLIT;
-	if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
-	ctx.fill();
-	ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2.6, 0, Math.PI * 2);
+        ctx.fillStyle = on ? LIT : UNLIT;
+        if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        ctx.fill();
+        ctx.shadowBlur = 0;
       }
 
       function drawComma(cx, cy, on) {
-	ctx.beginPath();
-	ctx.moveTo(cx - 2, cy - 3);
-	ctx.lineTo(cx + 2, cy + 4);
-	ctx.lineWidth = 2.4;
-	ctx.lineCap = 'round';
-	ctx.strokeStyle = on ? LIT : UNLIT;
-	if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
-	ctx.stroke();
-	ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(cx + 2, cy - 3);
+        ctx.lineTo(cx - 2, cy + 4);
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = on ? LIT : UNLIT;
+        if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
 
       function drawCell(x, y, cell) {
-	var mask = FONT[(cell.ch || ' ').toUpperCase()] || 0;
-	SEG_NAMES.forEach(function(name, i) {
-	  var on = (mask & (1 << i)) !== 0;
-	  var pts = shrink(SEG_DEF[name][0], SEG_DEF[name][1], SEG_GAP);
-	  var p1 = pts[0], p2 = pts[1];
-	  strokeSeg(x + p1[0], y + p1[1], x + p2[0], y + p2[1], on);
-	});
-	var mx = x + CELL_W + GAP / 2;
-	drawDot(mx, y + CELL_H - 12, cell.dp);
-	drawComma(mx, y + CELL_H - 3, cell.comma);
-	if (cell.dot) drawDot(mx, y + CELL_H - 26, true);
+        var ch = cell.ch || ' ';
+        var mask = FONT[ch];
+        if (mask === undefined) mask = FONT[ch.toUpperCase()] || 0;
+        SEG_NAMES.forEach(function(name, i) {
+          var on = (mask & (1 << i)) !== 0;
+          var pts = shrink(SEG_DEF[name][0], SEG_DEF[name][1], SEG_GAP);
+          var p1 = pts[0], p2 = pts[1];
+          strokeSeg(x + p1[0], y + p1[1], x + p2[0], y + p2[1], on);
+        });
+        var mx = x + CELL_W + GAP / 2;
+        if (cell.dot) {
+          /* Colon: two dots spread across the cell height instead of huddled at the baseline. */
+          drawDot(mx, y + 20, true);
+          drawDot(mx, y + CELL_H - 16, true);
+        } else {
+          drawDot(mx, y + CELL_H - 12, cell.dp);
+        }
+        drawComma(mx, y + CELL_H - 3, cell.comma);
       }
 
       var ANN_LABELS = ['*', 'Adrs', 'Rmt', 'Man', 'Trig', 'Hold', 'Mem', 'Ratio', 'Math', 'ERROR', 'Rear', 'Shift'];
 
       function drawAnnRow(ann) {
-	var y = TOP_Y + CELL_H + ANN_GAP + 14;
-	ctx.font = '10px "Courier New", monospace';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'alphabetic';
-	ANN_LABELS.forEach(function(label, i) {
-	  var cx = MARGIN_X + i * (CELL_W + GAP) + CELL_W / 2;
-	  var on = !!(ann && ann[label]);
-	  if (label === 'ERROR') {
-	    ctx.strokeStyle = UNLIT;
-	    ctx.lineWidth = 1;
-	    ctx.strokeRect(cx - 20, y - 12, 40, 16);
-	  }
-	  ctx.fillStyle = on ? LIT : UNLIT;
-	  if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 4; }
-	  ctx.fillText(label, cx, y);
-	  ctx.shadowBlur = 0;
-	});
+        var y = TOP_Y + CELL_H + ANN_GAP + 14;
+        ctx.font = '10px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ANN_LABELS.forEach(function(label, i) {
+          var cx = MARGIN_X + i * (CELL_W + GAP) + CELL_W / 2;
+          var on = !!(ann && ann[label]);
+          if (label === 'ERROR') {
+            ctx.strokeStyle = UNLIT;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx - 20, y - 12, 40, 16);
+          }
+          ctx.fillStyle = on ? LIT : UNLIT;
+          if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 4; }
+          ctx.fillText(label, cx, y);
+          ctx.shadowBlur = 0;
+        });
       }
 
       function drawSideIndicators(ann) {
-	var sx = MARGIN_X + COLS * CELL_W + (COLS - 1) * GAP + 16;
-	var on4w = !!(ann && ann['4-Wire']);
-	var onCont = !!(ann && ann['Continuity']);
-	var onDiode = !!(ann && ann['Diode']);
+        var sx = MARGIN_X + COLS * CELL_W + (COLS - 1) * GAP + 24;
+        var on4w = !!(ann && ann['4-Wire']);
+        var onCont = !!(ann && ann['Continuity']);
+        var onDiode = !!(ann && ann['Diode']);
 
-	ctx.font = 'bold 12px "Courier New", monospace';
-	ctx.textAlign = 'left';
-	ctx.textBaseline = 'middle';
-	ctx.fillStyle = on4w ? LIT : UNLIT;
-	if (on4w) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
-	ctx.fillText('4W', sx, TOP_Y + 12);
-	ctx.shadowBlur = 0;
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = on4w ? LIT : UNLIT;
+        if (on4w) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        ctx.fillText('4W', sx, TOP_Y + 12);
+        ctx.shadowBlur = 0;
 
-	var bx = sx + 6, by = TOP_Y + CELL_H / 2;
-	ctx.strokeStyle = onCont ? LIT : UNLIT;
-	ctx.lineWidth = 1.6;
-	if (onCont) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
-	[5, 9, 13].forEach(function(r) {
-	  ctx.beginPath();
-	  ctx.arc(bx, by, r, -0.6, 0.6);
-	  ctx.stroke();
-	});
-	ctx.shadowBlur = 0;
+        var bx = sx + 6, by = TOP_Y + CELL_H / 2;
+        ctx.strokeStyle = ctx.fillStyle = onCont ? LIT : UNLIT;
+        ctx.lineWidth = 1.6;
+        if (onCont) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        [5, 9, 13].forEach(function(r) {
+          ctx.beginPath();
+          ctx.arc(bx, by, r, -0.6, 0.6);
+          ctx.stroke();
+        });
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
 
-	var dx = sx, dy = TOP_Y + CELL_H - 14;
-	ctx.strokeStyle = ctx.fillStyle = onDiode ? LIT : UNLIT;
-	if (onDiode) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
-	ctx.beginPath();
-	ctx.moveTo(dx, dy - 6);
-	ctx.lineTo(dx, dy + 6);
-	ctx.lineTo(dx + 10, dy);
-	ctx.closePath();
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(dx + 10, dy - 6);
-	ctx.lineTo(dx + 10, dy + 6);
-	ctx.lineWidth = 1.6;
-	ctx.stroke();
-	ctx.shadowBlur = 0;
+        /* Diode: schematic symbol, anode/cathode lead lines plus triangle and cathode bar. */
+        var dx = sx + 4, dy = TOP_Y + CELL_H - 14;
+        ctx.strokeStyle = ctx.fillStyle = onDiode ? LIT : UNLIT;
+        ctx.lineWidth = 1.6;
+        if (onDiode) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        ctx.beginPath();
+        ctx.moveTo(dx - 7, dy);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(dx, dy - 6);
+        ctx.lineTo(dx, dy + 6);
+        ctx.lineTo(dx + 10, dy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(dx + 10, dy - 6);
+        ctx.lineTo(dx + 10, dy + 6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(dx + 10, dy);
+        ctx.lineTo(dx + 17, dy);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
 
       function parseDisplay(str) {
-	var s = (str || '');
-	while (s.length < 16) s += ' ';
-	var cells = [];
-	var d = 0;
-	for (var i = 0; i < COLS; i++) {
-	  if (d > 15) d = 15;
-	  var ch = s[d++];
-	  var dp = false, comma = false, dot = false;
-	  var next = s[d];
-	  if (next === '.') { dp = true; if (s[d - 1] !== '.') d++; }
-	  else if (next === ',') { comma = true; if (s[d - 1] !== ',') d++; }
-	  else if (next === ':') { dp = true; dot = true; if (s[d - 1] !== ':') d++; }
-	  cells.push({ ch: ch, dp: dp, comma: comma, dot: dot });
-	}
-	return cells;
+        var s = (str || '');
+        while (s.length < 16) s += ' ';
+        var cells = [];
+        var d = 0;
+        for (var i = 0; i < COLS; i++) {
+          if (d > 15) d = 15;
+          var ch = s[d++];
+          var dp = false, comma = false, dot = false;
+          var next = s[d];
+          if (next === '.') { dp = true; if (s[d - 1] !== '.') d++; }
+          else if (next === ',') { comma = true; if (s[d - 1] !== ',') d++; }
+          else if (next === ':') { dp = true; dot = true; if (s[d - 1] !== ':') d++; }
+          cells.push({ ch: ch, dp: dp, comma: comma, dot: dot });
+        }
+        return cells;
       }
 
       var latestData = null;
 
       /* Mirrors the firmware's own blink timing: (time_us_32()/100000) % 2 == 1 is the "off" half. */
       function blinkOff() {
-	return Math.floor(Date.now() / 100) % 2 === 1;
+        return Math.floor(Date.now() / 100) % 2 === 1;
       }
 
       function render(data) {
-	if (data) latestData = data;
-	var d = latestData;
-	ctx.fillStyle = '#000';
-	ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-	var cells = parseDisplay(d && d.display);
-	var mask = (d && d.blink_mask) || 0;
-	var off = blinkOff();
-	cells.forEach(function(cell, i) {
-	  var x = MARGIN_X + i * (CELL_W + GAP);
-	  var blank = (mask & (1 << i)) !== 0 && off;
-	  drawCell(x, TOP_Y, blank ? { ch: ' ', dp: cell.dp, comma: cell.comma, dot: cell.dot } : cell);
-	});
-	drawAnnRow(d && d.annunciators);
-	drawSideIndicators(d && d.annunciators);
+        if (data) latestData = data;
+        var d = latestData;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+        var cells = parseDisplay(d && d.display);
+        var mask = (d && d.blink_mask) || 0;
+        var off = blinkOff();
+        cells.forEach(function(cell, i) {
+          var x = MARGIN_X + i * (CELL_W + GAP);
+          var blank = (mask & (1 << i)) !== 0 && off;
+          drawCell(x, TOP_Y, blank ? { ch: ' ', dp: cell.dp, comma: cell.comma, dot: cell.dot } : cell);
+        });
+        drawAnnRow(d && d.annunciators);
+        drawSideIndicators(d && d.annunciators);
       }
 
       render(null);
 
+      var sensorTbl = document.getElementById('sensor-tbl');
+
+      function updateSensorTable(vsensors) {
+        if (!sensorTbl || !vsensors) return;
+        var rows = sensorTbl.rows;
+        for (var r = 1; r < rows.length; r++) {
+          var cells = rows[r].cells;
+          if (cells.length < 5) continue;
+          var num = parseInt(cells[0].textContent, 10);
+          var data = null;
+          for (var k = 0; k < vsensors.length; k++) {
+            if (vsensors[k].sensor === num) { data = vsensors[k]; break; }
+          }
+          if (!data) continue;
+          cells[2].textContent = data.temperature.toFixed(1) + ' ' + String.fromCharCode(8451);
+          cells[3].textContent = (data.humidity !== undefined) ? Math.round(data.humidity) + ' %' : '';
+          cells[4].textContent = (data.pressure !== undefined) ? Math.round(data.pressure) + ' hPa' : '';
+        }
+      }
+
       function pollStatus() {
-	fetch('/status.json', { cache: 'no-store' })
-	  .then(function(res) { return res.ok ? res.json() : null; })
-	  .then(function(data) { if (data) render(data); })
-	  .catch(function() { /* keep last rendered state on network error */ });
+        fetch('/status.json', { cache: 'no-store' })
+          .then(function(res) { return res.ok ? res.json() : null; })
+          .then(function(data) {
+            if (!data) return;
+            render(data);
+            updateSensorTable(data.vsensors);
+          })
+          .catch(function() { /* keep last rendered state on network error */ });
       }
       pollStatus();
       setInterval(pollStatus, 1000);
