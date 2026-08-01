@@ -136,14 +136,12 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 		if (!(array = cJSON_CreateArray()))
 			goto panic;
 		for (i = 0; i < VSENSOR_COUNT; i++) {
-			double pwm = 0; //sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
 			if (!(o = cJSON_CreateObject()))
 				goto panic;
 
 			cJSON_AddItemToObject(o, "sensor", cJSON_CreateNumber(i+1));
 			cJSON_AddItemToObject(o, "name", cJSON_CreateString(cfg->vsensors[i].name));
 			cJSON_AddItemToObject(o, "temperature", cJSON_CreateNumber(round_decimal(st->vtemp[i], 1)));
-			cJSON_AddItemToObject(o, "duty_cycle", cJSON_CreateNumber(round_decimal(pwm, 1)));
 			if (st->vhumidity[i] >= 0.0)
 				cJSON_AddItemToObject(o, "humidity", cJSON_CreateNumber(round_decimal(st->vhumidity[i], 1)));
 			if (st->vpressure[i] >= 0.0)
