@@ -482,9 +482,9 @@ int cmd_vsensors_read(const char *cmd, const char *args, int query, struct prev_
 	for (i = 0; i < VSENSOR_COUNT; i++) {
 		printf("vsensor%d,\"%s\",%.1lf,%.0f,%0.0f\n", i+1,
 			conf->vsensors[i].name,
-			st->vtemp[i],
-			st->vhumidity[i],
-			st->vpressure[i]);
+			conf->vtemp[i],
+			conf->vhumidity[i],
+			conf->vpressure[i]);
 	}
 
 	return 0;
@@ -587,6 +587,8 @@ int cmd_vsensor_source(const char *cmd, const char *args, int query, struct prev
 							v->mode =vsmode;
 							v->temp_offset = temp_o;
 							v->temp_coefficient = temp_c;
+						} else {
+							log_msg(LOG_NOTICE,"invalid temp coefficient");
 						}
 					}
 				}
@@ -615,7 +617,7 @@ int cmd_vsensor_temp(const char *cmd, const char *args, int query, struct prev_c
 	}
 
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
-		d = st->vtemp[sensor];
+		d = conf->vtemp[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d temperature = %fC", sensor + 1, d);
 		printf("%.1f\n", d);
 		return 0;
@@ -634,7 +636,7 @@ int cmd_vsensor_humidity(const char *cmd, const char *args, int query, struct pr
 
 	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
-		d = st->vhumidity[sensor];
+		d = conf->vhumidity[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d humidity = %f%%", sensor + 1, d);
 		printf("%.1f\n", d);
 		return 0;
@@ -653,7 +655,7 @@ int cmd_vsensor_pressure(const char *cmd, const char *args, int query, struct pr
 
 	sensor = get_prev_cmd_index(prev_cmd, 0) - 1;
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
-		d = st->vpressure[sensor];
+		d = conf->vpressure[sensor];
 		log_msg(LOG_DEBUG, "vsensor%d pressure = %fhPa", sensor + 1, d);
 		printf("%.1f\n", d);
 		return 0;

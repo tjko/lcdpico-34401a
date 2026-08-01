@@ -273,6 +273,7 @@ void clear_config(struct system_config *cfg)
 		cfg->vhumidity[i] = 0.0;
 		cfg->vpressure[i] = 0.0;
 		cfg->vtemp_updated[i] = from_us_since_boot(0);
+		cfg->vtemp_prev[i] = 0.0;
 		cfg->i2c_context[i] = NULL;
 	}
 
@@ -850,5 +851,21 @@ void delete_config()
 	res = flash_delete_file("lcdpico.cfg");
 	if (res) {
 		log_msg(LOG_ERR, "Failed to delete configuration.");
+	}
+}
+
+
+void check_for_temp_changes(struct system_config *cfg)
+{
+	for (int i = 0; i < VSENSOR_COUNT; i++) {
+		if (check_for_change(cfg->vtemp_prev[i], cfg->vtemp[i], 0.5)) {
+			log_msg(LOG_INFO, "vsensor%d: Temperature change %.1fC --> %.1fC",
+				i+1,
+				cfg->vtemp_prev[i],
+				cfg->vtemp[i]);
+			mutex_enter_blocking(config_mutex);
+			cfg->vtemp_prev[i] = cfg->vtemp[i];
+			mutex_exit(config_mutex);
+		}
 	}
 }

@@ -186,11 +186,12 @@ int i2c_read_temps(struct system_config *config)
 				} else {
 					log_msg(LOG_DEBUG, "vsensor%d: temperature %0.4f C", i + 1, temp);
 				}
+				absolute_time_t t = get_absolute_time();
 				mutex_enter_blocking(config_mutex);
 				config->vtemp[i] = temp;
 				config->vpressure[i] = pressure;
 				config->vhumidity[i] = humidity;
-				config->vtemp_updated[i] = get_absolute_time();
+				config->vtemp_updated[i] = t;
 				mutex_exit(config_mutex);
 			} else {
 				log_msg(LOG_INFO, "vsensor%d: I2C get temperature failed: %d",

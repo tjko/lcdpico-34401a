@@ -175,6 +175,7 @@ struct system_config {
 	float vhumidity[VSENSOR_MAX_COUNT];
 	float vpressure[VSENSOR_MAX_COUNT];
 	absolute_time_t vtemp_updated[VSENSOR_MAX_COUNT];
+	float vtemp_prev[VSENSOR_MAX_COUNT];
 	void *i2c_context[VSENSOR_MAX_COUNT];
 };
 
@@ -207,11 +208,13 @@ struct system_state {
 	volatile uint32_t lcm_int_count;
 	volatile uint32_t ctp_int_count;
 
+#if 0
 	float vtemp[VSENSOR_MAX_COUNT];
 	float vhumidity[VSENSOR_MAX_COUNT];
 	float vpressure[VSENSOR_MAX_COUNT];
 	absolute_time_t vtemp_updated[VSENSOR_MAX_COUNT];
 	float vtemp_prev[VSENSOR_MAX_COUNT];
+#endif
 };
 
 /* Memory structure that persists over soft resets */
@@ -280,6 +283,7 @@ void save_config();
 void delete_config();
 void print_config();
 void upload_config();
+void check_for_temp_changes(struct system_config *cfg);
 
 /* display.c */
 void display_init();
@@ -366,10 +370,9 @@ void setup_pwm_outputs();
 void set_pwm_duty_cycle(uint pin, float duty);
 
 /* sensors.c */
-double get_temperature(uint8_t input, const struct system_config *config);
-//double sensor_get_duty(const struct temp_map *map, double temp);
-double get_vsensor(uint8_t i, struct system_config *config,
-		struct system_state *state);
+double get_temperature(const struct system_config *config);
+int read_temps(struct system_config *config);
+
 
 /* tacho.c */
 void setup_tacho_inputs();
@@ -379,8 +382,7 @@ void read_tacho_inputs();
 void update_tacho_input_freq(struct system_state *state);
 void set_tacho_output_freq(uint fan, double frequency);
 void set_lra_output(uint fan, bool lra);
-//double tacho_map(const struct tacho_map *map, double val);
-//double calculate_tacho_freq(struct system_state *state, const struct system_config *config, int i);
+
 
 /* log.c */
 int str2log_priority(const char *pri);

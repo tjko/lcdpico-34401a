@@ -39,7 +39,6 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 	static u16_t part;
 	static size_t buf_left;
 	char row[128];
-	double pwm;
 	int i;
 	size_t printed, count;
 
@@ -63,14 +62,12 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 		strncatenate(buf, row, BUF_LEN);
 
 		for (i = 0; i < VSENSOR_COUNT; i++) {
-			pwm = 0; //sensor_get_duty(&cfg->vsensors[i].map, st->vtemp[i]);
-			snprintf(row, sizeof(row), "vsensor%d,\"%s\",%.1lf,%.1lf,%.0f,%.0f\n",
+			snprintf(row, sizeof(row), "vsensor%d,\"%s\",%.1lf,%.0f,%.0f\n",
 				i+1,
 				cfg->vsensors[i].name,
-				st->vtemp[i],
-				pwm,
-				st->vhumidity[i],
-				st->vpressure[i]);
+				cfg->vtemp[i],
+				cfg->vhumidity[i],
+				cfg->vpressure[i]);
 			strncatenate(buf, row, BUF_LEN);
 		}
 
@@ -141,11 +138,11 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 
 			cJSON_AddItemToObject(o, "sensor", cJSON_CreateNumber(i+1));
 			cJSON_AddItemToObject(o, "name", cJSON_CreateString(cfg->vsensors[i].name));
-			cJSON_AddItemToObject(o, "temperature", cJSON_CreateNumber(round_decimal(st->vtemp[i], 1)));
-			if (st->vhumidity[i] >= 0.0)
-				cJSON_AddItemToObject(o, "humidity", cJSON_CreateNumber(round_decimal(st->vhumidity[i], 1)));
-			if (st->vpressure[i] >= 0.0)
-				cJSON_AddItemToObject(o, "pressure", cJSON_CreateNumber(round_decimal(st->vpressure[i], 1)));
+			cJSON_AddItemToObject(o, "temperature", cJSON_CreateNumber(round_decimal(cfg->vtemp[i], 1)));
+			if (cfg->vhumidity[i] >= 0.0)
+				cJSON_AddItemToObject(o, "humidity", cJSON_CreateNumber(round_decimal(cfg->vhumidity[i], 1)));
+			if (cfg->vpressure[i] >= 0.0)
+				cJSON_AddItemToObject(o, "pressure", cJSON_CreateNumber(round_decimal(cfg->vpressure[i], 1)));
 			cJSON_AddItemToArray(array, o);
 		}
 		cJSON_AddItemToObject(json, "vsensors", array);
@@ -187,7 +184,6 @@ panic:
 u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			u16_t current_tag_part, u16_t *next_tag_part)
 {
-	const struct system_state *st = sys_state;
 	size_t printed = 0;
 
 	/* printf("ssi_handler(\"%s\",%lx,%d,%u,%u)\n", tag, (uint32_t)insert, insertlen, current_tag_part, *next_tag_part); */
@@ -219,7 +215,7 @@ u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 		printed = snprintf(insert, insertlen, "%s", LCDPICO_MODEL);
 	}
 	else if (!strncmp(tag, "version", 5)) {
-		printed = snprintf(insert, insertlen, "%s", LCDPICO_VERSION);
+		printed = snprintf(insert, insertlen, "%s%s", LCDPICO_VERSION, LCDPICO_BUILD_TAG);
 	}
 	else if (!strncmp(tag, "name", 4)) {
 		printed = snprintf(insert, insertlen, "%s", cfg->name);
@@ -230,17 +226,17 @@ u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			char rh[12], pr[12];
 
 			rh[0] = 0;
-			if (st->vhumidity[i] >= 0.0) {
-				snprintf(rh, sizeof(rh), "%0.0f %%", st->vhumidity[i]);
+			if (cfg->vhumidity[i] >= 0.0) {
+				snprintf(rh, sizeof(rh), "%0.0f %%", cfg->vhumidity[i]);
 			}
 			pr[0] = 0;
-			if (st->vpressure[i] >= 0.0) {
-				snprintf(pr, sizeof(pr), "%0.0f hPa", st->vpressure[i]);
+			if (cfg->vpressure[i] >= 0.0) {
+				snprintf(pr, sizeof(pr), "%0.0f hPa", cfg->vpressure[i]);
 			}
 
 			printed = snprintf(insert, insertlen,
 					"<tr><td>%d<td>%s<td align=\"right\">%0.1f &#x2103;<td align=\"right\">%s<td align=\"right\">%s",
-					i + 1, cfg->vsensors[i].name, st->vtemp[i], rh, pr);
+					i + 1, cfg->vsensors[i].name, cfg->vtemp[i], rh, pr);
 		}
 	}
 	else if (!strncmp(tag, "adcvref", 7)) {

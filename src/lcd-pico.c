@@ -179,12 +179,6 @@ static void setup()
 
 
 
-	/* Enable ADC */
-	adc_init();
-	adc_set_temp_sensor_enabled(true);
-#if SENSOR_READ_PIN >= 0
-	adc_gpio_init(SENSOR_READ_PIN);
-#endif
 
 	/* Setup GPIO pins... */
 
@@ -306,6 +300,14 @@ static void setup()
 			time_t_to_str(buf, sizeof(buf), timespec_to_time_t(&ts)));
 	}
 
+	/* Enable ADC */
+	log_msg(LOG_INFO, "Initialize ADC...");
+	adc_init();
+	adc_set_temp_sensor_enabled(true);
+#if SENSOR_READ_PIN >= 0
+	adc_gpio_init(SENSOR_READ_PIN);
+#endif
+
 	setup_pwm_outputs();
 	set_pwm_duty_cycle(LCM_BL_PIN, cfg->bl_brightness);
 
@@ -342,19 +344,7 @@ static void setup2()
 
 static void clear_state(struct system_state *s)
 {
-	int i;
-
 	memset(s, 0, sizeof(struct system_state));
-
-
-	for (i = 0; i < VSENSOR_MAX_COUNT; i++) {
-		s->vtemp[i] = 0.0;
-		s->vtemp_prev[i] = 0.0;
-		s->vtemp_updated[i] = from_us_since_boot(0);
-		s->vpressure[i] = -1.0;
-		s->vhumidity[i] = -1.0;
-	}
-
 }
 
 
@@ -372,12 +362,6 @@ static void update_system_state()
 	} else {
 		log_msg(LOG_INFO, "update_system_state(): failed to get system_mutex");
 	}
-}
-
-
-static void update_outputs(struct system_state *state, const struct system_config *config)
-{
-
 }
 
 
@@ -410,8 +394,6 @@ static void core1_main()
 {
 	struct system_config *config = &core1_config;
 	struct system_state *state = &core1_state;
-	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_temp, 0);
-	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_set_outputs, 0);
 	absolute_time_t t_last, t_now, t_config, t_state, t_display;
 	int64_t max_delta = 0;
 	int64_t delta;
@@ -445,6 +427,7 @@ static void core1_main()
 			log_msg(LOG_INFO, "core1: max_loop_time=%lld", max_delta);
 		}
 
+#if 0
 		/* Read temperature sensors periodically */
 		if (time_passed(&t_temp, 2000)) {
 			//log_msg(LOG_DEBUG, "Update virtual sensors");
@@ -459,11 +442,7 @@ static void core1_main()
 				}
 			}
 		}
-
-		if (time_passed(&t_set_outputs, 500)) {
-			//log_msg(LOG_DEBUG, "Updating output signals.");
-			update_outputs(state, config);
-		}
+#endif
 
 		if (time_passed(&t_config, 1000)) {
 			/* Attempt to update config from core0 */
@@ -500,7 +479,7 @@ int main()
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_led, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_network, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_watchdog, 0);
-	absolute_time_t t_now, t_last, t_state, t_ram, t_i2c_temp, t_led_start;
+	absolute_time_t t_now, t_last, t_state, t_ram, t_i2c_temp, t_int_temp, t_led_start;
 	uint8_t led_state = 0;
 	int64_t max_delta = 0;
 	int64_t led_max_delta = 0;
@@ -532,7 +511,7 @@ int main()
 	setup2();
 
 	t_last = get_absolute_time();
-	t_i2c_temp = t_ram = t_state = t_last;
+	t_i2c_temp = t_int_temp = t_ram = t_state = t_last;
 
 	while (1) {
 		t_now = get_absolute_time();
@@ -594,6 +573,14 @@ int main()
 		/* Update state (from core1) every 1000ms */
 		if (time_passed(&t_state, 1000)) {
 			update_system_state();
+		}
+
+		/* Poll Internal Temp Sensors */
+		if (time_passed(&t_int_temp, 5000)) {
+			//log_msg(LOG_DEBUG, "internal sensor poll start");
+			read_temps((struct system_config*)cfg);
+			//log_msg(LOG_DEBUG, "internal sensor poll end");
+			check_for_temp_changes((struct system_config*)cfg);
 		}
 
 		/* Poll I2C Temperature Sensors */
