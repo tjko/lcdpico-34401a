@@ -248,12 +248,12 @@
       }
 
       function drawSideIndicators(ann) {
-        var sx = MARGIN_X + COLS * CELL_W + (COLS - 1) * GAP + 16;
+        var sx = MARGIN_X + COLS * CELL_W + (COLS - 1) * GAP + 24;
         var on4w = !!(ann && ann['4-Wire']);
         var onCont = !!(ann && ann['Continuity']);
         var onDiode = !!(ann && ann['Diode']);
 
-        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.font = 'bold 16px "Courier New", monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = on4w ? LIT : UNLIT;
@@ -262,7 +262,7 @@
         ctx.shadowBlur = 0;
 
         var bx = sx + 6, by = TOP_Y + CELL_H / 2;
-        ctx.strokeStyle = onCont ? LIT : UNLIT;
+        ctx.strokeStyle = ctx.fillStyle = onCont ? LIT : UNLIT;
         ctx.lineWidth = 1.6;
         if (onCont) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
         [5, 9, 13].forEach(function(r) {
@@ -270,11 +270,20 @@
           ctx.arc(bx, by, r, -0.6, 0.6);
           ctx.stroke();
         });
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.8, 0, Math.PI * 2);
+        ctx.fill();
         ctx.shadowBlur = 0;
 
-        var dx = sx, dy = TOP_Y + CELL_H - 14;
+        /* Diode: schematic symbol, anode/cathode lead lines plus triangle and cathode bar. */
+        var dx = sx + 4, dy = TOP_Y + CELL_H - 14;
         ctx.strokeStyle = ctx.fillStyle = onDiode ? LIT : UNLIT;
+        ctx.lineWidth = 1.6;
         if (onDiode) { ctx.shadowColor = LIT; ctx.shadowBlur = 5; }
+        ctx.beginPath();
+        ctx.moveTo(dx - 7, dy);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(dx, dy - 6);
         ctx.lineTo(dx, dy + 6);
@@ -284,7 +293,10 @@
         ctx.beginPath();
         ctx.moveTo(dx + 10, dy - 6);
         ctx.lineTo(dx + 10, dy + 6);
-        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(dx + 10, dy);
+        ctx.lineTo(dx + 17, dy);
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
