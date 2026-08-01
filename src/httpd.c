@@ -121,6 +121,7 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 			goto panic;
 
 		cJSON_AddItemToObject(json, "display", cJSON_CreateString(st->dmm.main));
+		cJSON_AddItemToObject(json, "blink_mask", cJSON_CreateNumber(st->dmm.blink_mask));
 
 		/* Annunciators */
 		if (!(o = cJSON_CreateObject()))
