@@ -7,10 +7,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=0.93,user-scaleable=yes">
   </head>
   <body bgcolor="white" text="black">
+    <div class="header-line">
+      <a href="https://kokkonen.net/lcdpico/"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
+      <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
+    </div>
     <table id="b1">
       <tr>
         <td>
-          <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
         </td>
       </tr>
       <tr>
@@ -78,7 +81,7 @@
       ctx.scale(DPR, DPR);
 
       var LIT = '#57ffb8';
-      var UNLIT = '#123a30';
+      var UNLIT = '#0e2b24';
 
       /* ---- 14-segment font geometry (relative to a cell's top-left corner) ---- */
       /* Each character cell is 14 segments plus 3 adjacent overlay segments (period, comma, colon-dot). */

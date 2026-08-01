@@ -77,3 +77,14 @@
     padding: 10px;
     display: inline-block;
 }
+
+.header-line {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.header-img {
+    width: 180px;
+    height: auto;
+}
