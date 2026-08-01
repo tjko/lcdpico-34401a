@@ -210,6 +210,12 @@ int cmd_backlight(const char *cmd, const char *args, int query, struct prev_cmd_
 	return res;
 }
 
+int  cmd_adc_vref(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
+{
+	return float_setting(cmd, args, query, prev_cmd,
+			&conf->adc_vref, 0.0, 100.0, "ADC Reference Voltage");
+}
+
 int cmd_vsensors(const char *cmd, const char *args, int query, struct prev_cmd_t *prev_cmd)
 {
 	if (!query)
@@ -1676,6 +1682,7 @@ const struct cmd_t system_commands[] = {
 	{ "UPGRADE",   7, NULL,              cmd_usb_boot },
 	{ "UPTIme",    4, NULL,              cmd_uptime },
 	{ "VERsion",   3, NULL,              cmd_version },
+	{ "VREFadc",   4, NULL,              cmd_adc_vref },
 	{ "VSENSORS",  8, NULL,              cmd_vsensors },
 	{ "WIFI",      4, wifi_commands,     cmd_wifi },
 #if WIFI_SUPPORT
