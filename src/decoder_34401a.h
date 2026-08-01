@@ -61,7 +61,7 @@ typedef struct dmm_context {
 	uint32_t main_counter;
 	uint32_t ann_counter;
 	uint32_t bar_counter;
-	uint16_t blink_mask;   // bits 0..13 = blink this character position
+	uint16_t blink_mask;   // bits 0..11 = blink this character position
 
         // ===== Minimal debug =====
 	volatile uint32_t dbg_byte_overrun_count;

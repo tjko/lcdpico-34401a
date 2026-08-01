@@ -227,6 +227,28 @@ struct persistent_memory_block {
 	uint32_t crc32;
 };
 
+#define ROMIMAGESIZE(img) ((uint32_t)((void*)(img ## _end) - (void*)(img)))
+
+
+/* default_config.S */
+extern const char lcdpico_default_config[];
+extern const char lcdpico_default_config_end[];
+
+/* credits.s */
+extern const char lcdpico_credits_text[];
+extern const char lcdpico_credits_text_end[];
+
+/* img/logo.S */
+extern const char lcdpico_boot_logo[];
+extern const char lcdpico_boot_logo_end[];
+
+/* img/display.S */
+extern const char lcdpico_display_graphics[];
+extern const char lcdpico_display_graphics_end[];
+extern const char lcdpico_indicator_graphics[];
+extern const char lcdpico_indicator_graphics_end[];
+
+
 
 /* lcd-pico.c */
 extern struct persistent_memory_block *persistent_mem;
@@ -263,7 +285,7 @@ void upload_config();
 void display_init();
 void clear_display();
 void display_message(int rows, const char **text_lines);
-void display_status(const struct system_state *state, const struct system_config *config);
+void display_status(const struct system_state *state, const struct system_config *config, bool new_data);
 
 
 /* flash.h */

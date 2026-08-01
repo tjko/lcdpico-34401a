@@ -34,9 +34,6 @@
 
 #include "lcd-pico.h"
 
-/* Default configuration embedded using  default_config.s */
-extern const char lcdpico_default_config[];
-
 
 struct system_config system_config;
 const struct system_config *cfg = &system_config;

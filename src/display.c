@@ -30,14 +30,6 @@
 #include LCDPICO_THEME_HEADER
 
 
-extern const char lcdpico_boot_logo[];
-extern const char lcdpico_boot_logo_end[];
-extern const char lcdpico_display_graphics[];
-extern const char lcdpico_display_graphics_end[];
-extern const char lcdpico_indicator_graphics[];
-extern const char lcdpico_indicator_graphics_end[];
-
-#define ROMIMAGESIZE(img) ((uint32_t)((img ## _end) - img))
 #define RGB888_TO_RGB565(r,g,b) ( ((uint16_t)((uint8_t)r >> 3) << 11) | ((uint16_t)((uint8_t)g >> 2) << 5) | ((uint8_t)b >> 3) )
 
 
@@ -63,6 +55,7 @@ vmem_image_t *disp2 = NULL;
 struct display_cell_state {
 	char c;
 	uint8_t flags;
+	bool blink;
 };
 
 static uint8_t display_tile_map[256];
@@ -257,6 +250,7 @@ void display_init()
 	log_msg(LOG_INFO, "Display initialization complete");
 }
 
+
 void clear_display()
 {
 	if (!display_active)
@@ -277,17 +271,28 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 
 	/* Draw main display */
 	for (int i = 0; i < DISPLAY_COLS; i++) {
-		if (force_refresh || newstate[i].c != display_state[state][i].c
-			|| newstate[i].flags != display_state[state][i].flags) {
+		if (force_refresh
+			|| newstate[i].c != display_state[state][i].c
+			|| newstate[i].flags != display_state[state][i].flags
+			|| newstate[i].blink
+			|| display_state[state][i].blink) {
+
+			display_state[state][i] = newstate[i];
 
 			/* Draw character */
-			display_state[state][i] = newstate[i];
+
 			uint16_t y = DISPLAY_Y_OFFSET + (DISPLAY_COLS - 1 - i) * DISPLAY_CHAR_H;
 			uint16_t x = DISPLAY_X_OFFSET;
 			uint8_t tile = display_tile_map[(uint8_t)display_state[state][i].c];
+			if (newstate[i].blink) {
+				/* Handle blinking characters */
+				if ((time_us_32() / 100000) % 2 == 1)
+					tile = display_tile_map[' '];
+			}
 			uint16_t tile_x = (tile % DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_W;
 			uint16_t tile_y = (tile / DISPLAY_CHAR_MAP_W) * DISPLAY_CHAR_H;
 
+			/* Draw tile */
 			lt7680_bte_memory_copy(fb, LCD_WIDTH, x, y,
 					0, 0, 0, 0,
 					disp->base_addr, disp->w, tile_x, tile_y,
@@ -342,11 +347,9 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 	}
 	indicator_state[state] = ind_flags;
 
+	/* Switch visible frame buffer (double buffering) */
 	lt7680_set_misa_addr(fb);
-	if (state == 0)
-		state = 1;
-	else
-		state = 0;
+	state = (state == 0 ? 1 : 0);
 
 	absolute_time_t t_end = get_absolute_time();
 	uint64_t delta = absolute_time_diff_us(t_start, t_end);
@@ -362,12 +365,12 @@ static void update_display(struct display_cell_state newstate[], uint32_t ind_fl
 
 
 
-void display_status(const struct system_state *state,
-	const struct system_config *config)
+void display_status(const struct system_state *state, const struct system_config *config, bool new_data)
 {
 	static char last_main[16] = "              ";
 	static uint16_t last_ann_state = 0;
 	static uint16_t old_ann_state = 0;
+	static uint16_t last_blink_mask = 0;
 	static uint64_t last_ann_change = 0;
 	struct display_cell_state disp[DISPLAY_COLS];
 	const char *dmm = state->dmm.main;
@@ -382,6 +385,7 @@ void display_status(const struct system_state *state,
 
 		disp[i].c = dmm[d++];
 		disp[i].flags = 0;
+		disp[i].blink = ((state->dmm.blink_mask & (1 << i)) != 0);
 
 		switch (dmm[d]) {
 		case '.':
@@ -400,6 +404,8 @@ void display_status(const struct system_state *state,
 	}
 
 	update_display(disp, state->dmm.ann_state, false);
+	if (!new_data)
+		return;
 
 	/* Log "menu" screens displayed */
 	if (!state->dmm.valid_reading && !state->dmm.corrupt_msg) {
@@ -430,7 +436,14 @@ void display_status(const struct system_state *state,
 		}
 		last_ann_change = 0;
 	}
+
+	if (state->dmm.blink_mask != last_blink_mask) {
+		log_msg(LOG_DEBUG, "DMM: blink mask change %04u -> %04u", last_blink_mask, state->dmm.blink_mask);
+		last_blink_mask = state->dmm.blink_mask;
+	}
+
 }
+
 
 void display_message(int rows, const char **text_lines)
 {

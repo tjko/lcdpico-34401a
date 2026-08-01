@@ -85,7 +85,7 @@ static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 	/* check if message looks like a valid measurement/reading */
 	if (isdigit(c))
 		ctx->num_count++;
-	if (c == '.')
+	else if (c == '.')
 		ctx->period_count++;
 
 	if (*state < 0) {

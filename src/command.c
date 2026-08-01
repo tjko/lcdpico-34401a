@@ -71,9 +71,6 @@ int last_error_num = 0;
 const struct system_state *st = NULL;
 struct system_config *conf = NULL;
 
-/* credits.s */
-extern const char lcdpico_credits_text[];
-
 
 
 /* Command functions */

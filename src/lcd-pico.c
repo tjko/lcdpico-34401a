@@ -412,7 +412,7 @@ static void core1_main()
 	struct system_state *state = &core1_state;
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_temp, 0);
 	absolute_time_t ABSOLUTE_TIME_INITIALIZED_VAR(t_set_outputs, 0);
-	absolute_time_t t_last, t_now, t_config, t_state;
+	absolute_time_t t_last, t_now, t_config, t_state, t_display;
 	int64_t max_delta = 0;
 	int64_t delta;
 	uint32_t dmm_last = 0;
@@ -433,7 +433,7 @@ static void core1_main()
 #endif
 
 
-	t_state = t_config = t_last = get_absolute_time();
+	t_state = t_config = t_last = t_display = get_absolute_time();
 
 	while (1) {
 		t_now = get_absolute_time();
@@ -486,9 +486,10 @@ static void core1_main()
 
 		decoder34401_process(&state->dmm);
 
-		if (state->dmm.new_data_counter != dmm_last) {
+		if (time_passed(&t_display, 500) || state->dmm.new_data_counter != dmm_last) {
+			display_status(state, config, (state->dmm.new_data_counter != dmm_last));
 			dmm_last = state->dmm.new_data_counter;
-			display_status(state, config);
+			t_display = get_absolute_time();
 		}
 	}
 }
