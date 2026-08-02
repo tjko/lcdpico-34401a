@@ -185,7 +185,7 @@ Identify device. This returns string that contains following fields:
 Example:
 ```
 *IDN?
-TJKO Industries,LCDPICO-34401A,e660c0d1c768a330,1.0
+TJKO Industries,LCDPICO-34401A,e660c0d1c768a330,1.0.0
 ```
 
 #### *RST
@@ -200,7 +200,7 @@ Commands for configuring the device settings.
 
 #### CONFigure?
 Display current configuration in JSON format.
-Same as CONFigure:Read?
+Same as [CONFigure:Read?](#configureread)
 
 Example:
 ```
@@ -252,7 +252,7 @@ CONF:DEL
 ```
 
 #### CONFigure:VSENSORS?
-This is same as CONFigure:VSENSORS:SOUrce? command.
+This is same as [CONFigure:VSENSORx:SOUrce?](#configurevsensorxsource-1) command.
 
 #### CONFigure:VSENSORS:SOUrce?
 Return virtual sensor (source) configuration information for all
@@ -352,8 +352,6 @@ TC74|TC74A0|0x48 - 0x4f|Digital Thermal Sensor, 2C accuracy
 TMP102||0x48, 0x49, 0x4a, 0x4b|Temperature Sensor, 2C accuracy
 TMP117||0x48, 0x49, 0x4a, 0x4b|Temperature Sensor, 0.1C accuracy
 
-Sensor numbering used in this command's parameters:
- - VSENSORS: 1, 2, ...
 
 Defaults:
 
@@ -365,18 +363,23 @@ VSENSOR|SOURCE
 1|MANUAL,0,30
 ...|...
 
-Example: Set VSENSOR2 to report temperature that is updated by external program, reverting
-to a default value of 99C if no update has been received within 5 seconds.
+Example: Set VSENSOR1 to report Pico boards internal temperature (using 0C offset and 1.0 coefficient/multiplier):
 ```
-CONF:VSENSOR2:SOURCE manual,99,5
+CONF:VSENSOR1:SOURCE internal,0.0,1.0
 ```
 
 Example: Set VSENSOR3 to report temperature from TMP117 (I2C) sensor with address 0x48:
 ```
-CONF:VSENSOR3:SOURCE i2c,0x48,tmp117
+CONF:VSENSOR2:SOURCE i2c,0x48,tmp117
 ```
 
 (to get list of currently active I2C sensor addresses, use: SYS:I2C:SCAN?)
+
+Example: Set VSENSOR2 to report temperature that is updated by external program, reverting
+to a default value of 99C if no update has been received within 5 seconds.
+```
+CONF:VSENSOR3:SOURCE manual,99,5
+```
 
 
 #### CONFigure:VSENSORx:SOUrce?
@@ -390,7 +393,7 @@ mode,parameter,parameter,...
 Example:
 ```
 CONF:VSENSOR2:SOU?
-manual,99.0,5
+i2c,0x48,tmp11x
 ```
 
 #### DEBUG?
@@ -443,23 +446,23 @@ These commands are for reading the current 34401A display content and virtual se
 
 #### MEASure:Read?
 Return the last valid (numeric) reading captured from the multimeter's front-panel display.
-(This is same as: Read?)
+(This is same as: [Read?](#read))
 
 Example:
 ```
 MEAS:READ?
-+1.234567E+00
+-000.509 mVDC
 ```
 
 #### MEASure:Main?
-Return the current raw content of the multimeter's front-panel display. Unlike MEASure:Read?,
+Return the current raw content of the multimeter's front-panel display. Unlike [MEASure:Read?](#measureread),
 this reflects whatever is currently shown (including transient text messages), not only
 confirmed numeric readings.
 
 Example:
 ```
 MEAS:MAIN?
-+1.234567E+00
+A: MEAS MENU
 ```
 
 #### MEASure:ANNunciators?
@@ -483,14 +486,14 @@ Format: vsensor,"name",temperature_C,humidity_%,pressure_hPa
 Example:
 ```
 MEAS:VSENSORS?
-vsensor1,"Ambient",24.4,0.0,0
-vsensor2,"vsensor2",0.0,0.0,0
-vsensor3,"vsensor3",24.8,43.0,997
-vsensor4,"vsensor4",0.0,0.0,0
-vsensor5,"vsensor5",0.0,0.0,0
-vsensor6,"vsensor6",0.0,0.0,0
-vsensor7,"vsensor7",0.0,0.0,0
-vsensor8,"vsensor8",0.0,0.0,0
+vsensor1,"RP2350 (Pico 2W)",36.4,-1,-1
+vsensor2,"Interior (SHT31)",25.8,53,-1
+vsensor3,"SPA06-003",26.8,-1,984
+vsensor4,"TMP117",25.7,-1,-1
+vsensor5,"vsensor5",0.0,0,0
+vsensor6,"vsensor6",0.0,0,0
+vsensor7,"vsensor7",0.0,0,0
+vsensor8,"vsensor8",0.0,0,0
 ```
 
 #### MEASure:VSENSORx?
@@ -551,12 +554,12 @@ MEAS:VSENSOR3:PRE?
 
 #### Read?
 Return the last valid (numeric) reading captured from the multimeter's front-panel display.
-(This is same as: MEASure:Read?)
+(This is same as: [MEASure:Read?](#measureread))
 
 Example:
 ```
 Read?
-+1.234567E+00
+-000.211 mVDC
 ```
 
 
@@ -588,11 +591,12 @@ Example:
 ```
 SYS:BOARD?
 Hardware Model: LCD-PICO-34401A
-         Board: Pico W
-           MCU: RP2040-B2 @ 200MHz
-           RAM: 264KB
-         Flash: 2048KB @ 100MHz
- Serial Number: e6614c311b7ca431
+         Board: Pico 2 W
+           MCU: RP2350A-A2 @ 150MHz
+           RAM: 520KB
+         Flash: 4096KB @ 75MHz
+ Serial Number: 446e6e6c9b7e4242
+          DVDD: 1.10V
 ```
 
 #### SYStem:ECHO
@@ -601,19 +605,19 @@ This can be useful if interactively programming LcdPico.
 
 Value|Status
 -----|------
-0|Local Echo disabled.
-1|Local Echo enabled.
+ON|Local Echo disabled.
+OFF|Local Echo enabled.
 
-Default: 0
+Default: OFF
 
 Example: enable local echo
 ```
-SYS:ECHO 1
+SYS:ECHO ON
 ```
 
 Example: disable local echo
 ```
-SYS:ECHO 0
+SYS:ECHO OFF
 ```
 
 #### SYStem:ECHO?
@@ -622,7 +626,7 @@ Display local echo status:
 Example:
 ```
 SYS:ECHO?
-0
+OFF
 ```
 
 #### SYStem:ERRor?
@@ -640,10 +644,10 @@ Returns information about Pico flash memory usage.
 Example:
 ```
 SYS:FLASH?
-Flash memory size:                     2097152
-Binary size:                           683520
+Flash memory size:                     4194304
+Binary size:                           1842896
 LittleFS size:                         262144
-Unused flash memory:                   1151488
+Unused flash memory:                   2089264
 ```
 
 #### SYStem:HTTP:SERVer
@@ -915,8 +919,8 @@ the memory block size to use in the test. Default is 1024 bytes.
 Example:
 ```
 SYS:MEM 512
-Largest available memory block:        114688 bytes
-Total available memory:                111104 bytes
+Largest available memory block:        372224 bytes
+Total available memory:                371716 bytes
 ```
 
 #### SYStem:MEMory?
@@ -928,18 +932,19 @@ Example:
 SYS:MEM?
 Core0 stack size:                      8192
 Core1 stack size:                      4096
-Heap size:                             136604
+Heap size:                             395860
+Core0 stack free:                      7792
 mallinfo:
-Total non-mmapped bytes (arena):       136604
+Total non-mmapped bytes (arena):       31316
 # of free chunks (ordblks):            2
 # of free fastbin blocks (smblks):     0
 # of mapped regions (hblks):           0
 Bytes in mapped regions (hblkhd):      0
 Max. total allocated space (usmblks):  0
 Free bytes held in fastbins (fsmblks): 0
-Total allocated space (uordblks):      21044
-Total free space (fordblks):           115560
-Topmost releasable block (keepcost):   114808
+Total allocated space (uordblks):      17812
+Total free space (fordblks):           13504
+Topmost releasable block (keepcost):   10984
 ```
 
 #### SYStem:NAME
@@ -1475,15 +1480,16 @@ Display software version and copyright information.
 Example:
 ```
 SYS:VER?
-Lcdpico-34401A v1.0 (Jul 13 2026; Release; SDK v2.1.0; pico_w)
+LCDpico-34401A v1.0.0beta (Aug  1 2026; Release; SDK v2.3.0; pico2_w)
 
 <credits and license information>
 
-littlefs: 2.9
-cJSON: 1.7.18
+Compiled with: GCC v15.3.1 20260627
+littlefs: 2.11
+cJSON: 1.7.19
 libb64: 2.0
-wolfSSH: 1.4.18
-wolfSSL: 5.7.4
+wolfSSH: 1.5.0
+wolfSSL: 5.9.2
 ```
 
 #### SYStem:VSENSORS?
@@ -1633,9 +1639,12 @@ Example:
 ```
 SYS:WIFI:INFO?
  Network Link: Up
-  WiFi Status: Link Up (2 days, 00:11:42 since last change)
   MAC Address: 28:cd:c1:xx:xx:xx
+  WiFi Status: Link Up (2 days, 00:11:42 since last change)
+      Channel: 6
+         RSSI: -70 dBm
   DHCP Client: Enabled
+        BSSID: fc:ec:da:xx:xx:xx
 DHCP Hostname: LcdPico-e6614c31xxxxxxxxx
 
    IP Address: 192.168.1.170
