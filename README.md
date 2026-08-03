@@ -12,6 +12,11 @@ This project is based on following projects:
 This project is slightly different as it uses Raspberry Pi Pico 2W module, this allows SSH/Telnet access of WiFi to read display panel remotely (using SCPI commands).
 Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of pre-rendered graphics for the display. Initial "theme" makes HP 34401A display look like it has nixie tubes in it.
 
+### Web Interface
+
+When using Pico 2W, it is possible to enable HTTP server that provides simple interface to remotely view meter display.
+
+<img src="images/lcdpico-34401A-web.png" width="512">
 
 
 ### Parts List
