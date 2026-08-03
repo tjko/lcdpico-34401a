@@ -73,5 +73,140 @@ W601 (34401A)|J1 (lcd-pico-34401a)|Notes
 
 
 
+## Firmware
+Firmware is developed in C using the Pico-SDK. Pre-compiled firmware is released when there is new major features or bug fixes.
+
+Latest pre-compiled firmware image can be found here: [Releases](https://github.com/tjko/lcdpico-34401a/releases)
+
+To get latest firmware with latest updates/fixes you must compile the firmware from the sources.
+
+
+### Installing firmware image
+Firmware can be installed via the built-in UF2 bootloader on the Raspberry Pi Pico or using the debug header with Picoprobe, etc...
+
+#### Selecting Right Firmware to use
+Each release (zip file) contains multiple different firmware files.
+Make sure to select firmware for the board you're using and for the pico model ("pico_w" if using Pico W).
+
+Firmware filenames use format: lcdpico-<board_model>-<pico_model>.uf2
+```
+lcdpico-34401A-pico2_w.uf2
+```
+
+#### Upgrading Firmware
+Firmware upgrade steps:
+* Boot Pico into UF2 bootloader. This can be done in two ways:
+  1)  Press and hold "bootsel" button and then press and release "reset" button.
+  2)  Issue command: SYS:UPGRADE
+* Copy firmware file to the USB mass storage device that appears.
+* As soon as firmware copy is complete, Pico will reboot and run the lcdpico firmware.
+
+### Building Firmware Images
+
+Raspberry Pi Pico C/C++ SDK is required for compiling the firmware:
+
+##### Install Pico SDK
+Pico SDK must be installed working before you can compile fanpico.
+
+Instructions on installing Pico SDK see: [Getting started with Raspberry Pi Pico](https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf)
+
+(Make sure PICO_SDK_PATH environment variable is set)
+
+##### Downloading sources
+
+Create some directory for building lcdpico ('src' used in this example):
+```
+$ mkdir src
+$ cd src
+$ git clone https://github.com/tjko/lcdpico-34401a.git
+$ git submodule update --init --recursive
+```
+
+##### Building the firmware
+
+To build lcdpico firmware, first create a build directory:
+```
+$ cd lcdpico-34401a
+$ mkdir build
+$ cd build
+$ cmake ..
+```
+
+Then compile firmware:
+```
+$ make -j
+```
+
+After successful compile you should see firmware binary in the build directory:
+sub-directory:
+
+```
+$ ls *.uf2
+lcdpico.uf2
+```
+
+If you have picotool installed you can check the firmware image information:
+```
+$ picotool info -a lcdpico.uf2
+File lcdpico.uf2 family ID 'rp2350-arm-s':
+
+Program Information
+ name:                lcdpico
+ version:             1.0.0
+ web site:            https://kokkonen.net/lcdpico-34401a/
+ description:         LCD-Pico-34401A Display Controller
+ features:            USB stdin / stdout
+ boot settings:       bootdelay = 0
+                      safemode = 0
+                      sysclock = 0
+ binary start:        0x10000000
+ binary end:          0x101c1ed0
+ embedded drive:      0x103c0000-0x10400000 (256K): littlefs flags 0x0033 rw
+ target chip:         RP2350
+ image type:          ARM Secure
+
+Fixed Pin Information
+ 0:                   TTL Serial: TX
+ 1:                   TTL Serial: RX
+ 2:                   I2C: SDA
+ 3:                   I2C: SCL
+ 4:                   DMM: DO
+ 5:                   LCD SPI: CS
+ 6:                   LCD SPI: SCK
+ 7:                   LCD SPI: TX
+ 9:                   LCM Reset
+ 10:                  LCM Backlight (PWM)
+ 11:                  LCM Interrupt
+ 12:                  LCM SPI: RX
+ 13:                  LCM SPI: CS
+ 14:                  LCM SPI: SCK
+ 15:                  LCM SPI: TX
+ 16:                  DMM: DI
+ 18:                  DMM: SCK
+ 19:                  DMM: INT
+ 20:                  DMM: RST
+ 25:                  On-board LED (output)
+
+Build Information
+ sdk version:         2.3.0
+ pico_board:          pico2_w
+ boot2_name:          boot2_w25q080
+ build date:          Jul 29 2026
+ build attributes:    Release
+
+Metadata Block 1
+ address:             0x10000138
+ next block address:  0x101c1ebc
+ block type:          image def
+ target chip:         RP2350
+ image type:          ARM Secure
+ extra security:      not enabled
+
+Metadata Block 2
+ address:             0x101c1ebc
+ next block address:  0x10000138
+ block type:          ignored
+```
+
 
 
