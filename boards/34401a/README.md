@@ -4,6 +4,8 @@ PCB Size: 125.0mm x 37.2mm
 
 ![PCB Render](board.png)
 
+<img src="../../images/34401A-pcb.png">
+
 ## Change Log
 
 
