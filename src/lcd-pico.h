@@ -26,6 +26,7 @@
 #include "log.h"
 #include <time.h>
 #include "pico/mutex.h"
+#include "hardware/flash.h"
 #ifdef LIB_PICO_CYW43_ARCH
 #define WIFI_SUPPORT 1
 #include "lwip/ip_addr.h"
@@ -74,8 +75,18 @@
 #define SPI_DEFAULT_SPEED  30000000L /* Default SPI bus frequency 30MHz */
 #endif
 
+/* Reserve flash space at the end for Bluetooth (BTstack) bonding storage,
+   using the same defaults as pico_btstack_flash_bank, so the LittleFS
+   filesystem below doesn't collide with it if Bluetooth is enabled. */
+#ifndef PICO_FLASH_BANK_TOTAL_SIZE
+#define PICO_FLASH_BANK_TOTAL_SIZE (FLASH_SECTOR_SIZE * 2u)
+#endif
+#ifndef PICO_FLASH_BANK_STORAGE_OFFSET
+#define PICO_FLASH_BANK_STORAGE_OFFSET (PICO_FLASH_SIZE_BYTES - PICO_FLASH_BANK_TOTAL_SIZE)
+#endif
+
 #define FANPICO_FS_SIZE  (256*1024)
-#define FANPICO_FS_OFFSET  (PICO_FLASH_SIZE_BYTES - FANPICO_FS_SIZE)
+#define FANPICO_FS_OFFSET  (PICO_FLASH_BANK_STORAGE_OFFSET - FANPICO_FS_SIZE)
 
 
 enum signal_filter_types {
