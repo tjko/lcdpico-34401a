@@ -1,7 +1,7 @@
 # lcd-pico-34401a
-TFT LCD Driver for HP34401 using RPi Pico
+TFT LCD Driver for HP34401 using RPi Pico 2 (W)
 
-This project is a LCD (TFT) replacement for the original vacuum fluorecent tube (VFD) display on HP/Agilent/Keysight 34401A multimeters.
+This project is a LCD (TFT) replacement for the original vacuum fluorescent tube (VFD) display on HP/Agilent/Keysight 34401A multimeters.
 
 
 This project is based on following projects:
@@ -9,10 +9,22 @@ This project is based on following projects:
 - https://github.com/openscopeproject/HP34401a-OLED-FW
 - https://github.com/Ian-Johnston/34401A_VS_Display
 
-This project is slightly different as it uses Raspberry Pi Pico 2W module, this allows SSH/Telnet access of WiFi to read display panel remotely (using SCPI commands).
-Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of pre-rendered graphics for the display. Initial "theme" makes HP 34401A display look like it has nixie tubes in it.
+This project is slightly different as it uses Raspberry Pi Pico 2W module, this allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
+Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display. Initial "theme" makes HP 34401A display look like it has nixie tubes in it.
 
 <img src="images/34401A-pcb-2.png" width="600">
+
+### Features
+- 2D Accelerated graphics (using LT768x graphics controller)
+  - 16bps graphics (with support for custom themes)
+  - Double buffered display (no flicker)
+- SCPI "like" programming interface (see [Command Reference](commands.md))
+- TTL (3.3V) serial console for configuration
+- Support for I2C sensors via QWIIC (QT) connector (support up to 8 sensors)
+- WiFi support (if using Pico 2 W)
+  - HTTP server with TLS (SSL) support
+  - SSH server for console access
+  - Telnet server for console access
 
 
 ### Web Interface
