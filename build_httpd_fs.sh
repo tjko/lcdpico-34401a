@@ -3,7 +3,7 @@
 # build_httpd_fs.sh
 #
 
-SERVER="LcdPico (https://github.com/tjko/lcd-pico-34401a)"
+SERVER="LcdPico (https://kokkonen.net/lcdpico)"
 
 FSDIR=src/httpd-fs/
 FSDATAFILE=src/lcdpico_fsdata.c

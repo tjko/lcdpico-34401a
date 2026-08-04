@@ -21,7 +21,7 @@ endif()
 project(lcdpico
   VERSION 1.0.0
   DESCRIPTION "LCD Driver for HP34401A"
-  HOMEPAGE_URL https://kokkonen.net/lcd-pico-34401a/
+  HOMEPAGE_URL https://kokkonen.net/lcdpico/
   LANGUAGES C CXX ASM
   )
 set(CMAKE_C_STANDARD 11)

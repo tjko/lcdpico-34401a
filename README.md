@@ -57,7 +57,7 @@ Connector on main PCB (34401-61602) is W601.
 See Ian Johnston's video on how to install his TFT conversion: https://www.youtube.com/watch?v=MFfk2P_R7ck
 
 
-W601 (34401A)|J1 (lcd-pico-34401a)|Notes
+W601 (34401A)|J1 (lcdpico-34401a)|Notes
 ----|---------------|-----
  1|1|AGND
  2|3|FPDO
@@ -155,7 +155,7 @@ File lcdpico.uf2 family ID 'rp2350-arm-s':
 Program Information
  name:                lcdpico
  version:             1.0.0
- web site:            https://kokkonen.net/lcdpico-34401a/
+ web site:            https://kokkonen.net/lcdpico/
  description:         LCD-Pico-34401A Display Controller
  features:            USB stdin / stdout
  boot settings:       bootdelay = 0
