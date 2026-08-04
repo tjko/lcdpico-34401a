@@ -1,6 +1,6 @@
 LCD-Pico: LCD Display Controller
 Copyright (C) 2026 Timo Kokkonen <tjko@iki.fi>
-https://kokkonen.net/lcd-pico
+https://kokkonen.net/lcdpico/
 
 This program comes with ABSOLUTELY NO WARRANTY.
 
