@@ -12,15 +12,17 @@ This project is based on following projects:
 This project is slightly different as it uses Raspberry Pi Pico 2W module, this allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
 Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display. Initial "theme" makes HP 34401A display look like it has nixie tubes in it.
 
+Since RP2350 has two cores, one core is used to solely monitor the serial communications between front panel and the meter and update the LCD display. While the other core handles all the other tasks
+
 <img src="images/34401A-pcb-2.png" width="600">
 
 ### Features
-- 2D Accelerated graphics (using LT768x graphics controller)
-  - 16bps graphics (with support for custom themes)
+- 2D accelerated graphics (using LT768x graphics controller)
+  - 16bpp graphics (with support for custom themes)
   - Double buffered display (no flicker)
 - SCPI "like" programming interface (see [Command Reference](commands.md))
-- TTL (3.3V) serial console for configuration
-- Support for I2C sensors via QWIIC (QT) connector (support up to 8 sensors)
+- USB and TTL (3.3V) serial console for configuration (NOTE! these should only be used for configuration and be disconnected when using meter for measurements)
+- Support for I2C temperature sensors via QWIIC (QT) connector (support for up to 8 sensors)
 - WiFi support (if using Pico 2 W)
   - HTTP server with TLS (SSL) support
   - SSH server for console access
@@ -36,8 +38,8 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 
 ### Parts List
 
-- PCB:[LCDpico for 34401A](boards/34401a/)
-- MCU Module: Raspberry Pi Pico 2 W (or plain "Pico 2" if WiFi functionality is not desired).
+- PCB: [LCDpico for 34401A](boards/34401a/)
+- MCU Module: [Raspberry Pi Pico 2 W](https://www.raspberrypi.com/products/raspberry-pi-pico-2/) (or plain "Pico 2" if WiFi functionality is not desired).
 - Display Controller (GPU): [ER-PCBA5981-1](https://www.buydisplay.com/download/manual/ER-PCBA5981-1_Datasheet.pdf) (LTLT7680 graphics controller board with FFC & ZIF connectors)
 - TFT Panel: [ER-TFT3.71-1](https://www.buydisplay.com/download/manual/ER-TFT3.71-1_Datasheet.pdf)  (3.71" TFT with ST7701S controller)
 - Panel mount USB cable that fits in (unused) pre-drilled holes for BNC connectors at 34401A back panel (for updating firmware easily)
