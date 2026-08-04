@@ -169,9 +169,17 @@ add_executable(lcdpico
   )
 
 
+# CMake doesn't seem to handle dependencies in assembler files, so add some manually..
+
 set_property(SOURCE src/*.s APPEND PROPERTY COMPILE_OPTIONS -I${CMAKE_CURRENT_LIST_DIR}/src)
 set_property(SOURCE src/credits.s APPEND PROPERTY COMPILE_OPTIONS -I${CMAKE_CURRENT_LIST_DIR})
+set_property(SOURCE src/credits.s APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/credits.txt")
+set_property(SOURCE src/default_config.S APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/boards/${LCDPICO_BOARD}.json")
+set_property(SOURCE src/img/logo.S APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/img/logo.png")
+file(GLOB THEME_IMAGES "${CMAKE_CURRENT_LIST_DIR}/src/img/${LCD_RESOLUTION}/*.png")
+set_property(SOURCE src/img/display.S APPEND PROPERTY OBJECT_DEPENDS ${THEME_IMAGES})
 
+message("theme images: ${THEME_IMAGES}")
 
 pico_enable_stdio_usb(lcdpico 1)
 pico_enable_stdio_uart(lcdpico 0)
@@ -214,10 +222,11 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
     )
   target_link_libraries(lcdpico PRIVATE
     pico_cyw43_arch_lwip_threadsafe_background
+    pico_btstack_cyw43
+    pico_btstack_ble
     pico_lwip_sntp
     pico_lwip_http
-    pico_lwip_mqtt
-    pico_lwip_snmp
+#    pico_lwip_snmp
     pico-telnetd-lib
     pico-sshd-lib
     wolfssl
