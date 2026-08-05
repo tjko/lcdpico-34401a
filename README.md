@@ -9,20 +9,21 @@ This project is based on following projects:
 - https://github.com/openscopeproject/HP34401a-OLED-FW
 - https://github.com/Ian-Johnston/34401A_VS_Display
 
-This project is slightly different as it uses Raspberry Pi Pico 2W module, this allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
-Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display. Initial "theme" makes HP 34401A display look like it has nixie tubes in it.
+This project takes slightly different approach as it uses Raspberry Pi Pico 2W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
+Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display.
+Initial "theme" makes HP 34401A display look like it has Nixie tubes as display.
 
-Since RP2350 has two cores, one core is used to solely monitor the serial communications between front panel and the meter and update the LCD display. While the other core handles all the other tasks
+Since RP2350 has two cores, one core is used to solely monitor the serial communications between front panel and the meter and update the LCD display. While the other is free to handle I/O and all the other tasks.
 
 <img src="images/34401A-pcb-2.png" width="600">
 
 ### Features
 - 2D accelerated graphics (using LT768x graphics controller)
   - 16bpp graphics (with support for custom themes)
-  - Double buffered display (no flicker)
+  - Double buffered display (no flickering)
 - SCPI "like" programming interface (see [Command Reference](commands.md))
 - USB and TTL (3.3V) serial console for configuration (NOTE! these should only be used for configuration and be disconnected when using meter for measurements)
-- Support for I2C temperature sensors via QWIIC (QT) connector (support for up to 8 sensors)
+- Support for I2C temperature sensors via QWIIC / STEMMA QT connector (support for up to 8 sensors): [Supported Sensors](https://github.com/tjko/pico-sensor-lib/blob/main/README.md)
 - WiFi support (if using Pico 2 W)
   - HTTP server with TLS (SSL) support
   - SSH server for console access
@@ -44,10 +45,12 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 - TFT Panel: [ER-TFT3.71-1](https://www.buydisplay.com/download/manual/ER-TFT3.71-1_Datasheet.pdf)  (3.71" TFT with ST7701S controller)
 - Panel mount USB cable that fits in (unused) pre-drilled holes for BNC connectors at 34401A back panel (for updating firmware easily)
 - 5V buck converter module (TO-220 form factor)
+- 1.0mm 20pin FFC ("flat-flex") cable about 50-80mm long
 
 #### Sources for parts:
 - TFT Panel and LT7680 controller: https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface
 - USB panel mount cable: https://www.adafruit.com/product/6069 (requires additional USB-C to Micro-USB adapter)
+- 1.0mm 20pin FFC cable (50mm): https://www.digikey.com/en/products/detail/gct/10-20-A-0050-C-4-08-4-T/22247591
 
 ### Connection to 34401A
 
@@ -156,14 +159,14 @@ Program Information
  name:                lcdpico
  version:             1.0.0
  web site:            https://kokkonen.net/lcdpico/
- description:         LCD-Pico-34401A Display Controller
+ description:         LCDpico-34401A Display Controller
  features:            USB stdin / stdout
  boot settings:       bootdelay = 0
                       safemode = 0
                       sysclock = 0
  binary start:        0x10000000
- binary end:          0x101c1ed0
- embedded drive:      0x103c0000-0x10400000 (256K): littlefs flags 0x0033 rw
+ binary end:          0x101ccfa0
+ embedded drive:      0x103bf000-0x103fd000 (248K): littlefs flags 0x0033 rw
  target chip:         RP2350
  image type:          ARM Secure
 
@@ -193,19 +196,19 @@ Build Information
  sdk version:         2.3.0
  pico_board:          pico2_w
  boot2_name:          boot2_w25q080
- build date:          Jul 29 2026
+ build date:          Aug  3 2026
  build attributes:    Release
 
 Metadata Block 1
  address:             0x10000138
- next block address:  0x101c1ebc
+ next block address:  0x101ccf8c
  block type:          image def
  target chip:         RP2350
  image type:          ARM Secure
  extra security:      not enabled
 
 Metadata Block 2
- address:             0x101c1ebc
+ address:             0x101ccf8c
  next block address:  0x10000138
  block type:          ignored
 ```
