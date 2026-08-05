@@ -75,6 +75,7 @@ W601 (34401A)|J1 (lcdpico-34401a)|Notes
 11| |FIL2 (not used)
 12| |2.5V (not used)
 
+<img src="images/fp-connection.jpg" width="400">
 
 
 
