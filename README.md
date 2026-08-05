@@ -48,9 +48,9 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 - 1.0mm 20pin FFC ("flat-flex") cable about 50-80mm long
 
 #### Sources for parts:
-- TFT Panel and LT7680 controller: https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface
-- USB panel mount cable: https://www.adafruit.com/product/6069 (requires additional USB-C to Micro-USB adapter)
-- 1.0mm 20pin FFC cable (50mm): https://www.digikey.com/en/products/detail/gct/10-20-A-0050-C-4-08-4-T/22247591
+- TFT Panel and LT7680 controller: [buydisplay.com](https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface)
+- USB panel mount cable: [Adafruit](https://www.adafruit.com/product/6069) (requires additional USB-C to Micro-USB adapter like this one: [Amazon](https://www.amazon.com/dp/B07VBV1PY5))
+- 1.0mm 20pin FFC cable (50mm): [DigiKey](https://www.digikey.com/en/products/detail/gct/10-20-A-0050-C-4-08-4-T/22247591)
 
 ### Connection to 34401A
 
