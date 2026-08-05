@@ -8,7 +8,7 @@
   </head>
   <body bgcolor="white" text="black">
     <div class="header-line">
-      <a href="https://kokkonen.net/lcdpico/"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
+      <a href="https://kokkonen.net/lcdpico/" target="_blank"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
       <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
     </div>
     <table id="b1">

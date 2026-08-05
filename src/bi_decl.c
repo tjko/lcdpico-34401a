@@ -30,10 +30,10 @@
 
 void set_binary_info(struct fw_settings *settings)
 {
-	bi_decl(bi_program_description("LCD-Pico-" LCDPICO_BOARD " Display Controller"));
+	bi_decl(bi_program_description("LCDpico-" LCDPICO_BOARD " Display Controller"));
 	bi_decl(bi_program_version_string(LCDPICO_VERSION LCDPICO_BUILD_TAG));
 	bi_decl(bi_program_build_date_string("__DATE__"));
-	bi_decl(bi_program_url("https://kokkonen.net/lcd-pico/"));
+	bi_decl(bi_program_url("https://kokkonen.net/lcdpico/"));
 
 	bi_decl(bi_program_feature_group(BI_TAG, BOOT_SETTINGS, "boot settings"));
 	bi_decl(bi_ptr_int32(BI_TAG, BOOT_SETTINGS, sysclock, 0));
@@ -42,6 +42,16 @@ void set_binary_info(struct fw_settings *settings)
 	settings->sysclock = sysclock;
 	settings->safemode = safemode;
 	settings->bootdelay = bootdelay;
+
+	bi_decl(bi_block_device(
+			BI_TAG,
+			"btflashbank",
+			XIP_BASE + PICO_FLASH_BANK_STORAGE_OFFSET,
+			PICO_FLASH_BANK_TOTAL_SIZE,
+			NULL,
+			BINARY_INFO_BLOCK_DEV_FLAG_READ
+			| BINARY_INFO_BLOCK_DEV_FLAG_WRITE
+			| BINARY_INFO_BLOCK_DEV_FLAG_PT_NONE));
 
         bi_decl(bi_block_device(
 			BI_TAG,
