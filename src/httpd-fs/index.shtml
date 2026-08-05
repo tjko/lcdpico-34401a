@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=0.93,user-scaleable=yes">
   </head>
   <body bgcolor="white" text="black">
-    <div class="header-line">
-      <a href="https://kokkonen.net/lcdpico/" target="_blank"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
-      <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
-    </div>
     <table id="b1">
       <tr>
         <td>
+	  <div class="header-line">
+	    <a href="https://kokkonen.net/lcdpico/" target="_blank"><img src="img/lcdpico.png" alt="LcdPico Logo" class="header-img"></a>
+	    <h2><font color="#03a3aa">LCDpico: <!--#name--></font></h2>
+	  </div>
         </td>
       </tr>
       <tr>
@@ -178,7 +178,7 @@
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.75;
         ctx.lineCap = 'butt';
         ctx.strokeStyle = on ? LIT : UNLIT;
         if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 6; }
@@ -197,8 +197,8 @@
 
       function drawComma(cx, cy, on) {
         ctx.beginPath();
-        ctx.moveTo(cx + 2, cy - 3);
-        ctx.lineTo(cx - 2, cy + 4);
+        ctx.moveTo(cx + 0.5, cy - 3);
+        ctx.lineTo(cx - 3.5, cy + 3);
         ctx.lineWidth = 2.4;
         ctx.lineCap = 'round';
         ctx.strokeStyle = on ? LIT : UNLIT;
@@ -232,7 +232,7 @@
 
       function drawAnnRow(ann) {
         var y = TOP_Y + CELL_H + ANN_GAP + 14;
-        ctx.font = '10px "Courier New", monospace';
+        ctx.font = '13px "Courier New", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
         ANN_LABELS.forEach(function(label, i) {
@@ -241,7 +241,7 @@
           if (label === 'ERROR') {
             ctx.strokeStyle = UNLIT;
             ctx.lineWidth = 1;
-            ctx.strokeRect(cx - 20, y - 12, 40, 16);
+            ctx.strokeRect(cx - 21, y - 12, 42, 16);
           }
           ctx.fillStyle = on ? LIT : UNLIT;
           if (on) { ctx.shadowColor = LIT; ctx.shadowBlur = 4; }
