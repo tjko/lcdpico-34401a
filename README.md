@@ -3,6 +3,7 @@ TFT LCD Driver for HP34401 using RPi Pico 2 (W)
 
 This project is a LCD (TFT) replacement for the original vacuum fluorescent tube (VFD) display on HP/Agilent/Keysight 34401A multimeters.
 
+<img src="images/fp-nixie.png" width="512">
 
 This project is based on following projects:
 
