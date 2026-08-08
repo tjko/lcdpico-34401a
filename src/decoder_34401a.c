@@ -289,6 +289,7 @@ static void decodeControlFrame(dmm_context_t *ctx)
 
 static void process_reset(dmm_context_t *ctx)
 {
+	ctx->fifo_rd = ctx->fifo_wr; // cear FIFO
 	endFrame(ctx);
 	ctx->shift_press_count = 0;
 	ctx->shift_window_active = false;
@@ -333,80 +334,80 @@ void decoder34401_init(dmm_context_t *ctx)
 
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 {
-    uint32_t now_us = micros32();
-    uint32_t all = gpio_get_all();
+	uint32_t now_us = micros32();
+	uint32_t all = gpio_get_all();
 
-    // read in one bit from DO and DI pins
-    ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (all & (1 << DO_PIN) ? 1 : 0));
-    ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
+	// read in one bit from DO and DI pins
+	ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (all & (1 << DO_PIN) ? 1 : 0));
+	ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
 
-    // mid-byte gap detection (power-on / pause)
-    if (ctx->last_us > 0) {
-	    ctx->dbg_sck_gap_us = now_us - ctx->last_us;
-	    if (ctx->dbg_sck_gap_us > ctx->dbg_sck_gap_us_max)
-		    ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
+	// mid-byte gap detection (power-on / pause)
+	if (ctx->last_us > 0) {
+		ctx->dbg_sck_gap_us = now_us - ctx->last_us;
+		if (ctx->dbg_sck_gap_us > ctx->dbg_sck_gap_us_max)
+			ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
 
-	    if (ctx->byte_len != 0u && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
-		    ctx->byte_len = 0u;
-		    ctx->dbg_mid_byte_gap_count++;
-		    ctx->dbg_mid_byte_gap_last_us = now_us;
-	    }
-    }
-    ctx->last_us = now_us;
+		if (ctx->byte_len != 0 && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
+			ctx->byte_len = 0;
+			ctx->dbg_mid_byte_gap_count++;
+			ctx->dbg_mid_byte_gap_last_time = now_us;
+			ctx->dbg_mid_byte_gap_last_us = ctx->dbg_sck_gap_us;
+			if (ctx->dbg_sck_gap_us > ctx->dbg_mid_byte_gap_max_us)
+				ctx->dbg_mid_byte_gap_max_us = ctx->dbg_sck_gap_us;
+		}
+	}
+	ctx->last_us = now_us;
 
 
-    ctx->byte_len++;
-    if (ctx->byte_len >= 8) {
-	    uint8_t next_wr = (uint8_t)((ctx->fifo_wr + 1u) & BYTE_FIFO_MASK);
+	ctx->byte_len++;
+	if (ctx->byte_len >= 8) {
+		uint8_t next_wr = (uint8_t)((ctx->fifo_wr + 1u) & BYTE_FIFO_MASK);
 
-	    if (next_wr == ctx->fifo_rd) {
-		    ctx->dbg_byte_overrun_count++;
-	    }
-	    else {
-		    ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
-		    ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
-		    ctx->fifo_wr = next_wr;
+		if (next_wr == ctx->fifo_rd) {
+			ctx->dbg_byte_overrun_count++;
+		}
+		else {
+			ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
+			ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
+			ctx->fifo_wr = next_wr;
 
-		    ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
-		    if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
-			    ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
-	    }
+			ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
+			if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
+				ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
+		}
 
-	    ctx->byte_len = 0;
-    }
+		ctx->byte_len = 0;
+	}
 
-    ctx->dbg_sck_count++;
+	ctx->dbg_sck_count++;
 }
 
 
 void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx)
 {
-	ctx->dbg_last_reset_us = micros32();
-
-	ctx->byte_len = 0;
-	ctx->fifo_wr = 0;
-	ctx->fifo_rd = 0;
-
-	ctx->reset_received = true;
+	ctx->dbg_reset_last_time = micros32();
 	ctx->dbg_reset_count++;
+	ctx->byte_len = 0;
+	ctx->reset_received = true;
 }
 
 
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx)
 {
-	ctx->dbg_last_int_us = micros32();
+	ctx->dbg_int_last_time = micros32();
 	ctx->dbg_int_count++;
 }
 
 
 void decoder34401_process(dmm_context_t *ctx)
 {
+	uint32_t p_start = micros32();
+
 	if (ctx->reset_received) {
 		process_reset(ctx);
-		return;
+	} else {
+		processShiftWindow(ctx);
 	}
-
-	processShiftWindow(ctx);
 
 	while (ctx->fifo_rd != ctx->fifo_wr) {
 		uint8_t input_byte = ctx->byte_fifo[ctx->fifo_rd].in;
@@ -415,12 +416,12 @@ void decoder34401_process(dmm_context_t *ctx)
 
 		// Any-byte timing debug
 		uint32_t now_us = micros32();
-		if (ctx->dbg_last_any_us > 0) {
-			ctx->dbg_any_gap_us = now_us - ctx->dbg_last_any_us;
+		if (ctx->dbg_any_last_time > 0) {
+			ctx->dbg_any_gap_us = now_us - ctx->dbg_any_last_time;
 			if (ctx->dbg_any_gap_us > ctx->dbg_any_gap_us_max)
 				ctx->dbg_any_gap_us_max = ctx->dbg_any_gap_us;
 		}
-		ctx->dbg_last_any_us = now_us;
+		ctx->dbg_any_last_time = now_us;
 
 		// consume byte
 		ctx->input_buf[ctx->buf_len] = input_byte;
@@ -471,7 +472,7 @@ void decoder34401_process(dmm_context_t *ctx)
 				}
 
 				if (ctx->corrupt_msg) {
-					ctx->dbg_bad_msg_last_us = now_us;
+					ctx->dbg_bad_msg_last_time = now_us;
 					ctx->dbg_bad_msg_count++;
 				}
 
@@ -483,12 +484,12 @@ void decoder34401_process(dmm_context_t *ctx)
 				ctx->main_counter++;
 
 				// Main-message timing debug
-				if (ctx->dbg_last_main_us > 0) {
-					ctx->dbg_main_gap_us = now_us - ctx->dbg_last_main_us;
+				if (ctx->dbg_main_last_time > 0) {
+					ctx->dbg_main_gap_us = now_us - ctx->dbg_main_last_time;
 					if (ctx->dbg_main_gap_us > ctx->dbg_main_gap_us_max)
 						ctx->dbg_main_gap_us_max = ctx->dbg_main_gap_us;
 				}
-				ctx->dbg_last_main_us = now_us;
+				ctx->dbg_main_last_time = now_us;
 
 				updateBarGraphFromMessageFrame(ctx);
 				ctx->msg_work_need_reset = true;
@@ -564,6 +565,11 @@ void decoder34401_process(dmm_context_t *ctx)
 			endFrame(ctx);
 			ctx->dbg_buf_overflow_count++;
 		}
+	}
+
+	uint32_t p_time = micros32() - p_start;
+	if (p_time > ctx->dbg_max_process_us) {
+		ctx->dbg_max_process_us = p_time;
 	}
 }
 

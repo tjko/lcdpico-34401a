@@ -19,7 +19,7 @@ endif()
 
 
 project(lcdpico
-  VERSION 1.0.0
+  VERSION 1.0.1
   DESCRIPTION "LCD Driver for HP34401A"
   HOMEPAGE_URL https://kokkonen.net/lcdpico/
   LANGUAGES C CXX ASM

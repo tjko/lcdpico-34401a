@@ -67,31 +67,35 @@ typedef struct dmm_context {
 	volatile uint32_t dbg_byte_overrun_count;
 	volatile uint32_t dbg_buf_overflow_count;
 	volatile uint32_t dbg_mid_byte_gap_count;
+	volatile uint32_t dbg_mid_byte_gap_last_time;
 	volatile uint32_t dbg_mid_byte_gap_last_us;
+	volatile uint32_t dbg_mid_byte_gap_max_us;
 
 	volatile uint32_t dbg_reset_count;
 	volatile uint32_t dbg_int_count;
 	volatile uint32_t dbg_sck_count;
 
 	volatile uint32_t dbg_bad_msg_count;
-	volatile uint32_t dbg_bad_msg_last_us;
+	volatile uint32_t dbg_bad_msg_last_time;
 
-	volatile uint32_t dbg_last_reset_us;
-	volatile uint32_t dbg_last_int_us;
+	volatile uint32_t dbg_reset_last_time;
+	volatile uint32_t dbg_int_last_time;
 
 	volatile uint32_t dbg_sck_gap_us;
 	volatile uint32_t dbg_sck_gap_us_max;
 
 	volatile uint32_t dbg_main_gap_us;
 	volatile uint32_t dbg_main_gap_us_max;
-	volatile uint32_t dbg_last_main_us;
+	volatile uint32_t dbg_main_last_time;
 
 	volatile uint32_t dbg_any_gap_us;
 	volatile uint32_t dbg_any_gap_us_max;
-	volatile uint32_t dbg_last_any_us;
+	volatile uint32_t dbg_any_last_time;
 
 	volatile uint32_t dbg_fifo_level_max;
 	volatile uint32_t dbg_fifo_level;
+
+	volatile uint32_t dbg_max_process_us;
 
         // ===== Internal sniff state =====
 	volatile uint8_t  byte_len;

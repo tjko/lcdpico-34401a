@@ -27,7 +27,7 @@ LcdPico supports following commands:
 * [CONFigure:VSENSORx:NAME?](#configurevsensorxname-1)
 * [CONFigure:VSENSORx:SOUrce](#configurevsensorxsource)
 * [CONFigure:VSENSORx:SOUrce?](#configurevsensorxsource-1)
-* [DEBUG?](#debug)
+* [Debug?](#debug)
 * [EXIT](#exit)
 * [MEASure:Read?](#measureread)
 * [MEASure:Main?](#measuremain)
@@ -396,7 +396,7 @@ CONF:VSENSOR2:SOU?
 i2c,0x48,tmp11x
 ```
 
-#### DEBUG?
+#### Debug?
 Display internal debug counters for the 34401A front-panel bus decoder (SCK/interrupt timing,
 byte/message error counts, and touch/LCD interrupt counts). Intended for diagnosing decoding
 issues.
@@ -405,30 +405,33 @@ Example:
 ```
 DEBUG?
 DMM Decoder:
-            sck gap: 42 us
-        max sck gap: 118 us
-           main gap: 620 us
-       max main gap: 1450 us
-            any gap: 42 us
-        max any gap: 1450 us
-         fifo level: 2
-     max fifo level: 18
- byte overrun count: 0
- mid byte gap count: 0
+            sck gap: 11 us
+        max sck gap: 252152 us
+           main gap: 344025 us
+       max main gap: 688053 us
+            any gap: 1025 us
+        max any gap: 252229 us
+       mid byte gap: 931 us
+   max mid byte gap: 1445 us
+   max process time: 44 us
+         fifo level: 1
+     max fifo level: 5
+ fifo overrun count: 0
+ mid byte gap count: 7
  buf overflow count: 0
-      bad msg count: 0
-  last mid byte gap: 0
-       last bad msg: 0
-         last reset: 1234567
-           last int: 4567890
-          last main: 4567000
-           last any: 4567890
+      bad msg count: 19
+  last mid byte gap: 281471940
+       last bad msg: 295573958
+         last reset: 0
+           last int: 307710316
+          last main: 307607656
+           last any: 307714601
 
 Interrupts:
-            DMM_INT: 128442
-            DMM_SCK: 512044
-          DMM_RESET: 812
-            LCM_INT: 30211
+            DMM_INT: 5300
+            DMM_SCK: 190761
+          DMM_RESET: 0
+            LCM_INT: 0
             CTP_INT: 0
 
 ```

@@ -427,23 +427,6 @@ static void core1_main()
 			log_msg(LOG_INFO, "core1: max_loop_time=%lld", max_delta);
 		}
 
-#if 0
-		/* Read temperature sensors periodically */
-		if (time_passed(&t_temp, 2000)) {
-			//log_msg(LOG_DEBUG, "Update virtual sensors");
-			for (int i = 0; i < VSENSOR_COUNT; i++) {
-				state->vtemp[i] = get_vsensor(i, config, state);
-				if (check_for_change(state->vtemp_prev[i], state->vtemp[i], 0.5)) {
-					log_msg(LOG_INFO, "vsensor%d: Temperature change %.1fC --> %.1fC",
-						i+1,
-						state->vtemp_prev[i],
-						state->vtemp[i]);
-					state->vtemp_prev[i] = state->vtemp[i];
-				}
-			}
-		}
-#endif
-
 		if (time_passed(&t_config, 1000)) {
 			/* Attempt to update config from core0 */
 			if (mutex_enter_timeout_us(config_mutex, 100)) {

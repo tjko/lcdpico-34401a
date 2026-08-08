@@ -274,18 +274,21 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf("       max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
 	printf("            any gap: %lu us\n", st->dmm.dbg_any_gap_us);
 	printf("        max any gap: %lu us\n", st->dmm.dbg_any_gap_us_max);
+	printf("       mid byte gap: %lu us\n", st->dmm.dbg_mid_byte_gap_last_us);
+	printf("   max mid byte gap: %lu us\n", st->dmm.dbg_mid_byte_gap_max_us);
+	printf("   max process time: %lu us\n", st->dmm.dbg_max_process_us);
 	printf("         fifo level: %lu\n", st->dmm.dbg_fifo_level);
 	printf("     max fifo level: %lu\n", st->dmm.dbg_fifo_level_max);
-	printf(" byte overrun count: %lu\n", st->dmm.dbg_byte_overrun_count);
+	printf(" fifo overrun count: %lu\n", st->dmm.dbg_byte_overrun_count);
 	printf(" mid byte gap count: %lu\n", st->dmm.dbg_mid_byte_gap_count);
 	printf(" buf overflow count: %lu\n", st->dmm.dbg_buf_overflow_count);
 	printf("      bad msg count: %lu\n", st->dmm.dbg_bad_msg_count);
-	printf("  last mid byte gap: %lu\n", st->dmm.dbg_mid_byte_gap_last_us);
-	printf("       last bad msg: %lu\n", st->dmm.dbg_bad_msg_last_us);
-	printf("         last reset: %lu\n", st->dmm.dbg_last_reset_us);
-	printf("           last int: %lu\n", st->dmm.dbg_last_int_us);
-	printf("          last main: %lu\n", st->dmm.dbg_last_main_us);
-	printf("           last any: %lu\n", st->dmm.dbg_last_any_us);
+	printf("  last mid byte gap: %lu\n", st->dmm.dbg_mid_byte_gap_last_time);
+	printf("       last bad msg: %lu\n", st->dmm.dbg_bad_msg_last_time);
+	printf("         last reset: %lu\n", st->dmm.dbg_reset_last_time);
+	printf("           last int: %lu\n", st->dmm.dbg_int_last_time);
+	printf("          last main: %lu\n", st->dmm.dbg_main_last_time);
+	printf("           last any: %lu\n", st->dmm.dbg_any_last_time);
 
 	printf("\nInterrupts:\n");
 	printf("            DMM_INT: %lu\n", st->dmm.dbg_int_count);
@@ -1751,7 +1754,7 @@ const struct cmd_t commands[] = {
 	{ "*TST",      4, NULL,              cmd_zero },
 	{ "*WAI",      4, NULL,              cmd_null },
 	{ "CONFigure", 4, config_commands,   cmd_print_config },
-	{ "DEBUG",     5, NULL,              cmd_debug },
+	{ "Debug",     1, NULL,              cmd_debug },
 	{ "EXIT",      4, NULL,              cmd_exit },
 	{ "MEAsure",   3, measure_commands,  NULL },
 	{ "SYStem",    3, system_commands,   NULL },
