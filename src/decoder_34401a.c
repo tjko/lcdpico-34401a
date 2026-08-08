@@ -270,14 +270,14 @@ static void decodeControlFrame(dmm_context_t *ctx)
 	case 0x0049: ctx->blink_mask = (1u << 0);  break;
 	case 0x7149: ctx->blink_mask = (1u << 1);  break;
 	case 0x6249: ctx->blink_mask = (1u << 2);  break;
-	case 0x5349: ctx->blink_mask = (1u << 3);  break;
-	case 0x4449: ctx->blink_mask = (1u << 4);  break;
-	case 0x3549: ctx->blink_mask = (1u << 5);  break;
-	case 0x2649: ctx->blink_mask = (1u << 6);  break;
-	case 0x1749: ctx->blink_mask = (1u << 7);  break;
-	case 0x0849: ctx->blink_mask = (1u << 8);  break;
-	case 0x7949: ctx->blink_mask = (1u << 9);  break;
-	case 0x6A49: ctx->blink_mask = (1u << 10); break;
+	case 0x1349: ctx->blink_mask = (1u << 3);  break;
+	case 0x5449: ctx->blink_mask = (1u << 4);  break;
+	case 0x2549: ctx->blink_mask = (1u << 5);  break;
+	case 0x3649: ctx->blink_mask = (1u << 6);  break;
+	case 0x4749: ctx->blink_mask = (1u << 7);  break;
+	case 0x3849: ctx->blink_mask = (1u << 8);  break;
+	case 0x4949: ctx->blink_mask = (1u << 9);  break;
+	case 0x5A49: ctx->blink_mask = (1u << 10); break;
 	case 0x2B49: ctx->blink_mask = (1u << 11); break;
 	default:
 		return;
@@ -410,6 +410,14 @@ void decoder34401_process(dmm_context_t *ctx)
 	}
 
 	while (ctx->fifo_rd != ctx->fifo_wr) {
+		// A reset can arrive mid-drain (this loop may process a large
+		// backlog in one call); honor it immediately instead of letting
+		// the rest of the backlog be parsed with stale frame state.
+		if (ctx->reset_received) {
+			process_reset(ctx);
+			continue;
+		}
+
 		uint8_t input_byte = ctx->byte_fifo[ctx->fifo_rd].in;
 		uint8_t output_byte = ctx->byte_fifo[ctx->fifo_rd].out;
 		ctx->fifo_rd = (uint8_t)((ctx->fifo_rd + 1u) & BYTE_FIFO_MASK);
