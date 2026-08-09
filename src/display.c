@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "pico/stdlib.h"
 #include "lcd-pico.h"
 #include "PNGdec.h"
