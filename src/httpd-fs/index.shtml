@@ -323,6 +323,7 @@
       }
 
       var latestData = null;
+      var starAnnState = false;
 
       /* Mirrors the firmware's own blink timing: (time_us_32()/100000) % 2 == 1 is the "off" half. */
       function blinkOff() {
@@ -373,6 +374,9 @@
           .then(function(res) { return res.ok ? res.json() : null; })
           .then(function(data) {
             if (!data) return;
+            starAnnState = !starAnnState;
+            data.annunciators = data.annunciators || {};
+            data.annunciators['*'] = starAnnState;
             render(data);
             updateSensorTable(data.vsensors);
           })
