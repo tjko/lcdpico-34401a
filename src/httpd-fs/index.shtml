@@ -23,6 +23,7 @@
             <canvas id="vfd" aria-label="HP 34401A display">
               Your browser does not support the HTML5 canvas element.
             </canvas>
+            <div id="vfd-conn-lost" class="vfd-overlay">Connection Lost</div>
           </div>
         </td>
       </tr>
@@ -350,6 +351,12 @@
       render(null);
 
       var sensorTbl = document.getElementById('sensor-tbl');
+      var connLostEl = document.getElementById('vfd-conn-lost');
+
+      function setConnLost(lost) {
+        if (!connLostEl) return;
+        connLostEl.classList.toggle('show', lost);
+      }
 
       function updateSensorTable(vsensors) {
         if (!sensorTbl || !vsensors) return;
@@ -373,14 +380,15 @@
         fetch('/status.json', { cache: 'no-store' })
           .then(function(res) { return res.ok ? res.json() : null; })
           .then(function(data) {
-            if (!data) return;
+            if (!data) { setConnLost(true); return; }
+            setConnLost(false);
             starAnnState = !starAnnState;
             data.annunciators = data.annunciators || {};
             data.annunciators['*'] = starAnnState;
             render(data);
             updateSensorTable(data.vsensors);
           })
-          .catch(function() { /* keep last rendered state on network error */ });
+          .catch(function() { setConnLost(true); /* keep last rendered state on network error */ });
       }
       pollStatus();
       setInterval(pollStatus, 1000);
