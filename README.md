@@ -50,7 +50,7 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 
 #### Sources for parts:
 - TFT Panel and LT7680 controller: [buydisplay.com](https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface)
-- USB panel mount cable: [Adafruit](https://www.adafruit.com/product/6069) (requires additional USB-C to Micro-USB adapter)
+- USB panel mount cable: [Adafruit](https://www.adafruit.com/product/6069) (requires additional 180-degree USB-C to Micro-USB adapter, for example [Amazon](https://www.amazon.com/Strhowill-Connector-Adapter-Charging-Transfer/dp/B0DR795HHY))
 - 1.0mm 20pin FFC cable (50mm): [DigiKey](https://www.digikey.com/en/products/detail/gct/10-20-A-0050-C-4-08-4-T/22247591)
 
 ### Connection to 34401A
@@ -58,7 +58,7 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 This display module is meant to be connected to the front panel, where the cable is soldered on the display module PCB.
 Connector on main PCB (34401-61602) is W601.
 
-See Ian Johnston's video on how to install his TFT conversion: https://www.youtube.com/watch?v=MFfk2P_R7ck
+See Ian Johnston's video on how to install his TFT conversion: [YouTube](https://www.youtube.com/watch?v=MFfk2P_R7ck) [Blog](https://www.ianjohnston.com/index.php/conversions/34401atftconversion)
 
 
 W601 (34401A)|J1 (lcdpico-34401a)|Notes
@@ -159,7 +159,7 @@ File lcdpico.uf2 family ID 'rp2350-arm-s':
 
 Program Information
  name:                lcdpico
- version:             1.0.0
+ version:             1.0.1beta
  web site:            https://kokkonen.net/lcdpico/
  description:         LCDpico-34401A Display Controller
  features:            USB stdin / stdout
@@ -167,8 +167,9 @@ Program Information
                       safemode = 0
                       sysclock = 0
  binary start:        0x10000000
- binary end:          0x101ccfa0
+ binary end:          0x101d1b1c
  embedded drive:      0x103bf000-0x103fd000 (248K): littlefs flags 0x0033 rw
+ embedded drive:      0x103fd000-0x103ff000 (8K): btflashbank flags 0x0033 rw
  target chip:         RP2350
  image type:          ARM Secure
 
@@ -203,14 +204,14 @@ Build Information
 
 Metadata Block 1
  address:             0x10000138
- next block address:  0x101ccf8c
+ next block address:  0x101d1b08
  block type:          image def
  target chip:         RP2350
  image type:          ARM Secure
  extra security:      not enabled
 
 Metadata Block 2
- address:             0x101ccf8c
+ address:             0x101d1b08
  next block address:  0x10000138
  block type:          ignored
 ```
