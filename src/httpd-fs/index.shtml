@@ -376,10 +376,15 @@
         }
       }
 
+      var STATUS_FETCH_TIMEOUT_MS = 2000;
+
       function pollStatus() {
-        fetch('/status.json', { cache: 'no-store' })
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, STATUS_FETCH_TIMEOUT_MS);
+        fetch('/status.json', { cache: 'no-store', signal: controller.signal })
           .then(function(res) { return res.ok ? res.json() : null; })
           .then(function(data) {
+            clearTimeout(timer);
             if (!data) { setConnLost(true); return; }
             setConnLost(false);
             starAnnState = !starAnnState;
@@ -388,7 +393,7 @@
             render(data);
             updateSensorTable(data.vsensors);
           })
-          .catch(function() { setConnLost(true); /* keep last rendered state on network error */ });
+          .catch(function() { clearTimeout(timer); setConnLost(true); /* keep last rendered state on network error or timeout */ });
       }
       pollStatus();
       setInterval(pollStatus, 1000);
