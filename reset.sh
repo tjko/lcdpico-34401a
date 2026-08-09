@@ -1,12 +1,12 @@
 #!/bin/sh
 #
-# Flash Pico 2 firmware using picoprobe
+# Reset Pico 2 using picoprobe
 #
 
 openocd -f interface/cmsis-dap.cfg \
         -c "adapter speed 5000" \
 	-f target/rp2350.cfg \
-	-c "program build/lcdpico.elf verify reset exit"
+	-c "init; reset; exit"
 
 
 # eof :-)
