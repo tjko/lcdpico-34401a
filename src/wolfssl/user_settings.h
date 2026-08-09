@@ -383,7 +383,7 @@ extern time_t ssh_server_my_time(time_t *);
 #undef DEBUG_WOLFSSL
 #undef NO_ERROR_STRINGS
 #ifndef NDEBUG
-#if 1
+#if 0
 #define DEBUG_WOLFSSL
 #define DEBUG_WOLFSSH
 #define DEBUG_MLKEM

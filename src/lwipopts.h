@@ -7,7 +7,7 @@
 extern uint16_t lcdpico_http_server_port;
 extern uint16_t lcdpico_https_server_port;
 
-// Settings for FanPico when using Pico W...
+// Settings for LcdPico when using Pico 2 W...
 // (see https://www.nongnu.org/lwip/2_1_x/group__lwip__opts.html for details)
 
 // allow override in some examples
@@ -29,11 +29,11 @@ extern uint16_t lcdpico_https_server_port;
 #define MEM_SANITY_CHECK            1
 #define MEM_OVERFLOW_CHECK          1
 #define MEMP_NUM_TCP_SEG            64
-#define MEMP_NUM_TCP_PCB            32
-#define MEMP_NUM_UDP_PCB            8
-#define MEMP_NUM_ARP_QUEUE          10
+#define MEMP_NUM_TCP_PCB            128
+#define MEMP_NUM_UDP_PCB            16
+#define MEMP_NUM_ARP_QUEUE          16
 #define MEMP_NUM_SYS_TIMEOUT        (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 4)
-#define PBUF_POOL_SIZE              24
+#define PBUF_POOL_SIZE              32
 #define LWIP_ARP                    1
 #define LWIP_ETHERNET               1
 #define LWIP_ICMP                   1
