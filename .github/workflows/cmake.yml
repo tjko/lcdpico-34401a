@@ -130,13 +130,12 @@ jobs:
       run: |
         mkdir -p licenses/licenses
         cp -v LICENSE credits.txt licenses/
-        licenses=$(find libs/ -name 'LICENSE*'; find ${PICO_SDK_PATH}/ -maxdepth 3 -name 'LICENSE*')
-        for file in $licenses; do
-          dir=$(dirname $file)
-          name=$(basename $file)
-          lib=$(basename $dir)
+        while IFS= read -r -d '' file; do
+          dir=$(dirname "$file")
+          name=$(basename "$file")
+          lib=$(basename "$dir")
           cp -v "$file" "licenses/licenses/${name}.${lib}"
-        done
+        done < <(find libs/ -name 'LICENSE*' -print0; find "${PICO_SDK_PATH}/" -maxdepth 3 -name 'LICENSE*' -print0)
 
     - name: Upload License Artifact
       if: ${{ matrix.lcdpico_board == '34401A' && matrix.pico_board == 'pico2' }}
