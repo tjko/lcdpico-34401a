@@ -10,7 +10,7 @@ This project is based on following projects:
 - https://github.com/openscopeproject/HP34401a-OLED-FW
 - https://github.com/Ian-Johnston/34401A_VS_Display
 
-This project takes slightly different approach as it uses Raspberry Pi Pico 2W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
+This project takes slightly different approach as it uses Raspberry Pi Pico 2 W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
 Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display.
 Initial "theme" makes HP 34401A display look like it has Nixie tubes as display.
 
@@ -82,6 +82,7 @@ W601 (34401A)|J1 (lcdpico-34401a)|Notes
 
 ## Firmware
 Firmware is developed in C using the Pico-SDK. Pre-compiled firmware is released when there is new major features or bug fixes.
+Firmware is based on firmware for [FanPico](https://github.com/tjko/fanpico).
 
 Latest pre-compiled firmware image can be found here: [Releases](https://github.com/tjko/lcdpico-34401a/releases)
 
