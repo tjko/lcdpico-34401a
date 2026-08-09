@@ -77,6 +77,11 @@
     padding: 10px;
     display: inline-block;
     position: relative;
+    overflow: hidden;
+}
+
+.vfd-frame canvas {
+    display: block;
 }
 
 .vfd-overlay {
@@ -88,7 +93,7 @@
     bottom: 10px;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.35);
     border-radius: 4px;
     color: #ff4444;
     font-family: "Courier New", monospace;
@@ -96,6 +101,7 @@
     font-weight: bold;
     text-align: center;
     letter-spacing: 1px;
+    text-shadow: 0 0 4px #000, 0 0 8px #000;
     pointer-events: none;
 }
 
