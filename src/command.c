@@ -274,7 +274,8 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf("       max main gap: %lu us\n", st->dmm.dbg_main_gap_us_max);
 	printf("            any gap: %lu us\n", st->dmm.dbg_any_gap_us);
 	printf("        max any gap: %lu us\n", st->dmm.dbg_any_gap_us_max);
-	printf("       mid byte gap: %lu us\n", st->dmm.dbg_mid_byte_gap_last_us);
+	printf("       mid byte gap: %lu us (%u bits, in=%02x,out=%02x)\n", st->dmm.dbg_mid_byte_gap_last_us,
+		st->dmm.dbg_mid_byte_gap_bits, st->dmm.dbg_mid_byte_gap_input, st->dmm.dbg_mid_byte_gap_output);
 	printf("   max mid byte gap: %lu us\n", st->dmm.dbg_mid_byte_gap_max_us);
 	printf("   max process time: %lu us\n", st->dmm.dbg_max_process_us);
 	printf("         fifo level: %lu\n", st->dmm.dbg_fifo_level);

@@ -9,8 +9,8 @@
 extern "C" {
 #endif
 
-//#define MAX_SCK_DELAY_US 1500u  // 1.5ms
-#define MAX_SCK_DELAY_US 100u  // 0.1ms
+#define MAX_SCK_DELAY_US 1500u  // 1.5ms
+//#define MAX_SCK_DELAY_US 100u  // 0.1ms
 
 #define DISPLAY_BUF_LEN 16
 // FIFO size must be power of 2 for simple wrap
@@ -67,6 +67,9 @@ typedef struct dmm_context {
 	volatile uint32_t dbg_byte_overrun_count;
 	volatile uint32_t dbg_buf_overflow_count;
 	volatile uint32_t dbg_mid_byte_gap_count;
+	volatile uint8_t dbg_mid_byte_gap_bits;
+	volatile uint8_t dbg_mid_byte_gap_input;
+	volatile uint8_t dbg_mid_byte_gap_output;
 	volatile uint32_t dbg_mid_byte_gap_last_time;
 	volatile uint32_t dbg_mid_byte_gap_last_us;
 	volatile uint32_t dbg_mid_byte_gap_max_us;
@@ -102,8 +105,8 @@ typedef struct dmm_context {
 	volatile uint8_t  input_acc, output_acc;
 
 	volatile sniff_byte_t byte_fifo[BYTE_FIFO_SIZE];
-	volatile uint8_t fifo_wr;
-	volatile uint8_t fifo_rd;
+	volatile uint16_t fifo_wr;
+	volatile uint16_t fifo_rd;
 
 	volatile uint32_t last_us;
 	volatile bool reset_received;
@@ -137,11 +140,13 @@ typedef struct dmm_context {
 
 // ===== Decoder API =====
 void decoder34401_init(dmm_context_t *ctx);                          // initialize decoder
+void decoder34401_process(dmm_context_t *ctx);                       // call frequently in main loop
+const char* decoder34401_annunciator_name(uint ann);
+
+// Interrupt handlers
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx); // call from GPIO interrupt callback
 void __time_critical_func(decoder34401_reset)(dmm_context_t *ctx);   // call from GPIO interrupt callback
 void __time_critical_func(decoder34401_int)(dmm_context_t *ctx);     // call from GPIO interrupt callback
-void decoder34401_process(dmm_context_t *ctx);                       // call frequently in main loop
-const char* decoder34401_annunciator_name(uint ann);
 
 
 #ifdef __cplusplus

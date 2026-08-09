@@ -289,8 +289,6 @@ static void decodeControlFrame(dmm_context_t *ctx)
 
 static void process_reset(dmm_context_t *ctx)
 {
-	ctx->fifo_rd = ctx->fifo_wr; // cear FIFO
-	endFrame(ctx);
 	ctx->shift_press_count = 0;
 	ctx->shift_window_active = false;
 	ctx->msg_work_need_reset = true;
@@ -332,14 +330,31 @@ void decoder34401_init(dmm_context_t *ctx)
 }
 
 
+static inline void fifo_append(dmm_context_t *ctx)
+{
+	uint16_t next_wr = (ctx->fifo_wr + 1u) & BYTE_FIFO_MASK;
+
+	if (next_wr == ctx->fifo_rd) {
+		ctx->dbg_byte_overrun_count++;
+	}
+	else {
+		ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
+		ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
+		ctx->fifo_wr = next_wr;
+
+		ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
+		if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
+			ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
+	}
+
+	ctx->byte_len = 0;
+}
+
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 {
 	uint32_t now_us = micros32();
-	uint32_t all = gpio_get_all();
+	uint32_t pins = gpio_get_all();
 
-	// read in one bit from DO and DI pins
-	ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (all & (1 << DO_PIN) ? 1 : 0));
-	ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (all & (1 << DI_PIN) ? 1 : 0));
 
 	// mid-byte gap detection (power-on / pause)
 	if (ctx->last_us > 0) {
@@ -348,7 +363,16 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 			ctx->dbg_sck_gap_us_max = ctx->dbg_sck_gap_us;
 
 		if (ctx->byte_len != 0 && ctx->dbg_sck_gap_us > MAX_SCK_DELAY_US) {
+			ctx->dbg_mid_byte_gap_input = ctx->input_acc;
+			ctx->dbg_mid_byte_gap_output = ctx->output_acc;
+			ctx->dbg_mid_byte_gap_bits = ctx->byte_len;
+#if 1
+			ctx->input_acc = 0x00;
+			ctx->output_acc = 0xbb;
+			fifo_append(ctx);
+#else
 			ctx->byte_len = 0;
+#endif
 			ctx->dbg_mid_byte_gap_count++;
 			ctx->dbg_mid_byte_gap_last_time = now_us;
 			ctx->dbg_mid_byte_gap_last_us = ctx->dbg_sck_gap_us;
@@ -359,24 +383,13 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 	ctx->last_us = now_us;
 
 
+	// read in one bit from DO and DI pins
+	ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (pins & (1 << DO_PIN) ? 1 : 0));
+	ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (pins & (1 << DI_PIN) ? 1 : 0));
 	ctx->byte_len++;
+
 	if (ctx->byte_len >= 8) {
-		uint8_t next_wr = (uint8_t)((ctx->fifo_wr + 1u) & BYTE_FIFO_MASK);
-
-		if (next_wr == ctx->fifo_rd) {
-			ctx->dbg_byte_overrun_count++;
-		}
-		else {
-			ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
-			ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
-			ctx->fifo_wr = next_wr;
-
-			ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
-			if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
-				ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
-		}
-
-		ctx->byte_len = 0;
+		fifo_append(ctx);
 	}
 
 	ctx->dbg_sck_count++;
@@ -403,19 +416,14 @@ void decoder34401_process(dmm_context_t *ctx)
 {
 	uint32_t p_start = micros32();
 
-	if (ctx->reset_received) {
-		process_reset(ctx);
-	} else {
+	if (!ctx->reset_received)
 		processShiftWindow(ctx);
-	}
 
 	while (ctx->fifo_rd != ctx->fifo_wr) {
-		// A reset can arrive mid-drain (this loop may process a large
-		// backlog in one call); honor it immediately instead of letting
-		// the rest of the backlog be parsed with stale frame state.
+		// Check for reset signal between every byte
 		if (ctx->reset_received) {
 			process_reset(ctx);
-			continue;
+			break;
 		}
 
 		uint8_t input_byte = ctx->byte_fifo[ctx->fifo_rd].in;
@@ -445,13 +453,18 @@ void decoder34401_process(dmm_context_t *ctx)
 			break;
 
 		case FRAME_UNKNOWN:
+			if (lastBytesAreEof(ctx)) {
+				endFrame(ctx);
+				break;
+			}
+
 			// BUTTON frame signature
 			if (ctx->buf_len == 1u && ctx->input_buf[0] == 0x00 && ctx->output_buf[0] == 0x77) {
 				ctx->frame_state = FRAME_BUTTON;
 				break;
 			}
 
-			if (ctx->buf_len == 2u) {
+			if (ctx->buf_len >= 2u) {
 				if (ctx->input_buf[0] == 0x00 && ((ctx->input_buf[1] & 0x7F) == 0x7F)) {
 					ctx->frame_state = FRAME_MESSAGE;
 					break;
