@@ -416,10 +416,9 @@ void decoder34401_process(dmm_context_t *ctx)
 {
 	uint32_t p_start = micros32();
 
-	if (!ctx->reset_received)
-		processShiftWindow(ctx);
+	processShiftWindow(ctx);
 
-	while (ctx->fifo_rd != ctx->fifo_wr) {
+	while (ctx->fifo_rd != ctx->fifo_wr || ctx->reset_received) {
 		// Check for reset signal between every byte
 		if (ctx->reset_received) {
 			process_reset(ctx);
@@ -455,27 +454,20 @@ void decoder34401_process(dmm_context_t *ctx)
 		case FRAME_UNKNOWN:
 			if (lastBytesAreEof(ctx)) {
 				endFrame(ctx);
-				break;
 			}
-
-			// BUTTON frame signature
-			if (ctx->buf_len == 1u && ctx->input_buf[0] == 0x00 && ctx->output_buf[0] == 0x77) {
+			else if (ctx->buf_len == 1 && ctx->input_buf[0] == 0x00 && ctx->output_buf[0] == 0x77) {
+				// BUTTON frame signature
 				ctx->frame_state = FRAME_BUTTON;
-				break;
 			}
-
-			if (ctx->buf_len >= 2u) {
+			else if (ctx->buf_len >= 2) {
 				if (ctx->input_buf[0] == 0x00 && ((ctx->input_buf[1] & 0x7F) == 0x7F)) {
 					ctx->frame_state = FRAME_MESSAGE;
-					break;
 				}
 				else if (((ctx->input_buf[0] & 0x7F) == 0x7F) && ctx->input_buf[1] == 0x00) {
 					ctx->frame_state = FRAME_ANNUNCIATORS;
-					break;
 				}
 				else {
 					ctx->frame_state = FRAME_CONTROL;
-					break;
 				}
 			}
 			break;
@@ -524,7 +516,7 @@ void decoder34401_process(dmm_context_t *ctx)
 		case FRAME_ANNUNCIATORS:
 			if (lastBytesAreEof(ctx)) {
 				// same indices as original: input_buf[3], input_buf[2]
-				if (ctx->buf_len >= 4u) {
+				if (ctx->buf_len >= 4) {
 					publishAnnunciators(ctx, ctx->input_buf[3], ctx->input_buf[2]);
 				}
 				endFrame(ctx);
@@ -539,8 +531,11 @@ void decoder34401_process(dmm_context_t *ctx)
 			break;
 
 		case FRAME_BUTTON:
-			if (ctx->input_buf[ctx->buf_len - 1u] == 0x66) {
-				if (ctx->buf_len >= 3u) {
+			if (lastBytesAreEof(ctx)) {
+				endFrame(ctx);
+			}
+			else if (ctx->buf_len >= 1 && ctx->input_buf[ctx->buf_len - 1u] == 0x66) {
+				if (ctx->buf_len >= 3) {
 					uint32_t code =
 						((uint32_t)ctx->output_buf[0] << 16) |
 						((uint32_t)ctx->output_buf[1] << 8) |
