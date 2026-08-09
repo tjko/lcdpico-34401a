@@ -377,7 +377,7 @@
       }
 
       var STATUS_POLL_INTERVAL_MS = 1000;
-      var STATUS_FETCH_TIMEOUT_MS = 2000;
+      var STATUS_FETCH_TIMEOUT_MS = 5000;
 
       /* Firefox doesn't reliably free up a stalled request's connection slot when it's
          aborted, so firing a new poll on a fixed setInterval regardless of whether the
