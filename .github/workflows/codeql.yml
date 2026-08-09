@@ -94,7 +94,7 @@ jobs:
       run: |
         cmake -S picotool-src -B picotool-src/build -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/picotool -DPICOTOOL_FLAT_INSTALL=1
         cd picotool-src/build
-        make -j ${{env.BUILD_THREADS}} install
+        make -j"$(nproc)" install
 
 
 
