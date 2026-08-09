@@ -379,12 +379,6 @@
       var STATUS_POLL_INTERVAL_MS = 1000;
       var STATUS_FETCH_TIMEOUT_MS = 5000;
 
-      /* Firefox doesn't reliably free up a stalled request's connection slot when it's
-         aborted, so firing a new poll on a fixed setInterval regardless of whether the
-         previous one ever settled can pile up dangling requests against the browser's
-         per-origin connection limit once the server goes dark, eventually hanging the
-         tab. Only ever have one poll in flight: schedule the next one after the current
-         one settles instead of on a blind interval. */
       function pollStatus() {
         /* AbortSignal.timeout() alone doesn't reliably cut off a stalled connection on
            every browser. Race it against a plain timer so the timeout always fires on
