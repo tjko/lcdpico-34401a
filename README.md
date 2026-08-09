@@ -49,7 +49,7 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 - 1.0mm 20pin FFC ("flat-flex") cable about 50-80mm long
 
 #### Sources for parts:
-- TFT Panel and LT7680 controller: [buydisplay.com](https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface)
+- TFT Panel and LT7680 controller: [buydisplay.com](https://www.buydisplay.com/bar-type-3-71-inch-240x960-ips-tft-lcd-display-spi-rgb-interface) [select "No Touch Panel" and "LT7680 Controller Board with FFC and ZIF Connector"]
 - USB panel mount cable: [Adafruit](https://www.adafruit.com/product/6069) (requires additional 180-degree USB-C to Micro-USB adapter, for example [Amazon](https://www.amazon.com/Strhowill-Connector-Adapter-Charging-Transfer/dp/B0DR795HHY))
 - 1.0mm 20pin FFC cable (50mm): [DigiKey](https://www.digikey.com/en/products/detail/gct/10-20-A-0050-C-4-08-4-T/22247591)
 
@@ -58,7 +58,7 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 This display module is meant to be connected to the front panel, where the cable is soldered on the display module PCB.
 Connector on main PCB (34401-61602) is W601.
 
-See Ian Johnston's video on how to install his TFT conversion: [YouTube](https://www.youtube.com/watch?v=MFfk2P_R7ck) [Blog](https://www.ianjohnston.com/index.php/conversions/34401atftconversion)
+See Ian Johnston's video on how to install his TFT conversion: [[Video -YouTube]](https://www.youtube.com/watch?v=MFfk2P_R7ck) [[Blog]](https://www.ianjohnston.com/index.php/conversions/34401atftconversion)
 
 
 W601 (34401A)|J1 (lcdpico-34401a)|Notes
