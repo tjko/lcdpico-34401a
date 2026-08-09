@@ -381,8 +381,17 @@
       function pollStatus() {
         var controller = new AbortController();
         var timer = setTimeout(function() { controller.abort(); }, STATUS_FETCH_TIMEOUT_MS);
-        fetch('/status.json', { cache: 'no-store', signal: controller.signal })
-          .then(function(res) { return res.ok ? res.json() : null; })
+        /* AbortController alone doesn't reliably cut off a stalled connection on every
+           browser (e.g. Firefox can leave the fetch pending past the abort). Race it
+           against a plain timer so the timeout always fires on schedule. */
+        var timedOut = new Promise(function(resolve) {
+          setTimeout(function() { resolve(null); }, STATUS_FETCH_TIMEOUT_MS);
+        });
+        var fetched = fetch('/status.json', { cache: 'no-store', signal: controller.signal })
+          .then(function(res) { return res.ok ? res.json() : null; });
+        fetched.catch(function() { /* handled below via race; avoid unhandled rejection */ });
+
+        Promise.race([fetched, timedOut])
           .then(function(data) {
             clearTimeout(timer);
             if (!data) { setConnLost(true); return; }
