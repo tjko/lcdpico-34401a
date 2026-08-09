@@ -23,6 +23,7 @@
             <canvas id="vfd" aria-label="HP 34401A display">
               Your browser does not support the HTML5 canvas element.
             </canvas>
+            <div id="vfd-conn-lost" class="vfd-overlay">Connection Lost</div>
           </div>
         </td>
       </tr>
@@ -323,6 +324,7 @@
       }
 
       var latestData = null;
+      var starAnnState = false;
 
       /* Mirrors the firmware's own blink timing: (time_us_32()/100000) % 2 == 1 is the "off" half. */
       function blinkOff() {
@@ -349,6 +351,12 @@
       render(null);
 
       var sensorTbl = document.getElementById('sensor-tbl');
+      var connLostEl = document.getElementById('vfd-conn-lost');
+
+      function setConnLost(lost) {
+        if (!connLostEl) return;
+        connLostEl.classList.toggle('show', lost);
+      }
 
       function updateSensorTable(vsensors) {
         if (!sensorTbl || !vsensors) return;
@@ -368,18 +376,34 @@
         }
       }
 
+      var STATUS_POLL_INTERVAL_MS = 1000;
+      var STATUS_FETCH_TIMEOUT_MS = 5000;
+
       function pollStatus() {
-        fetch('/status.json', { cache: 'no-store' })
-          .then(function(res) { return res.ok ? res.json() : null; })
+        /* AbortSignal.timeout() alone doesn't reliably cut off a stalled connection on
+           every browser. Race it against a plain timer so the timeout always fires on
+           schedule regardless of whether the browser honors the abort promptly. */
+        var timedOut = new Promise(function(resolve) {
+          setTimeout(function() { resolve(null); }, STATUS_FETCH_TIMEOUT_MS);
+        });
+        var fetched = fetch('/status.json', { cache: 'no-store', signal: AbortSignal.timeout(STATUS_FETCH_TIMEOUT_MS) })
+          .then(function(res) { return res.ok ? res.json() : null; });
+        fetched.catch(function() { /* handled below via race; avoid unhandled rejection */ });
+
+        Promise.race([fetched, timedOut])
           .then(function(data) {
-            if (!data) return;
+            if (!data) { setConnLost(true); return; }
+            setConnLost(false);
+            starAnnState = !starAnnState;
+            data.annunciators = data.annunciators || {};
+            data.annunciators['*'] = starAnnState;
             render(data);
             updateSensorTable(data.vsensors);
           })
-          .catch(function() { /* keep last rendered state on network error */ });
+          .catch(function() { setConnLost(true); /* keep last rendered state on network error or timeout */ })
+          .then(function() { setTimeout(pollStatus, STATUS_POLL_INTERVAL_MS); });
       }
       pollStatus();
-      setInterval(pollStatus, 1000);
       setInterval(function() { if (latestData) render(latestData); }, 100);
     })();
     </script>
