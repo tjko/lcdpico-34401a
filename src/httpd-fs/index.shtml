@@ -386,20 +386,18 @@
          tab. Only ever have one poll in flight: schedule the next one after the current
          one settles instead of on a blind interval. */
       function pollStatus() {
-        var controller = new AbortController();
-        var timer = setTimeout(function() { controller.abort(); }, STATUS_FETCH_TIMEOUT_MS);
-        /* AbortController alone doesn't reliably cut off a stalled connection on every
-           browser. Race it against a plain timer so the timeout always fires on schedule. */
+        /* AbortSignal.timeout() alone doesn't reliably cut off a stalled connection on
+           every browser. Race it against a plain timer so the timeout always fires on
+           schedule regardless of whether the browser honors the abort promptly. */
         var timedOut = new Promise(function(resolve) {
           setTimeout(function() { resolve(null); }, STATUS_FETCH_TIMEOUT_MS);
         });
-        var fetched = fetch('/status.json', { cache: 'no-store', signal: controller.signal })
+        var fetched = fetch('/status.json', { cache: 'no-store', signal: AbortSignal.timeout(STATUS_FETCH_TIMEOUT_MS) })
           .then(function(res) { return res.ok ? res.json() : null; });
         fetched.catch(function() { /* handled below via race; avoid unhandled rejection */ });
 
         Promise.race([fetched, timedOut])
           .then(function(data) {
-            clearTimeout(timer);
             if (!data) { setConnLost(true); return; }
             setConnLost(false);
             starAnnState = !starAnnState;
@@ -408,7 +406,7 @@
             render(data);
             updateSensorTable(data.vsensors);
           })
-          .catch(function() { clearTimeout(timer); setConnLost(true); /* keep last rendered state on network error or timeout */ })
+          .catch(function() { setConnLost(true); /* keep last rendered state on network error or timeout */ })
           .then(function() { setTimeout(pollStatus, STATUS_POLL_INTERVAL_MS); });
       }
       pollStatus();
