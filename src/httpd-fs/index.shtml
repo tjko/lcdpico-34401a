@@ -376,14 +376,20 @@
         }
       }
 
+      var STATUS_POLL_INTERVAL_MS = 1000;
       var STATUS_FETCH_TIMEOUT_MS = 2000;
 
+      /* Firefox doesn't reliably free up a stalled request's connection slot when it's
+         aborted, so firing a new poll on a fixed setInterval regardless of whether the
+         previous one ever settled can pile up dangling requests against the browser's
+         per-origin connection limit once the server goes dark, eventually hanging the
+         tab. Only ever have one poll in flight: schedule the next one after the current
+         one settles instead of on a blind interval. */
       function pollStatus() {
         var controller = new AbortController();
         var timer = setTimeout(function() { controller.abort(); }, STATUS_FETCH_TIMEOUT_MS);
         /* AbortController alone doesn't reliably cut off a stalled connection on every
-           browser (e.g. Firefox can leave the fetch pending past the abort). Race it
-           against a plain timer so the timeout always fires on schedule. */
+           browser. Race it against a plain timer so the timeout always fires on schedule. */
         var timedOut = new Promise(function(resolve) {
           setTimeout(function() { resolve(null); }, STATUS_FETCH_TIMEOUT_MS);
         });
@@ -402,10 +408,10 @@
             render(data);
             updateSensorTable(data.vsensors);
           })
-          .catch(function() { clearTimeout(timer); setConnLost(true); /* keep last rendered state on network error or timeout */ });
+          .catch(function() { clearTimeout(timer); setConnLost(true); /* keep last rendered state on network error or timeout */ })
+          .then(function() { setTimeout(pollStatus, STATUS_POLL_INTERVAL_MS); });
       }
       pollStatus();
-      setInterval(pollStatus, 1000);
       setInterval(function() { if (latestData) render(latestData); }, 100);
     })();
     </script>
