@@ -10,9 +10,9 @@ This project is based on following projects:
 - https://github.com/openscopeproject/HP34401a-OLED-FW
 - https://github.com/Ian-Johnston/34401A_VS_Display
 
-This project takes slightly different approach as it uses Raspberry Pi Pico 2 W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read display remotely.
-Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of per-rendered graphics for the display.
-Initial "theme" makes HP 34401A display look like it has Nixie tubes as display.
+This project takes slightly different approach as it uses Raspberry Pi Pico 2 W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read the front panel remotely.
+Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of pr-rendered graphics for the display.
+Initial "theme" makes HP 34401A display look like it has "Nixie" tubes as display. Aim is to make custom themes easy to implement (submissions for themes to include would be appreciated).
 
 Since RP2350 has two cores, one core is used to solely monitor the serial communications between front panel and the meter and update the LCD display. While the other is free to handle I/O and all the other tasks.
 
@@ -37,10 +37,17 @@ When using Pico 2W, it is possible to enable HTTP server that provides simple in
 
 <img src="images/lcdpico-34401A-web.png" width="512">
 
+Interface works by calling JSON "API" (/status.json) every second and updating the web page. If connection is lost for more than 5 seconds, "Connection Lost" message will appear until connection is restored.
+
+### Where Can I get one?
+
+Currently LCDpico is a full "DIY" project. However pre-compiled firmware is available, so if tinkering with the software is not your cup of tea that won't be a problem.
+
+If there is sufficient interest in this project, then "kits" with pre-assembled PCBs (SMT parts) or just PCB and the parts could be made available...
 
 ### Parts List
 
-- PCB: [LCDpico for 34401A](boards/34401a/)
+- PCB Kerbers and BOM: [LCDpico for 34401A](boards/34401a/)
 - MCU Module: [Raspberry Pi Pico 2 W](https://www.raspberrypi.com/products/raspberry-pi-pico-2/) (or plain "Pico 2" if WiFi functionality is not desired).
 - Display Controller (GPU): [ER-PCBA5981-1](https://www.buydisplay.com/download/manual/ER-PCBA5981-1_Datasheet.pdf) (LTLT7680 graphics controller board with FFC & ZIF connectors)
 - TFT Panel: [ER-TFT3.71-1](https://www.buydisplay.com/download/manual/ER-TFT3.71-1_Datasheet.pdf)  (3.71" TFT with ST7701S controller)
