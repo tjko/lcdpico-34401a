@@ -117,7 +117,7 @@ vmem_image_t* load_image_to_vmem(const char *buf, uint32_t len, uint16_t mono_co
 	int res;
 	uint16_t w, h;
 
-	log_msg(LOG_DEBUG, "load_image_to_vmem(%p,%lu,%lx)", buf, len, addr);
+	log_msg(LOG_DEBUG, "load_image_to_vmem(%p,%lu,%lx)", buf, len, *addr);
 
 	if (!(png = malloc(sizeof(PNGIMAGE)))) {
 		log_msg(LOG_WARNING, "Not enough memory to decode PNG images!");
