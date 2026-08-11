@@ -270,8 +270,8 @@ void clear_config(struct system_config *cfg)
 		vs->filter_ctx = NULL;
 
 		cfg->vtemp[i] = 0.0;
-		cfg->vhumidity[i] = 0.0;
-		cfg->vpressure[i] = 0.0;
+		cfg->vhumidity[i] = -1.0;
+		cfg->vpressure[i] = -1.0;
 		cfg->vtemp_updated[i] = from_us_since_boot(0);
 		cfg->vtemp_prev[i] = 0.0;
 		cfg->i2c_context[i] = NULL;
@@ -615,6 +615,7 @@ int json_to_config(cJSON *config, struct system_config *cfg)
 			if (s->mode == VSMODE_MANUAL) {
 				JSON_TO_NUM(item, "default_temp", s->default_temp);
 				JSON_TO_NUM(item, "timeout", s->timeout);
+				cfg->vtemp[id] = s->default_temp;
 			} else if (s->mode == VSMODE_I2C) {
 				if ((r = cJSON_GetObjectItem(item, "i2c_type")))
 					s->i2c_type = get_i2c_sensor_type(cJSON_GetStringValue(r));

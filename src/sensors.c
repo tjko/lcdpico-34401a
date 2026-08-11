@@ -68,13 +68,28 @@ int read_temps(struct system_config *config)
 
 	for (int i = 0; i < VSENSOR_COUNT; i++) {
 		struct vsensor_input *v = &config->vsensors[i];
-
-		if (v->mode != VSMODE_INTERNAL)
-			continue;
-
 		absolute_time_t t = get_absolute_time();
-		float temp = get_temperature(config);
-		temp = temp * v->temp_coefficient + v->temp_offset;
+		float temp;
+
+		if (v->mode == VSMODE_INTERNAL) {
+			temp = get_temperature(config);
+			temp = temp * v->temp_coefficient + v->temp_offset;
+		}
+		else if (v->mode == VSMODE_MANUAL) {
+			temp = config->vtemp[i];
+			if (v->timeout > 0 && temp != v->default_temp) {
+				if (absolute_time_diff_us(config->vtemp_updated[i], t) / 1000000 > v->timeout) {
+					log_msg(LOG_INFO,"vsensor%d: timeout, temperature reset to default", i + 1);
+					temp = v->default_temp;
+				}
+				else {
+					continue;
+				}
+			}
+		}
+		else {
+			continue;
+		}
 
 		mutex_enter_blocking(config_mutex);
 		config->vtemp[i] = temp;
