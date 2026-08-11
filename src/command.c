@@ -692,7 +692,7 @@ int cmd_vsensor_write(const char *cmd, const char *args, int query, struct prev_
 	if (sensor >= 0 && sensor < VSENSOR_COUNT) {
 		if (conf->vsensors[sensor].mode == VSMODE_MANUAL) {
 			if (str_to_float(args, &val)) {
-				log_msg(LOG_INFO, "vsensor%d: write temperature = %fC", sensor + 1, val);
+				log_msg(LOG_INFO, "vsensor%d: write temperature = %.1fC", sensor + 1, val);
 				conf->vtemp[sensor] = val;
 				conf->vtemp_updated[sensor] = get_absolute_time();
 				return 0;

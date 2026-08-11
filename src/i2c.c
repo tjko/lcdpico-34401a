@@ -1,22 +1,22 @@
 /* i2c.c
-   Copyright (C) 2024 Timo Kokkonen <tjko@iki.fi>
+   Copyright (C) 2024-2026 Timo Kokkonen <tjko@iki.fi>
 
    SPDX-License-Identifier: GPL-3.0-or-later
 
-   This file is part of FanPico.
+   This file is part of LcdPico.
 
-   FanPico is free software: you can redistribute it and/or modify
+   LcdPico is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   FanPico is distributed in the hope that it will be useful,
+   LcdPico is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with FanPico. If not, see <https://www.gnu.org/licenses/>.
+   along with LcdPico. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -131,8 +131,8 @@ int i2c_read_temps(struct system_config *config)
 	static uint sensor = 0;
 	int wait_time = 0;
 	float temp = 0.0;
-	float pressure = 0.0;
-	float humidity = 0.0;
+	float pressure = -1.0;
+	float humidity = -1.0;
 	int res;
 
 	if (!i2c_bus_active ||  i2c_temp_sensors < 1)
