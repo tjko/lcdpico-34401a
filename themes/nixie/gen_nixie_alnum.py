@@ -13,7 +13,7 @@ CH_TF_NUM = "matrix(1.4,0,0,1.7,-80,-100)"   # text y=200 -> visual center y=265
 CH_TF_HYP = "matrix(1.4,0,0,1.7,-80,-120)"
 CH_TF_U = "matrix(1.4,0,0,1.7,-80,-170)"
 
-TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" font-family="'Helvetica Neue', Arial, Helvetica, sans-serif" font-weight="100">
   <defs>
     <radialGradient id="bg" cx="50%" cy="42%" r="75%">
       <stop offset="0%" stop-color="#181821"/>
@@ -55,16 +55,47 @@ TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" fon
       <stop offset="100%" stop-color="#7a6630"/>
     </linearGradient>
     <linearGradient id="digit" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffeec2"/>
-      <stop offset="45%" stop-color="#ffb449"/>
-      <stop offset="100%" stop-color="#ff860f"/>
+      <stop offset="0%" stop-color="#fff6dd"/>
+      <stop offset="40%" stop-color="#ffc25c"/>
+      <stop offset="100%" stop-color="#ff8d12"/>
     </linearGradient>
-    <pattern id="mesh" width="13" height="13" patternUnits="userSpaceOnUse">
-      <path d="M13 0 V13 M0 13 H13" stroke="#d4e6f2" stroke-width="0.9" fill="none"/>
+    <radialGradient id="innerAmbient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff7a18" stop-opacity="0.20"/>
+      <stop offset="55%" stop-color="#c14e08" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#803300" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="getter" cx="35%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#6b7d8f"/>
+      <stop offset="45%" stop-color="#2c3844"/>
+      <stop offset="100%" stop-color="#10161c"/>
+    </radialGradient>
+    <pattern id="hexMesh" width="12.12" height="21" patternUnits="userSpaceOnUse">
+      <path d="M0 3.5 L6.06 0 L12.12 3.5 M0 3.5 V10.5 M12.12 3.5 V10.5 M0 10.5 L6.06 14 L12.12 10.5 M6.06 14 V21"
+            stroke="#c8d8e2" stroke-width="0.8" fill="none"/>
     </pattern>
-    <pattern id="meshDark" width="13" height="13" patternUnits="userSpaceOnUse">
-      <path d="M12.2 0 V13 M0 12.2 H13" stroke="#1c232a" stroke-width="1.1" fill="none"/>
+    <pattern id="hexMeshDark" width="12.12" height="21" patternUnits="userSpaceOnUse">
+      <path d="M0 3.5 L6.06 0 L12.12 3.5 M0 3.5 V10.5 M12.12 3.5 V10.5 M0 10.5 L6.06 14 L12.12 10.5 M6.06 14 V21"
+            stroke="#10151a" stroke-width="1.2" fill="none" transform="translate(0.8,0.8)"/>
     </pattern>
+    <pattern id="hexMeshWarm" width="12.12" height="21" patternUnits="userSpaceOnUse">
+      <path d="M0 3.5 L6.06 0 L12.12 3.5 M0 3.5 V10.5 M12.12 3.5 V10.5 M0 10.5 L6.06 14 L12.12 10.5 M6.06 14 V21"
+            stroke="#ffb05a" stroke-width="0.9" fill="none"/>
+    </pattern>
+    <radialGradient id="glowFall" gradientUnits="userSpaceOnUse" cx="200" cy="265" r="175">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#7a7a7a"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <mask id="glowMask">
+      <rect x="60" y="40" width="280" height="410" fill="url(#glowFall)"/>
+    </mask>
+    <linearGradient id="meshShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.55"/>
+      <stop offset="14%" stop-color="#000000" stop-opacity="0.16"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="86%" stop-color="#000000" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
     <filter id="hugeGlow" x="-120%" y="-120%" width="340%" height="340%">
       <feGaussianBlur stdDeviation="16"/>
     </filter>
@@ -83,29 +114,61 @@ TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" fon
   <ellipse cx="200" cy="255" rx="128" ry="160" fill="url(#halo)" opacity="__HALO__"/>
 
   <g clip-path="url(#tubeClip)">
-    <g fill="#52473b" opacity="0.26" text-anchor="middle" font-size="__FS__">
-      <text x="186" y="205" dominant-baseline="central" transform="__TF__">__A__</text>
+    <!-- interior lit softly by the discharge -->
+    <ellipse cx="200" cy="265" rx="125" ry="165" fill="url(#innerAmbient)" opacity="__HALO__"/>
+
+    <!-- getter flash near the top of the envelope -->
+    <ellipse cx="248" cy="80" rx="30" ry="14" fill="url(#getter)" transform="rotate(-12 248 80)" opacity="0.9"/>
+
+    <!-- cathode support rods and mica spacers -->
+    <line x1="103" y1="106" x2="103" y2="428" stroke="#23262b" stroke-width="6"/>
+    <line x1="101" y1="106" x2="101" y2="428" stroke="#3d4148" stroke-width="1.6"/>
+    <line x1="297" y1="106" x2="297" y2="428" stroke="#23262b" stroke-width="6"/>
+    <line x1="299" y1="106" x2="299" y2="428" stroke="#14161a" stroke-width="1.6"/>
+    <ellipse cx="200" cy="104" rx="100" ry="9" fill="#2e2a24" opacity="0.7"/>
+    <ellipse cx="200" cy="108" rx="100" ry="9" fill="#1b1916" opacity="0.85"/>
+    <ellipse cx="200" cy="424" rx="105" ry="10" fill="#241f1a" opacity="0.9"/>
+
+    <!-- unlit cathodes stacked behind the lit one (bare wire outlines) -->
+    <g fill="none" stroke="#4a4136" stroke-width="3" opacity="0.40" text-anchor="middle" font-size="__FS__">
+      <text x="188" y="204" dominant-baseline="central" transform="__TF__">__A__</text>
     </g>
-    <g fill="#473d33" opacity="0.18" text-anchor="middle" font-size="__FS__">
-      <text x="214" y="195" dominant-baseline="central" transform="__TF__">__B__</text>
+    <g fill="none" stroke="#3e362d" stroke-width="3" opacity="0.30" text-anchor="middle" font-size="__FS__">
+      <text x="212" y="196" dominant-baseline="central" transform="__TF__">__B__</text>
     </g>
-    <g fill="#3f362d" opacity="0.15" text-anchor="middle" font-size="__FS__">
-      <text x="200" y="210" dominant-baseline="central" transform="__TF__">__C__</text>
+    <g fill="none" stroke="#332c25" stroke-width="3" opacity="0.24" text-anchor="middle" font-size="__FS__">
+      <text x="200" y="209" dominant-baseline="central" transform="__TF__">__C__</text>
     </g>
 
+    <!-- lit cathode: wide halo, glow, tight plasma sheath, hot core -->
     <text x="200" y="200" dominant-baseline="central" text-anchor="middle" transform="__TF__"
           font-size="__FS__" fill="#ff7414" opacity="0.62" filter="url(#hugeGlow)">__D__</text>
     <text x="200" y="200" dominant-baseline="central" text-anchor="middle" transform="__TF__"
           font-size="__FS__" fill="#ff7e1e" opacity="0.88" filter="url(#bigGlow)">__D__</text>
     <text x="200" y="200" dominant-baseline="central" text-anchor="middle" transform="__TF__"
+          font-size="__FS__" fill="none" stroke="#ff5f00" stroke-width="14" opacity="0.55" filter="url(#midGlow)">__D__</text>
+    <text x="200" y="200" dominant-baseline="central" text-anchor="middle" transform="__TF__"
           font-size="__FS__" fill="#ffa838" opacity="0.95" filter="url(#midGlow)">__D__</text>
     <text x="200" y="200" dominant-baseline="central" text-anchor="middle" transform="__TF__"
-          font-size="__FS__" fill="url(#digit)" stroke="#fff1cf" stroke-width="1.4">__D__</text>
+          font-size="__FS__" fill="url(#digit)" stroke="#fff3d8" stroke-width="1.6">__D__</text>
+
+    <!-- unlit cathode in front of the lit one (dark silhouette) -->
+    <g fill="none" stroke="#171310" stroke-width="2.6" opacity="0.20" text-anchor="middle" font-size="__FS__">
+      <text x="207" y="203" dominant-baseline="central" transform="__TF__">__E__</text>
+    </g>
 
     __DOT__
 
-    <rect x="60" y="40" width="280" height="410" fill="url(#meshDark)" opacity="0.30"/>
-    <rect x="60" y="40" width="280" height="410" fill="url(#mesh)" opacity="0.22"/>
+    <!-- honeycomb anode mesh in front of the cathodes -->
+    <rect x="60" y="40" width="280" height="410" fill="url(#hexMeshDark)" opacity="0.40"/>
+    <rect x="60" y="40" width="280" height="410" fill="url(#hexMesh)" opacity="0.16"/>
+    <g opacity="__HALO__">
+      <rect x="60" y="40" width="280" height="410" fill="url(#hexMeshWarm)" mask="url(#glowMask)" opacity="0.55"/>
+    </g>
+    <rect x="72" y="40" width="256" height="410" fill="url(#meshShade)"/>
+
+    <!-- warm light pooling at the bottom of the envelope -->
+    <ellipse cx="200" cy="430" rx="110" ry="16" fill="#ff7a18" opacity="__HALO__" fill-opacity="0.10"/>
   </g>
 
   <path d="M72 442 L72 135 C72 70 128 40 200 40 C272 40 328 70 328 135 L328 442 Z"
@@ -114,6 +177,8 @@ TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" fon
         fill="#ffffff" opacity="0.10"/>
   <path d="M300 150 C306 250 304 350 300 432 L312 432 C316 340 318 240 312 150 Z"
         fill="#ffffff" opacity="0.05"/>
+  <path d="M118 96 C128 64 158 47 190 43" fill="none" stroke="#ffffff" stroke-width="7"
+        stroke-linecap="round" opacity="0.35" filter="url(#midGlow)"/>
 
   <ellipse cx="200" cy="36" rx="11" ry="15" fill="url(#glass)" stroke="url(#glassEdge)" stroke-width="1.5"/>
   <ellipse cx="200" cy="24" rx="4" ry="7" fill="#9fb6c6" opacity="0.5"/>
@@ -142,8 +207,9 @@ TEMPLATE = r'''<svg viewBox="0 0 400 640" xmlns="http://www.w3.org/2000/svg" fon
 '''
 
 OUT = "./outputs"
-IDS = ["bg","halo","glass","glassEdge","base","collar","pin","digit",
-       "mesh","meshDark","hugeGlow","bigGlow","midGlow","tubeClip"]
+IDS = ["bg","halo","innerAmbient","glass","glassEdge","base","collar","pin","digit",
+       "getter","hexMesh","hexMeshDark","hexMeshWarm","glowFall","glowMask","meshShade",
+       "hugeGlow","bigGlow","midGlow","tubeClip"]
 
 # Ordered character set: digits, A-Z, common punctuation, space
 DIGITS = list("0123456789")
@@ -211,6 +277,7 @@ def make_tube(i, dot="dark", dot2="dark"):
     a = FAINT_POOL[(i*3 + 5) % FP]
     b = FAINT_POOL[(i*3 + 13) % FP]
     c = FAINT_POOL[(i*3 + 23) % FP]
+    e = FAINT_POOL[(i*3 + 31) % FP]
     main = "" if is_space else esc(ch)
     halo = "0" if is_space else "1"   # no central glow for a blank (space) tube
     return (TEMPLATE
@@ -221,6 +288,7 @@ def make_tube(i, dot="dark", dot2="dark"):
             .replace("__A__", esc(a))
             .replace("__B__", esc(b))
             .replace("__C__", esc(c))
+            .replace("__E__", esc(e))
             .replace("__D__", main))
 
 def safe_name(i):
