@@ -20,7 +20,7 @@ Since RP2350 has two cores, one core is used to solely monitor the serial commun
 
 ### Features
 - 2D accelerated graphics (using LT768x graphics controller)
-  - 16bpp graphics (with support for custom themes)
+  - 16bpp graphics with support for custom themse (see [Themes](themes.md))
   - Double buffered display (no flickering)
 - SCPI "like" programming interface (see [Command Reference](commands.md))
 - USB and TTL (3.3V) serial console for configuration (NOTE! these should only be used for configuration and be disconnected when using meter for measurements)
