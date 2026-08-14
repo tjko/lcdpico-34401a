@@ -1,7 +1,7 @@
-# LCDpico "Nixie" theme for HP34401A
+# LCDpico "Nixie" and "Nixie-Thin" themes for HP34401A
 
 
-These are the scripts used to generate graphics for this theme (nixie1.png and nixie2.png).
+These are the scripts used to generate graphics for this theme (nixie1.png, nixiethin1.png and nixie2.png).
 
 
 
@@ -14,6 +14,7 @@ script|description
 gen_words.py|generate indicator words
 gen_symbols.py|generat indicator symbols
 get_nixie_alnum.py|generate character (main display numbers/characters)
+get_nixiethin_alnum.py|generate thin (more realistic) character (main display numbers/characters)
 
 
 When run these scripts save output SVG files under directory ```./outputs```
@@ -27,7 +28,7 @@ are suitable to load into GPU video memory to be used as graphics tiles/textures
 
 script|description
 ------|-----------
-gen_nixie_png.py|generate nixie1.png
+gen_nixie_png.py|generate nixie1.png and nixiethin1.png
 gen_indicator_png.py|generate nixie2.png
 
 NOTE! currently these scripts rely on (MacOS) command ```qalmanage``` to convert SVG into PNG image.
