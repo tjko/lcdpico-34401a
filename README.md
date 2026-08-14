@@ -3,7 +3,7 @@ TFT LCD Driver for HP34401 using RPi Pico 2 (W)
 
 This project is a LCD (TFT) replacement for the original vacuum fluorescent tube (VFD) display on HP/Agilent/Keysight 34401A multimeters.
 
-<img src="images/fp-nixie.png" width="512">
+<img src="images/fp-nixiethin.png" width="512">
 
 This project is based on following projects:
 
@@ -11,7 +11,7 @@ This project is based on following projects:
 - https://github.com/Ian-Johnston/34401A_VS_Display
 
 This project takes slightly different approach as it uses Raspberry Pi Pico 2 W module. This allows network access over WiFi connection. Firmware has support for SSH/Telnet server that provide access to SCPI style command interface. And there is also HTTP server to provide simple GUI to read the front panel remotely.
-Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of pr-rendered graphics for the display.
+Additionally LCD display is drawn in graphics mode (16bit colors) allowing use of pre-rendered graphics for the display.
 Initial "theme" makes HP 34401A display look like it has "Nixie" tubes as display. Aim is to make custom themes easy to implement (submissions for themes to include would be appreciated).
 
 Since RP2350 has two cores, one core is used to solely monitor the serial communications between front panel and the meter and update the LCD display. While the other is free to handle I/O and all the other tasks.
@@ -20,7 +20,7 @@ Since RP2350 has two cores, one core is used to solely monitor the serial commun
 
 ### Features
 - 2D accelerated graphics (using LT768x graphics controller)
-  - 16bpp graphics (with support for custom themes)
+  - 16bpp graphics with support for custom themse (see [Themes](themes.md))
   - Double buffered display (no flickering)
 - SCPI "like" programming interface (see [Command Reference](commands.md))
 - USB and TTL (3.3V) serial console for configuration (NOTE! these should only be used for configuration and be disconnected when using meter for measurements)
