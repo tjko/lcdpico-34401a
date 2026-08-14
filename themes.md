@@ -6,7 +6,7 @@ Currently included themes are following:
 Theme|Sample Image|Notes
 -----|------------|-----
 nixie|<img src="images/fp-nixie.png" width="300">|Initial them with "bold" font.
-nixiethin|<img src="images/fp-nixiethin.png" width="300">More realistic Nixie tube renderings.
+nixiethin|<img src="images/fp-nixiethin.png" width="300">|More realistic Nixie tube renderings.
 
 
 ## Theme Graphics
