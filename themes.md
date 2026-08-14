@@ -1,4 +1,4 @@
-# LCDpico-34401A Themese
+# LCDpico-34401A Themes
 
 Currently included themes are following:
 
