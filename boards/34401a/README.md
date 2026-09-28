@@ -16,6 +16,10 @@ Parts list (bill of materials) is here: [BOM](bom.csv)
 ## Change Log
 
 
+v1.1
+- Add mounting holes to align board better (so that there is space for Micro-USB to USB-C adapter)
+- Switch to 4-layer PCB
+
 v1.0
 - First Prototye
 
