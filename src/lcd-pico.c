@@ -184,14 +184,23 @@ static void setup()
 
 	/* Setup 34401A interface pins (inputs for sniffing signals) */
 	gpio_init(SCK_PIN);
+	gpio_pull_up(SCK_PIN);
 	gpio_set_dir(SCK_PIN, GPIO_IN);
+
 	gpio_init(DI_PIN);
+	gpio_pull_up(DI_PIN);
 	gpio_set_dir(DI_PIN, GPIO_IN);
+
 	gpio_init(DO_PIN);
+	gpio_pull_up(DO_PIN);
 	gpio_set_dir(DO_PIN, GPIO_IN);
+
 	gpio_init(INT_PIN);
+	gpio_pull_down(INT_PIN);
 	gpio_set_dir(INT_PIN, GPIO_IN);
+
 	gpio_init(RST_PIN);
+	gpio_pull_down(RST_PIN);
 	gpio_set_dir(RST_PIN, GPIO_IN);
 
 
