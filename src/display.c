@@ -408,8 +408,11 @@ void display_status(const struct system_state *state, const struct system_config
 	if (!new_data)
 		return;
 
-	/* Log "menu" screens displayed */
-	if (!state->dmm.valid_reading && !state->dmm.corrupt_msg) {
+	if (state->dmm.corrupt_msg) {
+		log_msg(LOG_DEBUG, "DMM corrupt msg: '%s'", dmm);
+	}
+	else if (!state->dmm.valid_reading) {
+		/* Log "menu" screens displayed */
 		if (strncmp(last_main, dmm, sizeof(last_main))) {
 			log_msg(LOG_INFO, "DMM menu display: '%s'", dmm);
 			memcpy(last_main, dmm, sizeof(last_main));

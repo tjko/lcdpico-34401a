@@ -455,14 +455,14 @@ void decoder34401_process(dmm_context_t *ctx)
 						ctx->valid_reading = true;
 					}
 					else if (regex_in_menu(ctx->msg_work)) {
-						printf("in menu: '%s'\n", ctx->msg_work);
+						//printf("in menu: '%s'\n", ctx->msg_work);
 						ctx->menu_msg = true;
 					}
 					else if (regex_text_display(ctx->msg_work)) {
-						printf("other text: '%s'\n", ctx->msg_work);
+						//printf("other text: '%s'\n", ctx->msg_work);
 					}
 					else {
-						printf("invalid msg: '%s' len=%u\n", ctx->msg_work,ctx->msg_idx);
+						//printf("invalid msg: '%s' len=%u\n", ctx->msg_work,ctx->msg_idx);
 						ctx->corrupt_msg = true;
 					}
 				}
