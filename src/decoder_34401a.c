@@ -168,6 +168,7 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		ctx->msg_work[DISPLAY_BUF_LEN - 2] = 0;
 		ctx->msg_work[DISPLAY_BUF_LEN - 1] = 0;
 		ctx->corrupt_msg = false;
+		ctx->menu_msg = false;
 		ctx->valid_reading = false;
 		ctx->msg_work_need_reset = false;
 	}
@@ -240,6 +241,7 @@ static void process_reset(dmm_context_t *ctx)
 	ctx->shift_window_active = false;
 	ctx->msg_work_need_reset = true;
 	ctx->corrupt_msg = false;
+	ctx->menu_msg = false;
 	ctx->valid_reading = false;
 
 	memset(ctx->main, 0, DISPLAY_BUF_LEN);
@@ -448,24 +450,27 @@ void decoder34401_process(dmm_context_t *ctx)
 			if (lastBytesAreEof(ctx)) {
 				uint32_t now_us = micros32();
 
-				if (regex_valid_reading(ctx->msg_work)) {
-					ctx->valid_reading = true;
-				}
-				else if (regex_in_menu(ctx->msg_work)) {
-					// in menu...
-				}
-				else if (regex_text_display(ctx->msg_work)) {
-					// other text...
-				}
-				else {
-					printf("invalid msg: '%s' len=%u\n", ctx->msg_work,ctx->msg_idx);
-					ctx->corrupt_msg = true;
+				if (!ctx->corrupt_msg) {
+					if (regex_valid_reading(ctx->msg_work)) {
+						ctx->valid_reading = true;
+					}
+					else if (regex_in_menu(ctx->msg_work)) {
+						printf("in menu: '%s'\n", ctx->msg_work);
+						ctx->menu_msg = true;
+					}
+					else if (regex_text_display(ctx->msg_work)) {
+						printf("other text: '%s'\n", ctx->msg_work);
+					}
+					else {
+						printf("invalid msg: '%s' len=%u\n", ctx->msg_work,ctx->msg_idx);
+						ctx->corrupt_msg = true;
+					}
 				}
 
 				if (ctx->corrupt_msg) {
 					ctx->dbg_bad_msg_last_time = now_us;
 					ctx->dbg_bad_msg_count++;
-					printf("corrupt msg: '%s' [%u]\n", ctx->msg_work, ctx->msg_idx);
+					//printf("corrupt msg: '%s' [%u]\n", ctx->msg_work, ctx->msg_idx);
 				}
 
 

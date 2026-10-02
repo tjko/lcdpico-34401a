@@ -131,6 +131,7 @@ typedef struct dmm_context {
 	uint8_t msg_idx;
 	bool msg_work_need_reset;
 	bool corrupt_msg;
+	bool menu_msg;
 	bool valid_reading;
 	char msg_work[DISPLAY_BUF_LEN];
 	uint16_t msg_blink_work;
