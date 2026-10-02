@@ -129,8 +129,6 @@ typedef struct dmm_context {
 
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
-//	uint8_t num_count;
-//	uint8_t period_count;
 	bool msg_work_need_reset;
 	bool corrupt_msg;
 	bool valid_reading;
