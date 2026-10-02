@@ -73,6 +73,9 @@ typedef struct dmm_context {
 	volatile uint32_t dbg_mid_byte_gap_last_time;
 	volatile uint32_t dbg_mid_byte_gap_last_us;
 	volatile uint32_t dbg_mid_byte_gap_max_us;
+	volatile uint32_t dbg_di_noise_count;
+	volatile uint32_t dbg_do_noise_count;
+	volatile uint32_t dbg_int_len_us;
 
 	volatile uint32_t dbg_reset_count;
 	volatile uint32_t dbg_int_count;
@@ -126,9 +129,8 @@ typedef struct dmm_context {
 
         // ===== MESSAGE assembly (like Eventhandler::messageByte) =====
 	uint8_t msg_idx;
-	int work_state;
-	uint8_t num_count;
-	uint8_t period_count;
+//	uint8_t num_count;
+//	uint8_t period_count;
 	bool msg_work_need_reset;
 	bool corrupt_msg;
 	bool valid_reading;

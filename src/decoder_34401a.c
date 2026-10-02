@@ -35,12 +35,12 @@
   * SOFTWARE.
   *******************************************************************************/
 
-
 #include <stdio.h>
-#include "decoder_34401a.h"
-#include "pico/stdlib.h"
 #include <ctype.h>
 #include <string.h>
+#include "pico/stdlib.h"
+#include "decoder_34401a.h"
+#include "regex_34401a.h"
 
 #include "config.h"
 
@@ -66,65 +66,15 @@ static const char* annunciator_names[ANNUNCIATOR_COUNT] = {
 
 static inline void dmm_putc_safe(dmm_context_t *ctx, char c)
 {
-	int *state = &ctx->work_state;
-
 	if (ctx->msg_idx >= (DISPLAY_BUF_LEN - 1))
 		return;
 
 	ctx->msg_work[ctx->msg_idx++] = (isprint(c) ? c : ' ');
 
-	/* validate message for errors */
-
 	if (ctx->corrupt_msg)
 		return;
-	if (!isprint(c) || iscntrl(c)) {
+	if (!isprint(c) || iscntrl(c))
 		ctx->corrupt_msg = true;
-		return;
-	}
-
-	/* check if message looks like a valid measurement/reading */
-	if (isdigit(c))
-		ctx->num_count++;
-	else if (c == '.')
-		ctx->period_count++;
-
-	if (*state < 0) {
-		return;
-	}
-	else if (*state == 0) {
-		if (c == '-' || c  == ' ') {
-			*state = 1;
-		} else if (isdigit(c)) {
-			*state = 2;
-		} else {
-			*state = -1;
-		}
-	}
-	else if (*state == 1) {
-		if (isdigit(c)) {
-			*state = 2;
-		}
-		else if (c == ' ') {
-			if (ctx->msg_idx > 3)
-				*state = -1;
-		}
-		else {
-			*state = -1;
-		}
-	}
-	else if (*state == 2) {
-		if (isdigit(c)) {
-			if (ctx->num_count >= 7)
-				*state = 3;
-		} else if (c == ' ') {
-			*state = 3;
-		} else if (c == '.' || c == ',') {
-			if (ctx->period_count > 1)
-				*state = -1;
-		} else {
-			*state = -1;
-		}
-	}
 }
 
 static inline uint32_t micros32(void)
@@ -217,9 +167,6 @@ static void messageByte(dmm_context_t *ctx, uint8_t byte)
 		memset(ctx->msg_work, ' ', (DISPLAY_BUF_LEN - 2));   // build a fixed-width field here
 		ctx->msg_work[DISPLAY_BUF_LEN - 2] = 0;
 		ctx->msg_work[DISPLAY_BUF_LEN - 1] = 0;
-		ctx->work_state = 0;
-		ctx->num_count = 0;
-		ctx->period_count = 0;
 		ctx->corrupt_msg = false;
 		ctx->valid_reading = false;
 		ctx->msg_work_need_reset = false;
@@ -306,6 +253,26 @@ static void process_reset(dmm_context_t *ctx)
 	ctx->reset_received = false;
 }
 
+static inline void fifo_append(dmm_context_t *ctx)
+{
+	uint16_t next_wr = (ctx->fifo_wr + 1u) & BYTE_FIFO_MASK;
+
+	if (next_wr == ctx->fifo_rd) {
+		ctx->dbg_byte_overrun_count++;
+	}
+	else {
+		ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
+		ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
+		ctx->fifo_wr = next_wr;
+
+		ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
+		if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
+			ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
+	}
+
+	ctx->byte_len = 0;
+}
+
 
 // -----------------------------------------------------------------------------
 // Public API
@@ -330,31 +297,34 @@ void decoder34401_init(dmm_context_t *ctx)
 }
 
 
-static inline void fifo_append(dmm_context_t *ctx)
-{
-	uint16_t next_wr = (ctx->fifo_wr + 1u) & BYTE_FIFO_MASK;
-
-	if (next_wr == ctx->fifo_rd) {
-		ctx->dbg_byte_overrun_count++;
-	}
-	else {
-		ctx->byte_fifo[ctx->fifo_wr].in = ctx->input_acc;
-		ctx->byte_fifo[ctx->fifo_wr].out = ctx->output_acc;
-		ctx->fifo_wr = next_wr;
-
-		ctx->dbg_fifo_level = (uint32_t)((ctx->fifo_wr - ctx->fifo_rd) & BYTE_FIFO_MASK);
-		if (ctx->dbg_fifo_level > ctx->dbg_fifo_level_max)
-			ctx->dbg_fifo_level_max = ctx->dbg_fifo_level;
-	}
-
-	ctx->byte_len = 0;
-}
-
 void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 {
 	uint32_t now_us = micros32();
-	uint32_t pins = gpio_get_all();
+	uint32_t pins;
+	bool do_pin, di_pin;
 
+#if 0
+	pins = gpio_get_all();
+	do_pin = pins & (1 << DO_PIN);
+	di_pin = pins & (1 << DI_PIN);
+#else
+#define SAMPLE_COUNT 15   // needs to be odd value
+	uint8_t do_c = 0;
+	uint8_t di_c = 0;
+	for (int i = 0; i < SAMPLE_COUNT; i++) {
+		pins = gpio_get_all();
+		do_c += (pins & (1 << DO_PIN)) != 0;
+		di_c += (pins & (1 << DI_PIN)) != 0;
+		__asm volatile("nop; nop; nop;");
+	}
+	do_pin = do_c > (SAMPLE_COUNT/2) ? 1 : 0;
+	di_pin = di_c > (SAMPLE_COUNT/2) ? 1 : 0;
+	if (!(do_c == 0 || do_c == SAMPLE_COUNT))
+		ctx->dbg_do_noise_count++;
+	if (!(di_c == 0 || di_c == SAMPLE_COUNT))
+		ctx->dbg_di_noise_count++;
+#endif
+	ctx->dbg_int_len_us = micros32() - now_us;
 
 	// mid-byte gap detection (power-on / pause)
 	if (ctx->last_us > 0) {
@@ -383,9 +353,10 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 	ctx->last_us = now_us;
 
 
+
 	// read in one bit from DO and DI pins
-	ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (pins & (1 << DO_PIN) ? 1 : 0));
-	ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (pins & (1 << DI_PIN) ? 1 : 0));
+	ctx->output_acc = (uint8_t)((ctx->output_acc << 1) | (do_pin ? 1 : 0));
+	ctx->input_acc = (uint8_t)((ctx->input_acc << 1) | (di_pin ? 1 : 0));
 	ctx->byte_len++;
 
 	if (ctx->byte_len >= 8) {
@@ -393,6 +364,7 @@ void __time_critical_func(decoder34401_sckedge)(dmm_context_t *ctx)
 	}
 
 	ctx->dbg_sck_count++;
+	ctx->dbg_int_len_us = micros32() - now_us;
 }
 
 
@@ -476,18 +448,26 @@ void decoder34401_process(dmm_context_t *ctx)
 			if (lastBytesAreEof(ctx)) {
 				uint32_t now_us = micros32();
 
-				if (ctx->work_state == 3) {
+				if (regex_valid_reading(ctx->msg_work)) {
 					ctx->valid_reading = true;
 				}
-				else if ((ctx->num_count >= 3 && ctx->period_count == 1) || ctx->num_count >=5) {
-					//printf("invalid format: '%s' [%d]\n", ctx->msg_work,ctx->work_state);
+				else if (regex_in_menu(ctx->msg_work)) {
+					// in menu...
+				}
+				else if (regex_text_display(ctx->msg_work)) {
+					// other text...
+				}
+				else {
+					printf("invalid msg: '%s' len=%u\n", ctx->msg_work,ctx->msg_idx);
 					ctx->corrupt_msg = true;
 				}
 
 				if (ctx->corrupt_msg) {
 					ctx->dbg_bad_msg_last_time = now_us;
 					ctx->dbg_bad_msg_count++;
+					printf("corrupt msg: '%s' [%u]\n", ctx->msg_work, ctx->msg_idx);
 				}
+
 
 				memcpy(ctx->main, ctx->msg_work, DISPLAY_BUF_LEN);
 				if (ctx->valid_reading)

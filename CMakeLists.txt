@@ -156,6 +156,7 @@ add_executable(lcdpico
   src/memtest.c
   src/util.c
   src/util_rp2.c
+  src/regex_34401a.c
   src/log.c
   src/crc32.c
   src/lt7680.c
