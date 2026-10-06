@@ -11,6 +11,7 @@
 	"name":	"lcdpico1",
 	"wifi_country":	"XX",
 	"wifi_auth_mode":	"default",
+	"http_vsensor_mask":	"1-8",
 	"vsensors":	[{
 			"id":	0,
 			"name":	"Internal (Pico 2)",

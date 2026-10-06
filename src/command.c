@@ -284,6 +284,8 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf(" mid byte gap count: %lu\n", st->dmm.dbg_mid_byte_gap_count);
 	printf(" buf overflow count: %lu\n", st->dmm.dbg_buf_overflow_count);
 	printf("      bad msg count: %lu\n", st->dmm.dbg_bad_msg_count);
+	printf("     DI noise count: %lu\n", st->dmm.dbg_di_noise_count);
+	printf("     DO noise count: %lu\n", st->dmm.dbg_do_noise_count);
 	printf("  last mid byte gap: %lu\n", st->dmm.dbg_mid_byte_gap_last_time);
 	printf("       last bad msg: %lu\n", st->dmm.dbg_bad_msg_last_time);
 	printf("         last reset: %lu\n", st->dmm.dbg_reset_last_time);
@@ -292,7 +294,7 @@ int cmd_debug(const char *cmd, const char *args, int query, struct prev_cmd_t *p
 	printf("           last any: %lu\n", st->dmm.dbg_any_last_time);
 
 	printf("\nInterrupts:\n");
-	printf("            DMM_INT: %lu\n", st->dmm.dbg_int_count);
+	printf("            DMM_INT: %lu (last int duration %lu us)\n", st->dmm.dbg_int_count, st->dmm.dbg_int_len_us);
 	printf("            DMM_SCK: %lu\n", st->dmm.dbg_sck_count);
 	printf("          DMM_RESET: %lu\n", st->dmm.dbg_reset_count);
 	printf("            LCM_INT: %lu\n", st->lcm_int_count);
