@@ -184,7 +184,9 @@ panic:
 u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 			u16_t current_tag_part, u16_t *next_tag_part)
 {
+	const struct system_state *st = sys_state;
 	size_t printed = 0;
+	char disp[16];
 
 	/* printf("ssi_handler(\"%s\",%lx,%d,%u,%u)\n", tag, (uint32_t)insert, insertlen, current_tag_part, *next_tag_part); */
 
@@ -252,6 +254,14 @@ u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 	else if (!strncmp(tag, "refresh", 8)) {
 		/* generate "random" refresh time for a page, to help spread out the load... */
 		printed = snprintf(insert, insertlen, "%u", (uint)(30 + ((double)rand() / RAND_MAX) * 30));
+	}
+	else if (!strncmp(tag, "reading", 7)) {
+		strncopy(disp, st->dmm.last_reading, sizeof(disp));
+		printed = snprintf(insert, insertlen, "%s", trim_str(disp));
+	}
+	else if (!strncmp(tag, "display", 7)) {
+		strncopy(disp, st->dmm.main, sizeof(disp));
+		printed = snprintf(insert, insertlen, "%s", trim_str(disp));
 	}
 
 
