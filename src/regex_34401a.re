@@ -39,7 +39,7 @@ bool regex_valid_reading(const char *s)
 	prefix = [uUkKmMgG];
 	units = ('VDC'|'VAC'|'AAC'|'ADC'|'OHM'|'HZ'|'DB'|'SEC');
 	reading = [+-]?[ ]*[0-9]+([.][0-9]+)?[ ]*prefix?units[ ]*;
-	misc = [ ]*("O.VLD"[ ]+prefix?units|"OPEN")[ ]*;
+	misc = [ ]*("OVL.D"[ ]+prefix?units|"OPEN")[ ]*;
 
 	misc    { return true; }
 	reading { return true;}
