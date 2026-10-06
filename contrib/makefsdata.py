@@ -26,7 +26,7 @@ response_types = {
 PAYLOAD_ALIGNMENT = 4
 HTTPD_SERVER_AGENT = "lwIP/2.2.1 (http://savannah.nongnu.org/projects/lwip)"
 LWIP_HTTPD_SSI_EXTENSIONS = [".shtml", ".shtm", ".ssi", ".xml", ".json"]
-
+DEFAULT_CONTENT_TYPE = "application/octet-stream"
 
 def process_file(input_dir, file, ssi_files, last_modified):
     results = []
@@ -38,7 +38,7 @@ def process_file(input_dir, file, ssi_files, last_modified):
     # Check content type
     content_type, content_encoding = mimetypes.guess_type(file)
     if content_type is None:
-        content_type = "application/octet-stream"
+        content_type = DEFAULT_CONTENT_TYPE
 
     # file name with posix directory separators
     file_path_posix = file.relative_to(input_dir).as_posix()
@@ -231,6 +231,7 @@ def run_tool():
     )
     parser.add_argument("-ssi", "--ssi", help="ssi filename (ssi support controllerd by file list, not by extension)")
     parser.add_argument("-svr", "--server", nargs='?', help="server identifier sent in HTTP response header")
+    parser.add_argument("--default-content-type", nargs='?', help="default content type (for unrecognized files)")
     parser.add_argument('input_dir', nargs='?')
     args = parser.parse_args()
 
@@ -252,6 +253,10 @@ def run_tool():
     if args.server:
         global HTTPD_SERVER_AGENT
         HTTPD_SERVER_AGENT = args.server
+
+    if args.default_content_type:
+        global DEFAULT_CONTENT_TYPE
+        DEFAULT_CONTENT_TYPE = args.default_content_type
 
     ssi_files = []
     if args.ssi:
