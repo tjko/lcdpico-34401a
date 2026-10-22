@@ -385,11 +385,12 @@ void display_status(const struct system_state *state, const struct system_config
 	log_msg(LOG_DEBUG, "display_status(%p,%p,%d)", state, config, new_data);
 
 	if (!new_data) {
-		if (new_disp_time > 0 && time_us_64() > new_disp_time + 35000) {
+		if (new_disp_time > 0 && time_us_64() > new_disp_time + 300000) {
+			/* Display (possibly) corrupt message after 300ms (if no valid message received by then) */
 			memcpy((char*)state->disp, cur_disp_txt, sizeof(state->disp));
 			memcpy(cur_disp, disp, sizeof(cur_disp));
 			new_disp_time = 0;
-			log_msg(LOG_INFO, "display delayed msg: '%s'", cur_disp_txt);
+			log_msg(LOG_INFO, "DMM delayed msg: '%s'", cur_disp_txt);
 		}
 		update_display(cur_disp, state->dmm.ann_state, false);
 		return;
@@ -439,7 +440,7 @@ void display_status(const struct system_state *state, const struct system_config
 			memcpy(cur_disp, disp, sizeof(cur_disp));
 			new_disp_time = 0;
 		} else {
-			log_msg(LOG_INFO, "DMM possibly bad message: '%s'", dmm);
+			log_msg(LOG_DEBUG, "DMM possibly bad message: '%s'", dmm);
 		}
 	}
 
