@@ -167,7 +167,7 @@ File lcdpico.uf2 family ID 'rp2350-arm-s':
 
 Program Information
  name:                lcdpico
- version:             1.0.1beta
+ version:             1.0.2
  web site:            https://kokkonen.net/lcdpico/
  description:         LCDpico-34401A Display Controller
  features:            USB stdin / stdout
@@ -175,7 +175,7 @@ Program Information
                       safemode = 0
                       sysclock = 0
  binary start:        0x10000000
- binary end:          0x101d1b1c
+ binary end:          0x101eff14
  embedded drive:      0x103bf000-0x103fd000 (248K): littlefs flags 0x0033 rw
  embedded drive:      0x103fd000-0x103ff000 (8K): btflashbank flags 0x0033 rw
  target chip:         RP2350
@@ -204,22 +204,22 @@ Fixed Pin Information
  25:                  On-board LED (output)
 
 Build Information
- sdk version:         2.3.0
+ sdk version:         2.3.1
  pico_board:          pico2_w
  boot2_name:          boot2_w25q080
- build date:          Aug  3 2026
+ build date:          Oct 21 2026
  build attributes:    Release
 
 Metadata Block 1
  address:             0x10000138
- next block address:  0x101d1b08
+ next block address:  0x101eff00
  block type:          image def
  target chip:         RP2350
  image type:          ARM Secure
  extra security:      not enabled
 
 Metadata Block 2
- address:             0x101d1b08
+ address:             0x101eff00
  next block address:  0x10000138
  block type:          ignored
 ```
