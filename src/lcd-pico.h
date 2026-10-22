@@ -218,16 +218,9 @@ struct network_state {
 
 struct system_state {
 	dmm_context_t dmm;
+	char disp[DISPLAY_BUF_LEN];
 	volatile uint32_t lcm_int_count;
 	volatile uint32_t ctp_int_count;
-
-#if 0
-	float vtemp[VSENSOR_MAX_COUNT];
-	float vhumidity[VSENSOR_MAX_COUNT];
-	float vpressure[VSENSOR_MAX_COUNT];
-	absolute_time_t vtemp_updated[VSENSOR_MAX_COUNT];
-	float vtemp_prev[VSENSOR_MAX_COUNT];
-#endif
 };
 
 /* Memory structure that persists over soft resets */
