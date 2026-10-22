@@ -48,7 +48,7 @@ u16_t csv_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *next
 			return 0;
 		buf[0] = 0;
 
-		snprintf(row, sizeof(row), "display,\"%s\"\nannunciators,", st->dmm.main);
+		snprintf(row, sizeof(row), "display,\"%s\"\nannunciators,", st->disp);
 		strncatenate(buf, row, BUF_LEN);
 
 		count = 0;
@@ -117,7 +117,7 @@ u16_t json_stats(char *insert, int insertlen, u16_t current_tag_part, u16_t *nex
 		if (!(json = cJSON_CreateObject()))
 			goto panic;
 
-		cJSON_AddItemToObject(json, "display", cJSON_CreateString(st->dmm.main));
+		cJSON_AddItemToObject(json, "display", cJSON_CreateString(st->disp));
 		cJSON_AddItemToObject(json, "blink_mask", cJSON_CreateNumber(st->dmm.blink_mask));
 
 		/* Annunciators */
@@ -260,7 +260,7 @@ u16_t lcdpico_ssi_handler(const char *tag, char *insert, int insertlen,
 		printed = snprintf(insert, insertlen, "%s", trim_str(disp));
 	}
 	else if (!strncmp(tag, "display", 7)) {
-		strncopy(disp, st->dmm.main, sizeof(disp));
+		strncopy(disp, st->disp, sizeof(disp));
 		printed = snprintf(insert, insertlen, "%s", trim_str(disp));
 	}
 

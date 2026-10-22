@@ -373,11 +373,28 @@ void display_status(const struct system_state *state, const struct system_config
 	static uint16_t old_ann_state = 0;
 	static uint16_t last_blink_mask = 0;
 	static uint64_t last_ann_change = 0;
-	struct display_cell_state disp[DISPLAY_COLS];
+	static char cur_disp_txt[DISPLAY_BUF_LEN];
+	static struct display_cell_state cur_disp[DISPLAY_COLS];
+	static struct display_cell_state disp[DISPLAY_COLS];
+	static uint64_t new_disp_time = 0;
 	const char *dmm = state->dmm.main;
 
 	if (!display_active)
 		return;
+
+	log_msg(LOG_DEBUG, "display_status(%p,%p,%d)", state, config, new_data);
+
+	if (!new_data) {
+		if (new_disp_time > 0 && time_us_64() > new_disp_time + 300000) {
+			/* Display (possibly) corrupt message after 300ms (if no valid message received by then) */
+			memcpy((char*)state->disp, cur_disp_txt, sizeof(state->disp));
+			memcpy(cur_disp, disp, sizeof(cur_disp));
+			new_disp_time = 0;
+			log_msg(LOG_INFO, "DMM delayed msg: '%s'", cur_disp_txt);
+		}
+		update_display(cur_disp, state->dmm.ann_state, false);
+		return;
+	}
 
 	int d = 0;
 	for(int i = 0; i < DISPLAY_COLS; i++) {
@@ -403,19 +420,27 @@ void display_status(const struct system_state *state, const struct system_config
 			break;
 		}
 	}
-
-	update_display(disp, state->dmm.ann_state, false);
-	if (!new_data)
-		return;
+	new_disp_time = time_us_64();
+	memcpy(cur_disp_txt, dmm, sizeof(cur_disp_txt));
 
 	if (state->dmm.corrupt_msg) {
 		log_msg(LOG_DEBUG, "DMM corrupt msg: '%s'", dmm);
 	}
-	else if (!state->dmm.valid_reading) {
-		/* Log "menu" screens displayed */
-		if (strncmp(last_main, dmm, sizeof(last_main))) {
-			log_msg(LOG_INFO, "DMM menu display: '%s'", dmm);
-			memcpy(last_main, dmm, sizeof(last_main));
+	else {
+		if (state->dmm.menu_msg) {
+			/* Log "menu" screens displayed */
+			if (strncmp(last_main, dmm, sizeof(last_main))) {
+				log_msg(LOG_INFO, "DMM menu display: '%s'", dmm);
+				memcpy(last_main, dmm, sizeof(last_main));
+			}
+		}
+
+		if (state->dmm.valid_reading || state->dmm.menu_msg) {
+			memcpy((char*)state->disp, cur_disp_txt, sizeof(state->disp));
+			memcpy(cur_disp, disp, sizeof(cur_disp));
+			new_disp_time = 0;
+		} else {
+			log_msg(LOG_DEBUG, "DMM possibly bad message: '%s'", dmm);
 		}
 	}
 
@@ -446,6 +471,8 @@ void display_status(const struct system_state *state, const struct system_config
 		last_blink_mask = state->dmm.blink_mask;
 	}
 
+
+	update_display(cur_disp, state->dmm.ann_state, false);
 }
 
 

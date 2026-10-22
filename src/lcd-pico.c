@@ -457,7 +457,7 @@ static void core1_main()
 
 		decoder34401_process(&state->dmm);
 
-		if (time_passed(&t_display, 500) || state->dmm.new_data_counter != dmm_last) {
+		if (time_passed(&t_display, 250) || state->dmm.new_data_counter != dmm_last) {
 			display_status(state, config, (state->dmm.new_data_counter != dmm_last));
 			dmm_last = state->dmm.new_data_counter;
 			t_display = get_absolute_time();

@@ -60,7 +60,7 @@ bool regex_in_menu(const char *s)
 	menutext = [A-Za-Z /-];
 	menu = [A-Z][:][ ]+menutext+[ ]*;
 	submenu = [0-9][:][ ]+menutext+[ ]*;
-	misc = [ ]*('MENUS'|'COMMANDS'|'PARAMETER'|'MENU BOTTOM'|'TOP OF MENU'|'EXITING MENU')[ ]*;
+	misc = [ ]*('TOP OF MENU'|'MENUS'|'COMMANDS'|'PARAMETER'|'MENU BOTTOM'|'CHANGE SAVED'|'MIN VALUE'|'MAX VALUE'|'EXITING MENU'|'NOT ENTERED'|'NOT RELEVANT')[ ]*;
 
 	misc    { return true; }
 	menu    { return true; }
@@ -79,7 +79,7 @@ bool regex_text_display(const char *s)
 	re2c:yyfill:enable = 0;
 	re2c:define:YYCTYPE = char;
 
-	parameter = [A-Za-Z0-9 .,/+-];
+	parameter = [A-Za-Z0-9 .,:;/^_+-];
 	text = parameter+;
 
 	text    { return true; }
